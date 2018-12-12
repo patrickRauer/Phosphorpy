@@ -9,7 +9,7 @@ from astropy.visualization import make_lupton_rgb
 from astropy.wcs import WCS
 from astroquery.sdss import SDSS
 
-from Search_V2.external.panstarrs import download_all_bands
+from Phosphorpy.external.panstarrs import download_all_bands
 
 
 def smooth2d(mat, c=5):

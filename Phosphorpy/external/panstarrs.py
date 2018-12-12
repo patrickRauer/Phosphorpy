@@ -60,6 +60,13 @@ def get_all_image_urls(ra, dec, size):
     return out
 
 
+def _download_band(url, img_path):
+    try:
+        urllib.request.urlretrieve(url, img_path)
+    except urllib.error.URLError:
+        pass
+
+
 def download_all_bands(ra, dec, size, save_path):
     """
     Downloads all five filter-images
@@ -90,7 +97,7 @@ def download_all_bands(ra, dec, size, save_path):
     for b in img_urls.keys():
         img_path = path.format(b)
         # start a new thread to download every bands
-        th = Thread(target=urllib.request.urlretrieve,
+        th = Thread(target=_download_band,
                     args=('http:' + img_urls[b],
                           img_path,))
         th.start()

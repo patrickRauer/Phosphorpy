@@ -1,14 +1,14 @@
-import os
 import configparser
+import pkg_resources
 ADS_LINK = 'https://ui.adsabs.harvard.edu/?#abs/{}'
 
 
 def create_dict(line):
     line = line.split(' ')
     temp = []
-    for l in line:
-        if l != '':
-            temp.append(l.strip(','))
+    for line_part in line:
+        if line_part != '':
+            temp.append(line_part.strip(','))
     items = temp[1:]
     if len(items) == 1:
         items = items[0]
@@ -21,10 +21,13 @@ def read_survey_data():
 
     :return: Dict with all local surveys
     """
-    # todo: better path handling
-    path = '../local/survey.conf'
+
+    resource_package = 'Phosphorpy'
+    resource_path = '/'.join(('local', 'survey.conf'))
+    shortcut_path = pkg_resources.resource_filename(resource_package, resource_path)
+
     conf = configparser.ConfigParser()
-    conf.read(path)
+    conf.read(shortcut_path)
 
     surveys = {}
     for s in conf.sections():

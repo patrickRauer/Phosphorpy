@@ -4,6 +4,14 @@ from pandas import DataFrame
 import numpy as np
 
 
+def get_column_names(length):
+    # create columns names 'a', 'b', 'c', ...
+    cols = []
+    for i in range(97, 98 + length):
+        cols.append(chr(i))
+    return cols
+
+
 class FluxTable(DataTable):
     """
     FluxTable is the interface to interact with the fluxes of the sources.
@@ -13,14 +21,14 @@ class FluxTable(DataTable):
     _data = None
     _survey = None
 
-    def __init__(self, data, survey_head=None):
+    def __init__(self, data, survey_head=None, mask=None):
         """
 
         :param data:
         :param survey_head: Survey information
         :type survey_head: SearchEngine.data.sub.magnitudes.SurveyData
         """
-        DataTable.__init__(self)
+        DataTable.__init__(self, mask=mask)
         self._data = data
         self._survey = survey_head
         self._plot = FluxPlot(self)
@@ -43,7 +51,6 @@ class FluxTable(DataTable):
         if norm:
             maxi = np.max(d, axis=1)
             maxi = np.transpose(np.tile(maxi, (d.shape[1], 1)))
-            print(len(maxi))
             d = d/maxi
             err = err/maxi
 
@@ -57,11 +64,7 @@ class FluxTable(DataTable):
                 fit = np.polyfit(wavelengths, row, degree)
                 fits.append(fit)
 
-        # create columns names 'a', 'b', 'c', ...
-        cols = []
-        for i in range(97, 98+degree):
-            cols.append(chr(i))
-        self._fits = DataFrame(data=np.array(fits), columns=cols)
+        self._fits = DataFrame(data=np.array(fits), columns=get_column_names(degree))
 
     def fit_blackbody(self):
         pass

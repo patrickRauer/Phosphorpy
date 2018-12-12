@@ -24,7 +24,7 @@ class Report:
             tags.link(rel='stylesheet', href='default.css')
             tags.script(src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/' +
                             'MathJax.js?config=TeX-AMS-MML_HTMLorMML',
-                        async='async', type='text/javascript')
+                        type='text/javascript')
         with doc:
             tags.nav()
             with div(_class='document'):

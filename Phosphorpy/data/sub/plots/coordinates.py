@@ -79,20 +79,18 @@ class CoordinatePlot:
         """
         pl.clf()
         sp = pl.subplot(projection='mollweide')
-        if type(self._coordinate) == list:
+
+        _angle_plot(self._coordinate[col1],
+                    self._coordinate[col2],
+                    sp, marker=marker,
+                    color=color)
+        if self._coordinate.mask.get_mask_count() > 0:
             # todo: implement color and/or marker iteration
-            if marker == '.' and color == 'k':
-                color = 'k'
-            for coord in self._coordinate:
-                _angle_plot(coord[col1],
-                            coord[col2],
+            for mask_id in range(self._coordinate.mask.get_mask_count()):
+                _angle_plot(self._coordinate[col1][self._coordinate.mask.get_mask(mask_id)],
+                            self._coordinate[col2][self._coordinate.mask.get_mask(mask_id)],
                             sp, marker=marker,
-                            color=color)
-        else:
-            _angle_plot(self._coordinate[col1],
-                        self._coordinate[col2],
-                        sp, marker=marker,
-                        color=color)
+                            color=None)
         sp.grid(True)
         sp.set_xticklabels(['14h', '16h', '18h', '20h', '22h',
                             '0h', '2h', '4h', '6h', '8h', '10h'])

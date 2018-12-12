@@ -9,7 +9,7 @@ class Mask:
     def __init__(self):
         pass
 
-    def add_mask(self, mask, description=''):
+    def add_mask(self, mask, description='', combine=True):
         """
         Adds a new mask to the storage.
 
@@ -17,8 +17,14 @@ class Mask:
             The new mask with the size of the complete dataset or with the size of passed rows in the previous mask.
         :type mask: numpy.ndarray
         :param description: The description of the mask. Default is an empty string.
+        :type description: str
+        :param combine: True if the previous mask should be used (have True values), too, else False. Default is True.
+        :type combine: bool
         :return:
         """
+        if combine:
+            if len(self._mask) > 0:
+                mask = mask & self._mask[-1]
         self._mask.append(mask)
         self._desc.append(description)
 
@@ -62,7 +68,7 @@ class Mask:
         """
         return self._desc[level]
 
-    def get_ask_count(self):
+    def get_mask_count(self):
         """
         Returns the number of masks.
 
@@ -89,10 +95,11 @@ class DataTable:
     _plot = None
     _q = [0.15, 0.25, 0.75, 0.85]
 
-    def __init__(self):
+    def __init__(self, mask=None):
         """
         Basic data table class
         """
+        self._mask = mask
 
     def stats(self):
         """
@@ -119,8 +126,7 @@ class DataTable:
         return self.data.apply(func)
 
     def apply_on_ndarray(self, func):
-        # todo: fill
-        pass
+        return func(self._data.values)
 
     def apply_on_dataframe(self, func):
         """
@@ -140,10 +146,7 @@ class DataTable:
 
     @property
     def data(self):
-        if self.mask is not None:
-            return self._data[self.mask]
-        else:
-            return self._data
+        return self._data
 
     @property
     def plot(self):
@@ -171,7 +174,28 @@ class DataTable:
     def mask(self, value):
         self._mask = value
 
+    def to_astropy_table(self, category='table'):
+        """
+        Returns the data as an astropy.table.Table
+
+        :return: the data
+        :rtype: astropy.table.Table
+        """
+        d = Table.from_pandas(self._data)
+        d.meta['category'] = category
+        return d
+
     def write(self, path, data_format='parquet'):
+        """
+        Writes the data to a file
+
+        :param path: Path to the save place
+        :type path: str
+        :param data_format:
+            The format of the data-file. Current supported types are 'parquet', 'csv', 'sql', 'latex' and 'fits'.
+        :return:
+        """
+        data_format = data_format.lower()
         if data_format == 'parquet':
             self.data.to_parquet(path)
         elif data_format == 'csv':
@@ -182,3 +206,8 @@ class DataTable:
             self.data.to_latex(path)
         elif data_format == 'fits':
             Table.from_pandas(self.data).write(path)
+        else:
+            raise ValueError('Format {} is not supported.'.format(data_format))
+
+    def __str__(self):
+        return str(self._data)

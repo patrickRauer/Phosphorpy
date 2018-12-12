@@ -9,7 +9,7 @@ from astroquery.vizier import Vizier as Viz
 from ..config.survey_data import SURVEY_DATA
 from ..config import names
 from .xmatch import xmatch
-from ..config.match import group_by_coordinates, match_catalogs
+from ..config.match import match_catalogs
 
 import numpy as np
 import warnings
@@ -170,7 +170,7 @@ class Vizier:
             coord = SkyCoord(ra*u.deg, dec*u.deg)
         return self.__query_single__(coord)[0]
 
-    def query(self, data, ra_name='ra', dec_name='dec'):
+    def query(self, data, ra_name='ra', dec_name='dec', use_xmatch=False, blank=False):
         """
         Start a query around the input positions in the Vizier database
 
@@ -180,13 +180,22 @@ class Vizier:
         :type ra_name: str
         :param dec_name: The name of the Dec column
         :type dec_name: str
-        :return: A Data object with the results
-        :rtype: Search_V2.core.data.Data
+        :param use_xmatch: True if xmatch should be used, even for small amount of data, else is False.
+        :type use_xmatch: bool
+        :param blank: True if the raw output should return, else False. Default is False.
+        :type blank: bool
+        :return: A list of tables with the query results
+        :rtype: astropy.table.Table
         """
-        # If there are more than 200 entries, use the xmatch interface to get the data
+        # If there are more than 100 entries, use the xmatch interface to get the data
         # this will be faster
-        if len(data) > 200:
-            return xmatch(data, ra_name, dec_name, self.name)
+        try:
+            if len(data) > 100 or use_xmatch:
+                out = xmatch(data, ra_name, dec_name, self.name, blank=blank)
+
+                return out
+        except ConnectionError:
+            print('No connection to XMatch, fall back to Vizier.')
 
         if type(data) == Table:
             # if no units are add to the coordinate columns
@@ -202,7 +211,11 @@ class Vizier:
             coordinates = SkyCoord(np.array(data[ra_name])*u.deg,
                                    np.array(data[dec_name])*u.deg)
 
-        return self.__query__(coordinates)
+        return self.__query__(coordinates)[0]
+
+    def query_constrain(self, **constrains):
+        rs = self.vizier.query_constraints(catalog=self.catalog, **constrains)
+        return rs[0]
 
 
 class Gaia(Vizier):
@@ -296,7 +309,6 @@ class Galex(Vizier):
         Child class to query GALEX DR5 data
         """
         Vizier.__init__(self)
-        print(self.columns)
         self.vizier = Viz(columns=self.columns)
         self.vizier.ROW_LIMIT = -1
 
@@ -421,21 +433,7 @@ class MultiSurvey:
         return data
 
 
-def query_by_name(name, data, ra_name='ra', dec_name='dec'):
-    """
-    Queries a survey by its name
-
-    :param name: Name of the survey
-    :type name: str
-    :param data: data with the coordinates, it must have at least two columns with 'ra_name' and 'dec_name'
-    :type data:
-    :param ra_name: Name of the RA column
-    :type ra_name: str
-    :param dec_name: Name of the Dec column
-    :type dec_name: str
-    :return: The data from the survey
-    :rtype: numpy.ndarray
-    """
+def get_survey(name):
     name = name.lower()
     if name == 'sdss':
         survey = SDSS()
@@ -455,4 +453,39 @@ def query_by_name(name, data, ra_name='ra', dec_name='dec'):
         survey = Ukidss()
     else:
         raise AttributeError('No survey with name {} known!'.format(name))
-    return survey.query(data, ra_name, dec_name)[0]
+    return survey
+
+
+def query_by_name(name, data, ra_name='ra', dec_name='dec'):
+    """
+    Queries a survey by its name
+
+    :param name: Name of the survey
+    :type name: str
+    :param data: data with the coordinates, it must have at least two columns with 'ra_name' and 'dec_name'
+    :type data:
+    :param ra_name: Name of the RA column
+    :type ra_name: str
+    :param dec_name: Name of the Dec column
+    :type dec_name: str
+    :return: The data from the survey
+    :rtype: numpy.ndarray
+    """
+    survey = get_survey(name)
+    out = survey.query(data, ra_name, dec_name)
+    return out
+
+
+def constrain_query(name, **kwargs):
+    """
+    Constrain query for large surveys by their names
+
+    :param name: The name of the survey
+    :type name: str
+    :param kwargs: Constrains
+    :type kwargs: dict
+    :return: The results of the query
+    :rtype: astropy.table.Table
+    """
+    survey = get_survey(name)
+    return survey.query_constrain(**kwargs)
