@@ -23,6 +23,19 @@ class Colors(DataTable):
         self._mask.add_mask(mask, 'Color cut (minimum={}, maximum={}'.format(minimum, maximum), combine=previous)
 
     def set_limit(self, col, minimum=-99, maximum=99, previous=True):
+        """
+        Sets a constrain to the colors and create a new mask of it
+
+        :param col: The columns of the constrain.
+        :type col: str, list, tuple
+        :param minimum: The minimal value
+        :type minimum: float
+        :param maximum: The maximal value
+        :type maximum: float
+        :param previous: True if the last mask must be True too, else False to create a complete new mask.
+        :type previous: bool
+        :return:
+        """
         if type(col) == str:
             self.__get_mask_data__(col, minimum, maximum, previous)
         elif type(col) == list or type(col) == tuple:

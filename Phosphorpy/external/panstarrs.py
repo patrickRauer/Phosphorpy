@@ -38,9 +38,8 @@ def get_all_image_urls(ra, dec, size):
 
     # call the website and download the source code
     req = urllib.request.Request(url, None, headers)
-    response = urllib.request.urlopen(req)
-    page = response.read()
-    response.close()
+    with urllib.request.urlopen(req) as response:
+        page = response.read()
     page = str(page)
 
     # extract the url of the cutout from the source of the image website

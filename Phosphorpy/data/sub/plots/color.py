@@ -3,6 +3,17 @@ import seaborn
 
 
 def replace_labels(axes, cols, labels):
+    """
+    Sets the the labels of the graph in a proper format. For example removes 'mag' from the old labels
+
+    :param axes: The axes object of the subplot
+
+    :param cols: The names of the cols
+    :type cols: list
+    :param labels: The new labels
+    :type labels: list, dict
+    :return:
+    """
     if type(labels) == list:
         axes.set_xlabel(labels[0])
         axes.set_ylabel(labels[1])
@@ -54,7 +65,12 @@ class Color:
         :type labels: list, dict
         :return:
         """
-        pp = seaborn.PairGrid(self._color.data[cols])
+        # exclude data with nan values
+        m = self._color.data[cols[0]] > -999
+        for i in range(1, len(cols)):
+            m = m & (self._color.data[cols[i]] > -999)
+
+        pp = seaborn.PairGrid(self._color.data[cols][m])
         pp.map_diag(pl.hist)
         pp.map_lower(pl.scatter, marker='.')
         # pp.map_upper(seaborn.kdeplot, cmap="Blues_d")
@@ -183,13 +199,19 @@ class Color:
         :type labels: list, dict
         :return:
         """
+
+        # exclude data with nan values
+        m = self._color.data[cols[0]] > -999
+        for i in range(1, len(cols)):
+            m = m & (self._color.data[cols[i]] > -999)
+
         pl.clf()
         sp = pl.subplot()
         if type(cols) == list:
             for c in cols:
-                sp.hist(self._color.data[c], bins=bins, histtype=histtype, range=range, density=density)
+                sp.hist(self._color.data[c][m], bins=bins, histtype=histtype, range=range, density=density)
         else:
-            sp.hist(self._color.data[cols], bins=bins, histtype=histtype, range=range, density=density)
+            sp.hist(self._color.data[cols][m], bins=bins, histtype=histtype, range=range, density=density)
 
         replace_labels(sp, cols, labels)
         if path != '':

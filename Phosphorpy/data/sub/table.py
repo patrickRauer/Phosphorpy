@@ -77,6 +77,23 @@ class Mask:
         """
         return len(self._mask)
 
+    def remove_mask(self, mask_id):
+        """
+        Removes a mask from the list.
+
+        :param mask_id:
+        :return:
+        """
+        pass
+
+    def reset_mask(self):
+        """
+        Deletes all masks
+        :return:
+        """
+        self._mask = []
+        self._desc = []
+
     @property
     def mask(self):
         return self.get_latest_mask()
@@ -84,6 +101,16 @@ class Mask:
     @property
     def description(self):
         return self.get_latest_description()
+
+    def __call__(self, *args, **kwargs):
+        # if no mask was set
+        if len(self._mask) == 0:
+            # return the input data
+            return args[0]
+        # if at least one mask was set
+        else:
+            # return the mask data
+            return args[0][self.get_latest_mask()]
 
 
 class DataTable:

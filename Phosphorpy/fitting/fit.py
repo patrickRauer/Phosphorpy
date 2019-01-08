@@ -56,7 +56,7 @@ class Fit:
         if callable(f):
             self._func = f
         else:
-            raise ValueError('Value must be callable.')
+            raise ValueError('Parameter must be callable function.')
 
     @property
     def fit_value(self):
@@ -68,6 +68,13 @@ class Fit:
 
 
 def poly(degree):
+    """
+    Returns numpy-polynomial fit of the given degree
+
+    :param degree: The degree of the polynomial
+    :type degree: int
+    :return:
+    """
     def poly_fit(x, y):
         return np.polyfit(x, y, degree)
     return poly_fit

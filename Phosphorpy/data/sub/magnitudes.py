@@ -225,6 +225,7 @@ def guess_surveys(mag_cols):
 def mag_cols_only(cols):
     """
     Returns only the columns names of the magnitudes by excluding columns with 'e_' in it.
+
     :param cols: A list with all column names
     :type cols: list
     :return: A list with the magnitude names only
@@ -266,6 +267,7 @@ class SurveyData:
     def all_magnitudes(self):
         """
         Returns all magnitude column names
+
         :return:
         """
         out = []
@@ -352,6 +354,15 @@ class SurveyData:
         return np.array(out)
 
     def get_survey_wavelengths(self, survey_name):
+        """
+        Returns the effective wavelengths of the bands of the survey sorted by their values.
+
+        :param survey_name: The name of the survey
+        :type survey_name: str
+        :return: The wavelengths
+        :rtype: numpy.ndarray
+        """
+
         out = []
         survey = self._properties[survey_name]
         for band in survey:
@@ -616,6 +627,13 @@ class Magnitude(DataTable):
     def set_limit(self, band, minimum=99, maximum=-99, previous=True):
         """
         Sets a magnitude limit to the magnitude columns with the name band.
+
+        .. code-block:: python
+
+            # select all sources with a G magnitude between 16 and 18
+            # (notice that minimum and maximum are magnitudes, therefore the minimum value is larger than the maximum)
+            ds.magnitudes.set_limit('G', minimum=18, maximum=16)
+
 
         :param band: The name of the band/magnitude column
         :type band: str

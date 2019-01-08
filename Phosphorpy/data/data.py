@@ -105,7 +105,6 @@ class DataSet:
             self._magnitudes = Magnitude(data, mask=self._mask)
 
         # if no data are given but coordinates, magnitudes and maybe colors
-        # todo: coordinates and magnitudes are the minimal requirement, colors and flux are optional
         elif coordinates is not None and magnitudes is not None and colors is not None:
             if coordinates.shape[0] != magnitudes.shape[0]:
                 raise AttributeError('Coordinates and magnitudes do not have the same length!')
@@ -300,18 +299,30 @@ class DataSet:
         :type survey: str
         :param source_id: The id of the source
         :type source_id: int
+        :param directory: The path to the directory, where the images should be saved
+        :type directory: str
         :return:
         """
         survey = survey.lower()
+
+        # if sdss is the selected survey
         if survey == 'sdss':
             s = SDSSImage()
+        # if pan-starrs is the selected survey
         elif survey == 'panstarrs' or survey == 'ps' or survey == 'ps1' or survey == 'pan-starrs':
             s = PanstarrsImage()
         else:
             raise ValueError('{} is not allowed. Only SDSS or PANSTARRS as surveys are allowed.')
         coord = self.coordinates.as_sky_coord(source_id)
+
+        # if the directory string is not empty
         if directory != '':
+            # if the last character is not '/'
+            if directory[-1] != '/':
+                # add '/' to the end of the directory string
+                directory = directory + '/'
             directory = directory + coord.to_string('hmsdms')+'.png'
+
         s.get_color_image(coord, directory)
 
     def all_images(self, survey, directory=''):
@@ -430,8 +441,8 @@ class DataSet:
         s = 'Number of entries: {}\n'.format(len(self.coordinates))
         s += 'Available surveys:\n'
         if self._magnitudes is not None:
-            if self._magnitudes._survey is not None:
-                for su in self._magnitudes._survey.get_surveys():
+            if self._magnitudes.survey is not None:
+                for su in self._magnitudes.survey.get_surveys():
                     s += '\t{}\n'.format(su)
             else:
                 s += '\tno survey data set\n'

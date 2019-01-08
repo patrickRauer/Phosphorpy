@@ -15,7 +15,7 @@ def _angle_plot(x, y, sp, marker, color):
     :param marker: Marker type
     :type marker: str
     :param color: color
-    :type color: str
+    :type color: str, None
     :return:
     """
     x = Angle(x*u.deg)
@@ -37,9 +37,12 @@ class CoordinatePlot:
         """
         Plot the position of the entries in equatorial coordinates
 
-        :param path:
-        :param marker:
-        :param color:
+        :param path: Path the the storage place. An empty string is for showing only.
+        :type path: str
+        :param marker: The marker type. Default is '.'
+        :type marker: str
+        :param color: The color of the markers. Default is black
+        :type color: str
         :return:
         """
         self._scatter('ra', 'dec', 'R.A. [deg]', 'Dec [deg]',
@@ -49,9 +52,12 @@ class CoordinatePlot:
         """
         Plot the position of the entries in galactic coordinates
 
-        :param path:
-        :param marker:
-        :param color:
+        :param path: Path the the storage place. An empty string is for showing only.
+        :type path: str
+        :param marker: The marker type. Default is '.'
+        :type marker: str
+        :param color: The color of the markers. Default is black
+        :type color: str
         :return:
         """
         self._scatter('l', 'b', 'l [deg]', 'b [deg]',
