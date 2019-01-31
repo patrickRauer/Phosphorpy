@@ -1,4 +1,3 @@
-# TODO: implement xmatch for cross-match cases which don't need special columns
 
 from threading import Thread
 
@@ -140,7 +139,14 @@ class Vizier:
             return out
 
     def __query_single__(self, coord):
-        # TODO: check if this works
+        """
+        Perform a query of a single catalog
+
+        :param coord: The coordinates of the target(s)
+        :type coord: astropy.coordinates.SkyCoord
+        :return: The results of the query
+        :rtype: astroquery.TableList
+        """
         if type(self.radius) == tuple or type(self.radius) == list:
             rs = self.vizier.query_region(coord, width=self.radius[0], height=self.radius[1],
                                           catalog=self.catalog)
@@ -214,6 +220,14 @@ class Vizier:
         return self.__query__(coordinates)[0]
 
     def query_constrain(self, **constrains):
+        """
+        Do a constrain query (see :meth:`astroquery.vizier.Vizier.query_constraints` for details)
+
+        :param constrains: The required constraints
+        :type constrains: dict
+        :return: The results of the query
+        :rtype: astropy.table.Table
+        """
         rs = self.vizier.query_constraints(catalog=self.catalog, **constrains)
         return rs[0]
 
@@ -352,6 +366,19 @@ class Ukidss(Vizier):
         self.vizier.ROW_LIMIT = -1
 
 
+class BailerJones(Vizier):
+
+    name = names.BAILER_JONES
+
+    def __init__(self):
+        """
+        Child class to query Bailer-Jones distance estimations from the GAIA DR2
+        """
+        Vizier.__init__(self)
+        self.vizier = Viz(columns=self.columns)
+        self.vizier.ROW_LIMIT = -1
+
+
 class MultiSurvey:
     surveys = []
 
@@ -434,6 +461,14 @@ class MultiSurvey:
 
 
 def get_survey(name):
+    """
+    Returns a survey object of the survey with the given name
+
+    :param name: The name of the survey
+    :type name: str
+    :return: The survey object to perform queries
+    :rtype: Vizier
+    """
     name = name.lower()
     if name == 'sdss':
         survey = SDSS()
@@ -451,6 +486,8 @@ def get_survey(name):
         survey = Apass()
     elif name == 'ukidss':
         survey = Ukidss()
+    elif name == 'bailer-jones' or name =='bj':
+        survey = BailerJones()
     else:
         raise AttributeError('No survey with name {} known!'.format(name))
     return survey
@@ -479,6 +516,10 @@ def query_by_name(name, data, ra_name='ra', dec_name='dec'):
 def constrain_query(name, **kwargs):
     """
     Constrain query for large surveys by their names
+
+    .. code-block:: python
+
+        results = constrain_query('gaia', Gmag='>16 & <18')
 
     :param name: The name of the survey
     :type name: str

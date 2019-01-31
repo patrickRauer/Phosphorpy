@@ -603,7 +603,7 @@ class Magnitude(DataTable):
                             color_color_cols.append(cc_name)
                             colors[cc_name] = subtract(self.data[c1].values, self.data[c2].values)
                 survey_c[survey] = color_color_cols
-        return Colors(colors, mask=self._mask, survey_colors = survey_c)
+        return Colors(colors, mask=self._mask, survey_colors=survey_c)
 
     def has_full_photometry(self, survey, previous=True):
         """

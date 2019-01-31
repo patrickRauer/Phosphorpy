@@ -196,6 +196,7 @@ def xmatch(data, ra_name, dec_name, survey, max_distance=1.*u.arcsec, blank=Fals
     rs = rs[output_cols]
     # group by the row id (unique identifier of the input sources)
     # and take mean value of all values without the NaN values
+
     rs = rs.groupby('row_id')
     rs = rs.aggregate(np.nanmean)
 

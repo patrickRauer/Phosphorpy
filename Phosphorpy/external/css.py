@@ -45,7 +45,7 @@ def download_light_curve(ra, dec):
     
     :param ra: RA coordinate in degree
     :type ra: float
-    :param dec: Dec coordinate in degre
+    :param dec: Dec coordinate in degree
     :type dec: float
     :returns: The light curve of the target
     :rtype: pandas.DataFrame
@@ -64,9 +64,9 @@ def download_light_curve(ra, dec):
         raise ValueError('No light curve available.')
 
 
-def dayly_average(d):
+def daily_average(d):
     """
-    Takes the dayly average of the light curve to reduce the noise.
+    Takes the daily average of the light curve to reduce the noise.
     """
     d = d.copy()
     d['MJD_day'] = np.int32(d['MJD'].values)
@@ -88,12 +88,7 @@ def plot_light_curve(ra, dec):
     
     pl.clf()
     sp = pl.subplot(211)
-#    sp.errorbar(lc['MJD'],
-#                lc['Mag'],
-#                lc['Magerr'],
-#                fmt='.k',
-#                capsize=2)
-    avg = dayly_average(lc)
+    avg = daily_average(lc)
     sp.errorbar(avg['MJD'],
                 avg['Mag'],
                 avg['Magerr'],
@@ -110,16 +105,4 @@ def plot_light_curve(ra, dec):
     sp.set_xlabel('MJD')
     sp.set_ylabel('mag')
     sp.invert_yaxis()
-    
-    print('normal', vari_index(lc['Mag'].values, lc['Magerr'].values))
-    print('avg', vari_index(avg['Mag'].values, avg['Magerr'].values))
-    print('avg smoothed', vari_index(avg_smooth, avg['Magerr'].values))
     pl.show()
-
-
-def test():
-    from astropy.coordinates import SkyCoord
-    from astropy import units as u
-    
-    s = SkyCoord(155.032761*u.deg, 9.467287*u.deg)
-    plot_light_curve(s.ra.degree, s.dec.degree)

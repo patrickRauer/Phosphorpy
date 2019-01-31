@@ -163,6 +163,22 @@ class DataTable:
         """
         self.apply(func)
 
+    def remove_unmasked_data(self):
+        """
+        Removes all unmasked (mask[i] == False) from the data
+        :return:
+        """
+        if self._data is not None:
+            self._data = self._data[self._mask.get_latest_mask()]
+
+    def select_nan(self, column):
+        """
+        Select all rows with a NaN value
+        :return:
+        """
+        d = self._data[column].values
+        self.mask.add_mask(d == d, f'Mask all NaN values in {column}')
+
     @property
     def shape(self):
         return len(self._data), len(self._data.columns)
@@ -238,3 +254,6 @@ class DataTable:
 
     def __str__(self):
         return str(self._data)
+
+    def __getitem__(self, item):
+        return self._data[item]

@@ -52,7 +52,7 @@ class Color:
         self._color = color
         self._magnitude = magnitude
 
-    def __color_color_multi__(self, cols, labels):
+    def __color_color_multi__(self, cols, labels, legend=False):
         """
         Creates a color-color plot with multiple colors (more than 2) in a multiple grid
 
@@ -63,14 +63,24 @@ class Color:
             Replacement of the default labels in a list or a dict. Default is None, which means that default labels
             are used.
         :type labels: list, dict
+        :param legend: True if a legend with the selection labels should be shown, else False. Default is False.
+        :type legend: bool
         :return:
         """
         # exclude data with nan values
         m = self._color.data[cols[0]] > -999
         for i in range(1, len(cols)):
             m = m & (self._color.data[cols[i]] > -999)
+        d = self._color.data[cols]
 
-        pp = seaborn.PairGrid(self._color.data[cols][m])
+        hue = None
+        if self._color.mask.get_mask_count() > 0:
+            d['selection'] = '          '
+            hue = 'selection'
+            for i in range(self._color.mask.get_mask_count()):
+                d.loc[self._color.mask.get_mask(i), 'selection'] = self._color.mask.get_description(i)
+        d = d[m]
+        pp = seaborn.PairGrid(d, hue=hue)
         pp.map_diag(pl.hist)
         pp.map_lower(pl.scatter, marker='.')
         # pp.map_upper(seaborn.kdeplot, cmap="Blues_d")
@@ -98,10 +108,11 @@ class Color:
                         axes.set_xlabel(xlabel.replace('mag', ''))
                     if ylabel != '':
                         axes.set_ylabel(ylabel.replace('mag', ''))
-
+        if hue is not None and legend:
+            pp.add_legend()
             # pp.fig.tight_layout()
 
-    def __color_color_single__(self, cols, labels):
+    def __color_color_single__(self, cols, labels, legend=False):
         """
         Creates a color-color plot with two magnitudes
 
@@ -112,6 +123,8 @@ class Color:
             Replacement of the default labels in a list or a dict. Default is None, which means that default labels
             are used.
         :type labels: list, dict
+        :param legend: True if a legend with the selection labels should be shown, else False. Default is False.
+        :type legend: bool
         :return:
         """
         sp = pl.subplot()
@@ -124,10 +137,13 @@ class Color:
             m = self._color.mask.get_mask(i)
             sp.scatter(self._color.data[cols[0]][m],
                        self._color.data[cols[1]][m],
-                       marker='.')
+                       marker='.', label=self._color.mask.get_description(i))
         replace_labels(sp, cols, labels)
 
-    def color_color(self, survey=None, cols=None, path='', labels=None):
+        if legend and self._color.mask.get_mask_count() > 0:
+            pl.legend(loc='best')
+
+    def color_color(self, survey=None, cols=None, path='', labels=None, legend=False):
         """
         Plots a color color diagram. If their are more than two columns, it will
         plot the color-color diagrams in a grid
@@ -144,6 +160,8 @@ class Color:
         :type labels: list, dict
         :param survey: A name of a loaded survey to make a color-color plot with the colors of this survey.
         :type survey: str
+        :param legend: True if a legend with the selection labels should be shown, else False. Default is False.
+        :type legend: bool
         :return:
         """
         # todo: if a survey and cols are set, check if the cols are in the survey colors and then use this colors only
@@ -166,11 +184,11 @@ class Color:
 
         pl.clf()
         if len(cols) > 2:
-            self.__color_color_multi__(cols, labels)
+            self.__color_color_multi__(cols, labels, legend=legend)
             # todo: implement color color plot (grid if there are more than two colors)
             pass
         else:
-            self.__color_color_single__(cols, labels)
+            self.__color_color_single__(cols, labels, legend=legend)
         if path != '':
             pl.savefig(path)
         pl.show()

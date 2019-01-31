@@ -98,7 +98,6 @@ class CoordinateTable(DataTable):
         """
         if galactic:
             return DataFrame(self.data, columns=['ra', 'dec', 'l', 'b'])
-            pass
         else:
             return DataFrame(self.data[:, :2], columns=['ra', 'dec'])
 

@@ -6,6 +6,7 @@ from Phosphorpy.external.vizier import query_by_name, constrain_query
 from Phosphorpy.data.sub.plots.plot import Plot
 from Phosphorpy.data.sub.table import Mask
 from Phosphorpy.external.image import PanstarrsImage, SDSSImage
+from Phosphorpy.data.sub.astrometry import AstrometryTable
 from astropy.table import Table
 from astropy.io import fits
 import pandas as pd
@@ -13,6 +14,7 @@ from pandas import DataFrame
 import numpy as np
 import zipfile
 import os
+import warnings
 
 
 def add_to_zip(zi, data, name, format='csv'):
@@ -67,6 +69,7 @@ class DataSet:
     _magnitudes = None
     _colors = None
     _flux = None
+    _astrometry = None
     _plot = None
 
     def __init__(self, data=None, index=None, coordinates=None, magnitudes=None, colors=None, flux=None,
@@ -205,6 +208,12 @@ class DataSet:
     def plot(self):
         return self._plot
 
+    @property
+    def astrometry(self):
+        if self._astrometry is None:
+            self._astrometry = AstrometryTable.load_astrometry(self._coordinates)
+        return self._astrometry
+
     def add_row(self, coordinate, magnitude, index=None, color=None):
         # todo: implement add row
         pass
@@ -215,11 +224,18 @@ class DataSet:
 
         :return:
         """
-        self._index = self.__return_masked__(self._index)
-        self._magnitudes = self.__return_masked__(self._magnitudes)
-        self._coordinates = self.__return_masked__(self._coordinates)
-        self._colors = self.__return_masked__(self._colors)
-        self._mask = None
+        # self._index = self.__return_masked__(self._index)
+
+        self._coordinates.remove_unmasked_data()
+        if self._magnitudes is not None:
+            self._magnitudes.remove_unmasked_data()
+        if self._colors is not None:
+            self._colors.remove_unmasked_data()
+        if self._flux is not None:
+            self._colors.remove_unmasked_data()
+        if self._astrometry is not None:
+            self._astrometry.remove_unmasked_data()
+        self._coordinates.mask.reset_mask()
 
     def __get_attribute__(self, item):
         """
@@ -322,8 +338,10 @@ class DataSet:
                 # add '/' to the end of the directory string
                 directory = directory + '/'
             directory = directory + coord.to_string('hmsdms')+'.png'
-
-        s.get_color_image(coord, directory)
+        try:
+            s.get_color_image(coord, directory)
+        except ValueError:
+            warnings.warn("Image is not available", UserWarning)
 
     def all_images(self, survey, directory=''):
         """
@@ -335,7 +353,10 @@ class DataSet:
         :type directory: str
         :return:
         """
-        m = self._mask.get_latest_mask()
+        try:
+            m = self._mask.get_latest_mask()
+        except IndexError:
+            m = np.ones(len(self.coordinates))
         for i in range(len(self.coordinates)):
             if not m[i]:
                 continue
