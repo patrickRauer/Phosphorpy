@@ -15,7 +15,7 @@ def _angle_plot(x, y, sp, marker, color):
     :param marker: Marker type
     :type marker: str
     :param color: color
-    :type color: str
+    :type color: str, None
     :return:
     """
     x = Angle(x*u.deg)
@@ -33,31 +33,44 @@ class CoordinatePlot:
     def __init__(self, coordinate):
         self._coordinate = coordinate
 
-    def equatorial(self, path='', marker='.', color='k'):
+    def equatorial(self, path='', marker='.', color='k',
+                   mask_colors=None):
         """
         Plot the position of the entries in equatorial coordinates
 
-        :param path:
-        :param marker:
-        :param color:
+        :param path: Path the the storage place. An empty string is for showing only.
+        :type path: str
+        :param marker: The marker type. Default is '.'
+        :type marker: str
+        :param color: The color of the markers. Default is black
+        :type color: str
+        :param mask_colors: A color or a list of colors for the mask data
+        :type mask_colors: str, list
         :return:
         """
         self._scatter('ra', 'dec', 'R.A. [deg]', 'Dec [deg]',
-                      path, marker, color)
+                      path, marker, color, mask_colors=mask_colors)
 
-    def galactic(self, path='', marker='.', color='k'):
+    def galactic(self, path='', marker='.', color='k',
+                 mask_colors=None):
         """
         Plot the position of the entries in galactic coordinates
 
-        :param path:
-        :param marker:
-        :param color:
+        :param path: Path the the storage place. An empty string is for showing only.
+        :type path: str
+        :param marker: The marker type. Default is '.'
+        :type marker: str
+        :param color: The color of the markers. Default is black
+        :type color: str
+        :param mask_colors: A color or a list of colors for the mask data
+        :type mask_colors: str, list
         :return:
         """
         self._scatter('l', 'b', 'l [deg]', 'b [deg]',
-                      path, marker, color)
+                      path, marker, color, mask_colors=mask_colors)
 
-    def _scatter(self, col1, col2, x_label, y_label, path, marker, color):
+    def _scatter(self, col1, col2, x_label, y_label, path, marker, color,
+                 mask_colors=None):
         """
         Makes a scatter plot of two coordinates
 
@@ -75,24 +88,24 @@ class CoordinatePlot:
         :type marker: str
         :param color: The color of the markers
         :type color: str
+        :param mask_colors: A color or a list of colors for the mask data
+        :type mask_colors: str, list
         :return:
         """
         pl.clf()
         sp = pl.subplot(projection='mollweide')
-        if type(self._coordinate) == list:
+
+        _angle_plot(self._coordinate[col1],
+                    self._coordinate[col2],
+                    sp, marker=marker,
+                    color=color)
+        if self._coordinate.mask.get_mask_count() > 0:
             # todo: implement color and/or marker iteration
-            if marker == '.' and color == 'k':
-                color = 'k'
-            for coord in self._coordinate:
-                _angle_plot(coord[col1],
-                            coord[col2],
+            for mask_id in range(self._coordinate.mask.get_mask_count()):
+                _angle_plot(self._coordinate[col1][self._coordinate.mask.get_mask(mask_id)],
+                            self._coordinate[col2][self._coordinate.mask.get_mask(mask_id)],
                             sp, marker=marker,
-                            color=color)
-        else:
-            _angle_plot(self._coordinate[col1],
-                        self._coordinate[col2],
-                        sp, marker=marker,
-                        color=color)
+                            color=mask_colors)
         sp.grid(True)
         sp.set_xticklabels(['14h', '16h', '18h', '20h', '22h',
                             '0h', '2h', '4h', '6h', '8h', '10h'])

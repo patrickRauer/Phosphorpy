@@ -1,6 +1,6 @@
-from SearchEngine.report.Report import Report
+from Phosphorpy.report.Report import Report
 
-from SearchEngine.external.image import PanstarrsImage
+from Phosphorpy.external.image import PanstarrsImage
 
 from astropy.coordinates import SkyCoord
 from astropy import units as u

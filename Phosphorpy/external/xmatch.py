@@ -39,14 +39,21 @@ def __write_temp_file__(data, ra_name, dec_name):
     :type dec_name: str
     :return:
     """
-    coords = [ra_name, dec_name, 'row_id']
+    coords = ['{}_input'.format(ra_name), '{}_input'.format(dec_name), 'row_id']
 
     # if the input data are a pandas.DataFrame
     if type(data) == pandas.DataFrame:
+        if 'input' not in ra_name:
+            data = data.rename({ra_name: '{}_input'.format(ra_name),
+                                dec_name: '{}_input'.format(dec_name)},
+                               axis='columns')
         data = __check_row_id__(data, data.columns)
         data[coords].to_csv('temp.csv')
     # if the input data are an astropy.table.Table
     elif type(data) == Table:
+        if 'input' not in ra_name:
+            data.rename_column(ra_name, '{}_input'.format(ra_name))
+            data.rename_column(dec_name, '{}_input'.format(dec_name))
         data = __check_row_id__(data, data.colnames)
         data[coords].write('temp.csv', format='ascii.csv')
     # if the input data aren't an astropy.table.Table or a pandas.DataFrame
@@ -84,7 +91,20 @@ def __output_columns__(survey):
     return cols, coord_cols
 
 
-def xmatch(data, ra_name, dec_name, survey, max_distance=2.*u.arcsec):
+def find_suffix(cols):
+    for c in cols:
+        if 'mag' in c:
+            pre = c.split('mag')[0]
+            return c.split(pre)[-1]
+        elif 'Mag' in c:
+            if 'Aper' in c:
+                pre = c.split('AperMag')[0]
+            else:
+                pre = c.split('Mag')[0]
+            return c.split(pre)[-1]
+
+
+def xmatch(data, ra_name, dec_name, survey, max_distance=1.*u.arcsec, blank=False):
     """
     Interface to the astroquery.xmatch.XMatch module
 
@@ -98,6 +118,8 @@ def xmatch(data, ra_name, dec_name, survey, max_distance=2.*u.arcsec):
     :type survey: str
     :param max_distance: Maximal distance to the counterpart in the other catalog
     :type max_distance: ﻿astropy.units.quantity.Quantity
+    :param blank: True if all columns should return, else False for survey specific columns.
+    :type blank: bool
     :return: The results of the catalog query
     :rtype: pandas.DataFrame
     """
@@ -107,15 +129,75 @@ def xmatch(data, ra_name, dec_name, survey, max_distance=2.*u.arcsec):
     # use XMatch to download the data
     rs = XMatch.query(cat1=open('temp.csv'),
                       cat2='vizier:{}'.format(SURVEY_DATA[survey]['vizier']),
-                      colRA1=ra_name,
-                      colDec1=dec_name,
+                      colRA1='{}_input'.format(ra_name),
+                      colDec1='{}_input'.format(dec_name),
                       max_distance=max_distance)
+
     # remove the temp file
     os.remove('temp.csv')
+    if blank:
+        return rs
 
     # reduce the number of columns to the required ones
     output_cols, coord_cols = __output_columns__(survey)
-    rs = rs[output_cols]
+    # rs = rs[output_cols]
 
     rs = rs.to_pandas()
+
+    # handle the labeling of XMatch Gaia
+    if survey == 'GAIA':
+        conv = {'phot_g_mean_mag': "Gmag",
+                'phot_bp_mean_mag': 'BPmag',
+                'phot_rp_mean_mag': 'RPmag',
+                'parallax': 'Plx',
+                'parallax_error': 'e_Plx'}
+        rs = rs.rename(conv, axis='columns')
+        rs['e_Gmag'] = 2.5*rs['phot_g_mean_flux_error']/(np.log(10) *
+                                                         rs['phot_g_mean_flux'])
+        rs['e_BPmag'] = 2.5*rs['phot_bp_mean_flux_error']/(np.log(10) *
+                                                           rs['phot_bp_mean_flux'])
+        rs['e_RPmag'] = 2.5*rs['phot_rp_mean_flux_error']/(np.log(10) *
+                                                           rs['phot_rp_mean_flux'])
+
+    else:
+        # check if the config-file contains special hints for the labeling
+        if 'xmatch' in SURVEY_DATA[survey].keys():
+            replacer = SURVEY_DATA[survey]['xmatch']
+
+            # rename the column names to the standard vizier style
+            conv = {}
+            for c in rs.columns:
+
+                if 'Err' in c:
+                    conv[c] = 'e_{}mag'.format(c.replace('{}Err'.format(replacer), '').upper())
+                elif 'err' in c:
+                    conv[c] = 'e_{}mag'.format(c.replace('{}err'.format(replacer), '').upper())
+                elif replacer in c:
+                    conv[c] = '{}mag'.format(c.replace(replacer, '').upper())
+            rs = rs.rename(conv, axis='columns')
+
+            # special case of UKIDSS J-band
+            conv = {}
+            for c in rs.columns:
+
+                if '_1' in c:
+                    conv[c] = c.replace('_1', '')
+            rs = rs.rename(conv, axis='columns')
+
+    # check if output_cols contains the right coordinate names
+    if output_cols[-2] not in rs.columns:
+        if 'ra' in rs.columns:
+            output_cols[-3] = 'ra'
+            output_cols[-2] = 'dec'
+        elif 'RAdeg' in rs.columns:
+            output_cols[-3] = 'RAdeg'
+            output_cols[-2] = 'DEdeg'
+
+    rs = rs[output_cols]
+    # group by the row id (unique identifier of the input sources)
+    # and take mean value of all values without the NaN values
+
+    rs = rs.groupby('row_id')
+    rs = rs.aggregate(np.nanmean)
+
     return rs

@@ -9,7 +9,7 @@ from astropy.visualization import make_lupton_rgb
 from astropy.wcs import WCS
 from astroquery.sdss import SDSS
 
-from Search_V2.external.panstarrs import download_all_bands
+from Phosphorpy.external.panstarrs import download_all_bands
 
 
 def smooth2d(mat, c=5):
@@ -125,18 +125,15 @@ class PanstarrsImage:
     def __init__(self):
         pass
 
-    def get_color_image(self, s, path='', smooth=0):
+    def get_normalized_imaged(self, s, smooth):
         """
-        Download the Pan-STARRS images and create an RGB image out of them.
+        Returns the normalized images and the HDU's
 
-        :param s: Coordinates of the target
+        :param s: The central coordinates of the image
         :type s: astropy.coordinates.SkyCoord
-        :param path:
-            The path to the save place. Default is '' which means that the image will be shown only.
-        :type path: str
-        :param smooth: Number of smooth
+        :param smooth: The number of linear smooths
         :type smooth: int
-        :return:
+        :return: The normalized images and the original HDU's
         """
         # download Pan-STARRS images
         paths = download_all_bands(s.ra.degree, s.dec.degree, self.color_image_radius,
@@ -144,7 +141,10 @@ class PanstarrsImage:
         imgs = []
         for c in self.color_image_bands:
             imgs.append(fits.open(paths[c]))
+            # print(imgs[-1][0].header['FPA.ZP'])
 
+        # for k in imgs[2][0].header:
+        #     print(k, imgs[2][0].header[k])
         # create an RGB-array
         rgb = np.zeros((imgs[2][0].shape[0], imgs[2][0].shape[1], 3))
         rgb[:, :, 2] = imgs[2][0].data
@@ -155,7 +155,7 @@ class PanstarrsImage:
         # take the center
         center = [rgb.shape[0] // 2, rgb.shape[1] // 2]
         center_counts = []
-        
+
         rgb = np.nan_to_num(rgb)
         # make a lower cut to exclude the noise
         for i in range(3):
@@ -173,7 +173,22 @@ class PanstarrsImage:
         for i in range(3):
             rgb[:, :, i] /= center_counts[i]
             rgb[:, :, i] = smooth2d(rgb[:, :, i], smooth)
+        return rgb, imgs
 
+    def get_color_image(self, s, path='', smooth=0):
+        """
+        Download the Pan-STARRS images and create an RGB image out of them.
+
+        :param s: Coordinates of the target
+        :type s: astropy.coordinates.SkyCoord
+        :param path:
+            The path to the save place. Default is '' which means that the image will be shown only.
+        :type path: str
+        :param smooth: Number of smooth
+        :type smooth: int
+        :return:
+        """
+        rgb, imgs = self.get_normalized_imaged(s, smooth)
         pl.clf()
         # make a chart with a WCS projection
         sp = pl.subplot(projection=WCS(imgs[0][0].header))

@@ -3,6 +3,17 @@ import seaborn
 
 
 def replace_labels(axes, cols, labels):
+    """
+    Sets the the labels of the graph in a proper format. For example removes 'mag' from the old labels
+
+    :param axes: The axes object of the subplot
+
+    :param cols: The names of the cols
+    :type cols: list
+    :param labels: The new labels
+    :type labels: list, dict
+    :return:
+    """
     if type(labels) == list:
         axes.set_xlabel(labels[0])
         axes.set_ylabel(labels[1])
@@ -12,6 +23,21 @@ def replace_labels(axes, cols, labels):
     else:
         axes.set_xlabel(cols[0].replace('mag', ''))
         axes.set_ylabel(cols[1].replace('mag', ''))
+
+
+def create_color_name(c):
+    """
+    Checks if the color name is a proper color name. If not it will convert the name to a proper style.
+    :param c: The input color name
+    :type c: str
+    :return: The input color name in a proper style
+    :rtype: str
+    """
+    if 'mag' not in c:
+        c = c.split('-')
+        c = '{}mag - {}mag'.format(c[0].replace(' ', ''),
+                                   c[1].replace(' ', ''))
+    return c
 
 
 class Color:
@@ -26,7 +52,7 @@ class Color:
         self._color = color
         self._magnitude = magnitude
 
-    def __color_color_multi__(self, cols, labels):
+    def __color_color_multi__(self, cols, labels, legend=False):
         """
         Creates a color-color plot with multiple colors (more than 2) in a multiple grid
 
@@ -37,12 +63,28 @@ class Color:
             Replacement of the default labels in a list or a dict. Default is None, which means that default labels
             are used.
         :type labels: list, dict
+        :param legend: True if a legend with the selection labels should be shown, else False. Default is False.
+        :type legend: bool
         :return:
         """
-        pp = seaborn.PairGrid(self._color.data[cols])
+        # exclude data with nan values
+        m = self._color.data[cols[0]] > -999
+        for i in range(1, len(cols)):
+            m = m & (self._color.data[cols[i]] > -999)
+        d = self._color.data[cols]
+
+        hue = None
+        if self._color.mask.get_mask_count() > 0:
+            d['selection'] = '          '
+            hue = 'selection'
+            for i in range(self._color.mask.get_mask_count()):
+                d.loc[self._color.mask.get_mask(i), 'selection'] = self._color.mask.get_description(i)
+        d = d[m]
+        pp = seaborn.PairGrid(d, hue=hue)
         pp.map_diag(pl.hist)
-        pp.map_offdiag(pl.scatter)
-        pp.fig.subplots_adjust(wspace=0, hspace=0)
+        pp.map_lower(pl.scatter, marker='.')
+        # pp.map_upper(seaborn.kdeplot, cmap="Blues_d")
+        pp.fig.subplots_adjust(wspace=0.02, hspace=0.02)
 
         # change the current labels, which are the default column names to a proper style
         # like removing 'mag' from the labels or replacing the labels with given labels
@@ -66,11 +108,13 @@ class Color:
                         axes.set_xlabel(xlabel.replace('mag', ''))
                     if ylabel != '':
                         axes.set_ylabel(ylabel.replace('mag', ''))
+        if hue is not None and legend:
+            pp.add_legend()
+            # pp.fig.tight_layout()
 
-            pp.fig.tight_layout()
-
-    def __color_color_single__(self, cols, labels):
-        """]Creates a color-color plot with two magnitudes
+    def __color_color_single__(self, cols, labels, legend=False):
+        """
+        Creates a color-color plot with two magnitudes
 
         :param cols:
             The name of color columns. Default is None, which means that all colors are taken.
@@ -79,22 +123,34 @@ class Color:
             Replacement of the default labels in a list or a dict. Default is None, which means that default labels
             are used.
         :type labels: list, dict
+        :param legend: True if a legend with the selection labels should be shown, else False. Default is False.
+        :type legend: bool
         :return:
         """
         sp = pl.subplot()
         sp.scatter(self._color.data[cols[0]],
                    self._color.data[cols[1]],
                    marker='.', c='k')
+
+        # iterate over all masks
+        for i in range(self._color.mask.get_mask_count()):
+            m = self._color.mask.get_mask(i)
+            sp.scatter(self._color.data[cols[0]][m],
+                       self._color.data[cols[1]][m],
+                       marker='.', label=self._color.mask.get_description(i))
         replace_labels(sp, cols, labels)
 
-    def color_color(self, cols=None, path='', labels=None):
+        if legend and self._color.mask.get_mask_count() > 0:
+            pl.legend(loc='best')
+
+    def color_color(self, survey=None, cols=None, path='', labels=None, legend=False):
         """
         Plots a color color diagram. If their are more than two columns, it will
         plot the color-color diagrams in a grid
 
         :param cols:
             The name of color columns. Default is None, which means that all colors are taken.
-        :type cols: list
+        :type cols: list, dict
         :param path:
             Path to the save place. Default is an empty string, which means that the figure will be shown, only.
         :type path: str
@@ -102,18 +158,37 @@ class Color:
             Replacement of the default labels in a list or a dict. Default is None, which means that default labels
             are used.
         :type labels: list, dict
+        :param survey: A name of a loaded survey to make a color-color plot with the colors of this survey.
+        :type survey: str
+        :param legend: True if a legend with the selection labels should be shown, else False. Default is False.
+        :type legend: bool
         :return:
         """
+        # todo: if a survey and cols are set, check if the cols are in the survey colors and then use this colors only
         if cols is None:
-            cols = self._color.data.columns
+            if survey is None:
+                cols = self._color.data.columns
+            else:
+                cols = self._color.survey_colors[survey]
+        else:
+            use_cols = []
+            if type(cols) is list:
+                for c in cols:
+                    use_cols.append(create_color_name(c))
+            elif type(cols) == dict:
+                # todo: implement a col selection with a dict (maybe a list of dicts?)
+                pass
+            else:
+                raise ValueError('{} is not supported format for color names.'.format(type(cols)))
+            cols = use_cols
 
         pl.clf()
         if len(cols) > 2:
-            self.__color_color_multi__(cols, labels)
+            self.__color_color_multi__(cols, labels, legend=legend)
             # todo: implement color color plot (grid if there are more than two colors)
             pass
         else:
-            self.__color_color_single__(cols, labels)
+            self.__color_color_single__(cols, labels, legend=legend)
         if path != '':
             pl.savefig(path)
         pl.show()
@@ -142,13 +217,19 @@ class Color:
         :type labels: list, dict
         :return:
         """
+
+        # exclude data with nan values
+        m = self._color.data[cols[0]] > -999
+        for i in range(1, len(cols)):
+            m = m & (self._color.data[cols[i]] > -999)
+
         pl.clf()
         sp = pl.subplot()
         if type(cols) == list:
             for c in cols:
-                sp.hist(self._color.data[c], bins=bins, histtype=histtype, range=range, density=density)
+                sp.hist(self._color.data[c][m], bins=bins, histtype=histtype, range=range, density=density)
         else:
-            sp.hist(self._color.data[cols], bins=bins, histtype=histtype, range=range, density=density)
+            sp.hist(self._color.data[cols][m], bins=bins, histtype=histtype, range=range, density=density)
 
         replace_labels(sp, cols, labels)
         if path != '':

@@ -12,21 +12,13 @@ VIKING = 'VIKING'
 GALEX = 'GALEX'
 GAIA = 'GAIA'
 UKIDSS = 'UKIDSS'
+BAILER_JONES = 'Bailer-Jones'
 
 # Dict where the keys are the survey names and
 # the items are a list of the corresponding filter names
 MAG_COLUMNS = {}
 for k in SURVEY_DATA:
     MAG_COLUMNS[k] = SURVEY_DATA[k]['magnitude']
-# MAG_COLUMNS = {PANSTARRS: SURVEY_DATA[PANSTARRS]['magnitude'],
-#                SDSS: SURVEY_DATA[SDSS]['magnitude'],
-#                WISE: SURVEY_DATA[WISE]['magnitude'],
-#                TWO_MASS: SURVEY_DATA[TWO_MASS]['magnitude'],
-#                APASS: SURVEY_DATA[APASS]['magnitude'],
-#                KIDS: SURVEY_DATA[KIDS]['magnitude'],
-#                VIKING: SURVEY_DATA[VIKING]['magnitude'],
-#                GALEX: SURVEY_DATA[GALEX]['magnitude'],
-#                GAIA: SURVEY_DATA[GAIA]['magnitude']}
 
 
 def get_available_surveys():

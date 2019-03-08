@@ -18,14 +18,14 @@ B_NAMES = ['b', 'B']
 
 class CoordinateTable(DataTable):
 
-    def __init__(self, data, head=None):
+    def __init__(self, data, head=None, mask=None):
         """
         Table to handle coordinates
 
         :param data:
         :param head:
         """
-        DataTable.__init__(self)
+        DataTable.__init__(self, mask=mask)
         self._head = head
         self._plot = CoordinatePlot(self)
 
@@ -88,11 +88,34 @@ class CoordinateTable(DataTable):
         return len(self._data[:, 0])
 
     def to_table(self, galactic=False):
+        """
+        Returns the coordinates as pandas.DataFrame
+
+        :param galactic: True if the galactic coordinates should be included, else False. Default is False.
+        :type galactic: bool
+        :return: The coordinates in a DataFrame
+        :rtype: pandas.DataFrame
+        """
         if galactic:
             return DataFrame(self.data, columns=['ra', 'dec', 'l', 'b'])
-            pass
         else:
             return DataFrame(self.data[:, :2], columns=['ra', 'dec'])
+
+    def as_sky_coord(self, source_id=-1):
+        """
+        Return the coordinate(s) back as a SkyCoord object
+
+        :param source_id:
+            The id of the source. Default is -1 which means that all coordinates are converted to SkyCoord.
+        :type source_id: int, list, tuple
+        :return: The SkyCoord object of the source(s)
+        :rtype: astropy.coordinates.SkyCoord
+        """
+        if source_id == -1:
+            s = SkyCoord(self.data[:, 0]*u.deg, self.data[:, 1]*u.deg)
+        else:
+            s = SkyCoord(self.data[source_id, 0]*u.deg, self.data[source_id, 1]*u.deg)
+        return s
 
     def match(self, other, radius=1*u.arcsec):
         """
@@ -157,6 +180,20 @@ class CoordinateTable(DataTable):
         else:
             raise ValueError('Allowed types are astropy.coordinate.SkyCoord, numpy.ndarray '
                              'or SearchEngine.data.sub.coordinates.CoordinateTable, not {}'.format(type(other)))
+
+    def write(self, path, data_format='parquet'):
+        data = self.to_table()
+        if data_format == 'parquet':
+            data.to_parquet(path)
+        elif data_format == 'csv':
+            data.to_csv(path)
+        elif data_format == 'sql':
+            # todo: implement engine for sql writing
+            data.to_sql(path, None)
+        elif data_format == 'latex':
+            data.to_latex(path)
+        elif data_format == 'fits':
+            Table.from_pandas(self.data).write(path)
 
 
 def get_column_names(d):

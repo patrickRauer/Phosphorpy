@@ -1,6 +1,7 @@
 from astropy.units.quantity import Quantity
 from astropy import units as u
 from threading import Thread
+from queue import Queue
 import urllib
 import os
 
@@ -29,7 +30,7 @@ def get_all_image_urls(ra, dec, size):
     headers = {'User-Agent': user_agent}
 
     if type(size) == Quantity:
-        size = size.to(u.arcsec).value/0.25
+        size = size.to(u.arcsec).value / 0.25
     else:
         size /= 0.25
     size = int(size)
@@ -38,9 +39,8 @@ def get_all_image_urls(ra, dec, size):
 
     # call the website and download the source code
     req = urllib.request.Request(url, None, headers)
-    response = urllib.request.urlopen(req)
-    page = response.read()
-    response.close()
+    with urllib.request.urlopen(req) as response:
+        page = response.read()
     page = str(page)
 
     # extract the url of the cutout from the source of the image website
@@ -58,6 +58,25 @@ def get_all_image_urls(ra, dec, size):
         img_url = img_url.split('">')[0]
         out.update({band: img_url})
     return out
+
+
+def _download_band(url, img_path, results):
+    """
+    Downloads an image from the panstarrs database
+
+    :param url: The url to the panstarrs image
+    :type url: str
+    :param img_path: The path the storage place
+    :type img_path: str
+    :param results: Queue to store the if the image is available or not
+    :type results: Queue
+    :return:
+    """
+    try:
+        urllib.request.urlretrieve(url, img_path)
+        results.put(True)
+    except urllib.error.URLError:
+        results.put(False)
 
 
 def download_all_bands(ra, dec, size, save_path):
@@ -86,13 +105,14 @@ def download_all_bands(ra, dec, size, save_path):
     path = os.path.join(save_path, 'temp_image_{}.fits')
 
     out = {}
+    q = Queue(maxsize=0)
     # go through all available bands
     for b in img_urls.keys():
         img_path = path.format(b)
         # start a new thread to download every bands
-        th = Thread(target=urllib.request.urlretrieve,
+        th = Thread(target=_download_band,
                     args=('http:' + img_urls[b],
-                          img_path,))
+                          img_path, q))
         th.start()
         ths.append(th)
         out[b] = img_path
@@ -101,4 +121,7 @@ def download_all_bands(ra, dec, size, save_path):
     for t in ths:
         t.join(timeout=30)
 
+    while not q.empty():
+        if not q.get():
+            raise ValueError('Image not available.')
     return out
