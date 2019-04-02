@@ -14,17 +14,25 @@ class MagnitudePlot:
     def __init__(self, data):
         self._data = data
 
-    def hist(self, cols=None, path=''):
+    def hist(self, cols=None, survey=None, path=''):
         """
         Plots the histogram(s) of the different magnitude(s).
 
         :param cols: A list of magnitude names. Default is None which means that all magnitudes are taken.
         :type cols: list, str
+        :param survey: Name of the survey or None. If None all surveys with the cols names are used.
+        :type survey: str
         :param path: Path to the save place. Default is an empty string, which means that the plot will be shown, only.
         :type path: str
         :return:
         """
-        all_columns = self._data.get_names()
+        if survey is not None:
+            d = self._data.get_survey_data(survey)
+        elif len(self._data.data) == 1:
+            d = self._data.data[0]
+        else:
+            d = self._data.get_columns(cols)
+        all_columns = d.columns.values
         # if no columns are given, take all columns from the dataset
         if cols is None:
             cols = all_columns
@@ -45,13 +53,19 @@ class MagnitudePlot:
             # check if the magnitude is in the data. If not, raise an error
             if c not in all_columns:
                 raise KeyError('Magnitude is not in the dataset!')
-            for i in range(self._data.mask.get_mask_count()):
-                _hist(sp, self._data.data[c][self._data.mask.get_mask(i)],
-                      bins='auto', histtype='step', label=c)
+            if self._data.mask.get_mask_count() == 0:
+                _hist(sp, d[c],
+                      bins='auto', histtype='step',
+                      label=c.split('mag')[0])
+            else:
+                for i in range(d.mask.get_mask_count()):
+                    print(d[c])
+                    _hist(sp, d[c][self._data.mask.get_mask(i)],
+                          bins='auto', histtype='step', label=c)
 
         # set the axis-labels
         sp.set_xlabel('magnitude')
-        sp.set_ylabel('frequency')
+        sp.set_ylabel('counts')
         pl.legend(loc='best')
 
         # if a path is given, save the figure, else show the figure

@@ -20,11 +20,27 @@ class Report:
         doc = document(title='source sheet')
 
         with doc.head:
+            tags.script(src='https://code.jquery.com/jquery-3.3.1.js',
+                        type='text/javascript')
+            tags.script(src='https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js',
+                        type='text/javascript')
+            tags.script(src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js",
+                        type='text/javascript')
+            tags.script(src='coordinates.js',
+                        type='text/javascript')
+            tags.script(src="https://cdn.datatables.net/colreorder/1.1.2/js/dataTables.colReorder.min.js",
+                        type='text/javascript')
+            tags.script(src="https://cdn.datatables.net/plug-ins/725b2a2115b/api/fnFilterClear.js",
+                        type='text/javascript')
+            tags.script(src="https://cdn.jsdelivr.net/jquery.ui-contextmenu/1.7.0/jquery.ui-contextmenu.min.js",
+                        type='text/javascript')
             tags.link(rel='stylesheet', href=self.alabaster_link)
             tags.link(rel='stylesheet', href='default.css')
             tags.script(src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/' +
                             'MathJax.js?config=TeX-AMS-MML_HTMLorMML',
                         type='text/javascript')
+            tags.link(rel='stylesheet', href="https://cdn.datatables.net/v/dt/dt-1.10.18/datatables.min.css",
+                      type='text/css')
         with doc:
             tags.nav()
             with div(_class='document'):
@@ -34,6 +50,7 @@ class Report:
                             for p in self.parts:
                                 p.html()
         render = doc.render()
+
         if path != '':
             with open(path, 'w') as f:
                 f.write(render)
@@ -83,32 +100,36 @@ class SourceList(Report):
 
     @div(id='source_list')
     def html(self, path=''):
-        with tags.table(_class='docutils', border='1'):
+
+        with tags.table(_class='display', _id='example'):
             # table header
-            with tags.tr():
-                tags.th('ID', style='text-align: center;')
-                with tags.th(style='text-align: center;'):
-                    tags.label('RA', style='align:center')
-                    tags.br()
-                    tags.label('hh:mm:ss')
-                with tags.th(style='text-align: center;'):
-                    tags.label('Dec', style='align:center')
-                    tags.br()
-                    tags.label('dd:mm:ss')
 
             # table body
-            for i, c in enumerate(self.coordinates):
-                with tags.tr():
-                    with tags.td():
-                        self.__id_div__(i, c)
-                    with tags.td():
-                        tags.span(self.__ra_string__.format(*c.ra.hms),
-                                  _class="math notranslate nohighlight")
-                    with tags.td():
-                        tags.span(self.__dec_string__.format(c.dec.dms[0],
-                                                             abs(c.dec.dms[1]),
-                                                             abs(c.dec.dms[2])),
-                                  _class="math notranslate nohighlight")
+            with open('coordinates.js', 'w') as f:
+                f.write('var data = [\n')
+                for i, c in enumerate(self.coordinates):
+                    ra = self.__ra_string__.format(*c.ra.hms)
+                    dec = self.__dec_string__.format(c.dec.dms[0],
+                                                     abs(c.dec.dms[1]),
+                                                     abs(c.dec.dms[2]))
+                    f.write(f'\t\t["{i}", "{ra}", "{dec}"],\n')
+                f.write('\t]')
+
+            tags.script("$(document).ready(function () {\n" +
+                        "\t$('#example').DataTable( {\n" +
+                        "\t\tdata: data,\n" +
+                        "\t\tcolumns: [{ title: 'id' },\n" +
+                        "\t\t\t{ title: 'ra' },\n" +
+                        "\t\t\t{ title: 'dec' }]\n" +
+                        "\t} );\n" +
+                        "\tconsole.log('create table');\n" +
+                        "\t});\n" +
+                        "$(document).contextmenu({\n" +
+                        "\tdelegate: '.dataTable td',\n" +
+                        "\tmenu: [\n" +
+                        "\t\t{title: 'Filter', uiIcon: 'ui-icon-volume-off ui-icon-filter'},\n" +
+                        "\t\t{title: 'Remove filter', uiIcon: 'ui-icon-volume-off ui-icon-filter'}\n" +
+                        "]});\n")
 
 
 class ReportPlot(Report):
@@ -262,3 +283,21 @@ class MagnitudePlot(ReportPlot):
                                                                               self.col2,
                                                                               self.col3,
                                                                               self.col4))
+
+
+class DataSetReport(Report):
+
+    _ds = None
+
+    def __init__(self, dataset):
+        """
+        Creates a html report of the given dataset
+        :param dataset: The dataset for the report
+        :type dataset: Phosphorpy.DataSet
+        """
+        self._ds = dataset
+
+    def html(self, path=''):
+        self.parts.append(SourceList(self._ds.coordinates.as_sky_coord()))
+
+        Report.html(self, path)

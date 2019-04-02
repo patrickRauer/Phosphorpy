@@ -1,13 +1,21 @@
 from astropy.table import Table
 import numpy as np
+import pandas as pd
 
 
 class Mask:
     _mask = []
     _desc = []
 
-    def __init__(self):
-        pass
+    def __init__(self, length):
+        self._mask.append(pd.Series(length*[True], np.arange(length)))
+        self._desc.append('initialization')
+
+    def __str__(self):
+        string = ''
+        for i in range(self.get_mask_count()):
+            string += 'Mask No {}: {}\n'.format(i, self.get_description(i))
+        return string
 
     def add_mask(self, mask, description='', combine=True):
         """
@@ -15,7 +23,7 @@ class Mask:
 
         :param mask:
             The new mask with the size of the complete dataset or with the size of passed rows in the previous mask.
-        :type mask: numpy.ndarray
+        :type mask: pandas.Series
         :param description: The description of the mask. Default is an empty string.
         :type description: str
         :param combine: True if the previous mask should be used (have True values), too, else False. Default is True.
@@ -24,7 +32,14 @@ class Mask:
         """
         if combine:
             if len(self._mask) > 0:
-                mask = mask & self._mask[-1]
+                # Aligns the new incoming mask with the previous mask
+                # because if a survey doesn't contain all sources the incoming mask
+                # will have different size
+                # join left because the original mask is the largest by definition
+                # fill_value is True because missing values can not be selected
+                mask = self._mask[-1].align(mask, fill_value=True, join='left')[1]
+                mask &= self._mask[-1]
+
         self._mask.append(mask)
         self._desc.append(description)
 
@@ -128,6 +143,14 @@ class DataTable:
         """
         self._mask = mask
 
+    def set_mask(self, mask):
+        self._mask = mask
+        if type(self.data) == list:
+            print(self.data)
+            for d in self.data:
+                print(type(d))
+                d.set_mask(mask)
+
     def stats(self):
         """
         Returns basic statistics (mean, median, std, min, max) of the magnitudes
@@ -228,6 +251,22 @@ class DataTable:
         d.meta['category'] = category
         return d
 
+    def _write(self, path, function):
+        paths = []
+        if type(self.data) == list:
+            ending = path.split('.')[-1]
+            path = path.split(f'.{ending}')[0]
+            for d in self.data:
+                name = d.survey_name
+                p = f'{path}_{name}.{ending}'
+
+                d.__getattr__(function)(p)
+                paths.append(p)
+        else:
+            self.data.__getattr__(function)(path)
+            paths.append(path)
+        return paths
+
     def write(self, path, data_format='parquet'):
         """
         Writes the data to a file
@@ -240,15 +279,15 @@ class DataTable:
         """
         data_format = data_format.lower()
         if data_format == 'parquet':
-            self.data.to_parquet(path)
+            return self._write(path, 'to_parquet')
         elif data_format == 'csv':
-            self.data.to_csv(path)
+            return self._write(path, 'to_csv')
         elif data_format == 'sql':
-            self.data.to_sql(path)
+            return self._write(path, 'to_sql')
         elif data_format == 'latex':
-            self.data.to_latex(path)
+            return self._write(path, 'to_latex')
         elif data_format == 'fits':
-            Table.from_pandas(self.data).write(path)
+            return self._write(path, 'fits')
         else:
             raise ValueError('Format {} is not supported.'.format(data_format))
 

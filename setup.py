@@ -5,7 +5,7 @@ setup(
     version='0.5.4.3',
     packages=['Phosphorpy', 'Phosphorpy.data',
               'Phosphorpy.data.sub', 'Phosphorpy.data.sub.plots',
-              'Phosphorpy.test', 'Phosphorpy.config', 'Phosphorpy.report',
+              'Phosphorpy.config', 'Phosphorpy.report',
               'Phosphorpy.fitting', 'Phosphorpy.external'],
     # package_dir={'': 'Phosphorpy'},
     include_package_data=True,
@@ -19,5 +19,5 @@ setup(
     description='',
     zip_safe=False,
     install_requires=['seaborn', 'numpy', 'astropy', 'pandas', 'astroquery', 'numba', 'scikit-learn', 'armapy',
-                      'requests']
+                      'requests', 'extinction', 'scipy']
 )

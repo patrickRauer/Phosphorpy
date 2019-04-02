@@ -18,14 +18,15 @@ class AstrometryPlot:
         :type cos_correction: bool
         :return:
         """
-        x, y, x_err, y_err = self._astrometry.proper_motion(cos_correction)
+        pms = self._astrometry.proper_motion(cos_correction)
 
         pl.clf()
         sp = pl.subplot()
-        sp.errorbar(x, y, xerr=x_err, yerr=y_err, fmt='.', capsize=2)
-        for i in range(self._astrometry.mask.get_mask_count()):
+        sp.errorbar(pms['pmra'], pms['pmdec'], xerr=pms['pmra_err'], yerr=pms['pmdec_err'], fmt='.', capsize=2)
+        for i in range(1, self._astrometry.mask.get_mask_count()):
             m = self._astrometry.mask.get_mask(i)
-            sp.errorbar(x[m], y[m], xerr=x_err[m], yerr=y_err[m], fmt='.', capsize=2)
+            dpms = pms.iloc[m.index.values]
+            sp.errorbar(dpms['pmra'], dpms['pmdec'], xerr=dpms['pmra_err'], yerr=dpms['pmdec_err'], fmt='.', capsize=2)
 
         if cos_correction:
             sp.set_xlabel('$\\mu_\\alpha^*$ [mas/yr]')
@@ -54,8 +55,9 @@ class AstrometryPlot:
         sp = pl.subplot()
         hist_range = [np.nanmin(x), np.nanmax(x)]
         sp.hist(x, bins='auto', range=hist_range, histtype='step', color='k')
-        for i in range(self._astrometry.mask.get_mask_count()):
-            sp.hist(x[self._astrometry.mask.get_mask(i)], bins='auto', range=hist_range, histtype='step')
+        for i in range(1, self._astrometry.mask.get_mask_count()):
+            sp.hist(x.iloc[self._astrometry.mask.get_mask(i).index.values],
+                    bins='auto', range=hist_range, histtype='step')
         sp.set_xlabel(xlabel)
         sp.set_ylabel('count')
 
@@ -72,8 +74,8 @@ class AstrometryPlot:
         :type path: str
         :return:
         """
-        x, y, x_err, y_err = self._astrometry.proper_motion(True)
-        pm = np.hypot(x, y)
+        pms = self._astrometry.proper_motion(True)
+        pm = np.hypot(pms['pmra'], pms['pmdec'])
         self._hist(pm, '$\\mu$ [mas/yr]', path)
 
     def parallax_hist(self, path=''):
@@ -101,9 +103,9 @@ class AstrometryPlot:
         parallax_error = self._astrometry.data['parallax_error']
         sp.scatter(parallax, parallax_error, marker='.', c='k')
 
-        for i in range(self._astrometry.mask.get_mask_count()):
-            m = self._astrometry.mask.get_mask(i)
-            sp.scatter(parallax[m], parallax_error[m], marker='.')
+        for i in range(1, self._astrometry.mask.get_mask_count()):
+            m = self._astrometry.mask.get_mask(i).index.values
+            sp.scatter(parallax.iloc[m], parallax_error.iloc[m], marker='.')
 
         sp.set_xlabel('p [mas]')
         sp.set_ylabel('$\\sigma_p$ [mas]')

@@ -35,58 +35,50 @@ class FluxPlot:
         :type legend: bool
         :return:
         """
-        print(index, fit, x_log, y_log)
+        # todo: clean this method
         pl.clf()
         sp = pl.subplot()
 
-        # take the data of the given index
-        data_loc = self._data.data.loc[index]
-
         # iterate over all surveys
-        for s in self._data._survey.get_surveys():
-            sp.errorbar(self._data._survey.get_survey_wavelengths(s),
-                        data_loc[self._data._survey.get_survey_magnitude(s)].values,
-                        data_loc[self._data._survey.get_survey_error_names(s)].values,
+        for s in self._data.data:
+            sp.errorbar(s.get_wavelengths(),
+                        s.get_flux(index),
+                        s.get_error(index),
                         fmt='.', capsize=2,
                         label=s)
 
-        data_loc = data_loc[self._data._survey.all_magnitudes()].values
-        mask = data_loc > 0
-        if fit is not None:
-            if type(fit) == str:
-                if fit == 'blackbody':
-                    pass
-                else:
-                    raise ValueError('Unknown function\'{}\''.format(fit))
-
-            # if the fit-parameter is a function
-            # use the function as fitting function
-            elif callable(fit):
-                wavelengths = self._data._survey.get_all_wavelengths()
-                popt, pcov = curve_fit(fit,
-                                       wavelengths[mask],
-                                       data_loc[mask])
-                waves = np.linspace(np.min(wavelengths),
-                                    np.max(wavelengths),
-                                    1000)
-                # plot the fitted curve as a black dashed line
-                sp.plot(waves, fit(waves, *popt), '--k', legend='fit')
-            elif type(fit) == int:
-                wavelengths = self._data._survey.get_all_wavelengths()
-                print(data_loc.shape)
-                print(mask.shape)
-                print(wavelengths.shape)
-                print(wavelengths[mask])
-                print(data_loc[mask])
-                fit = np.polyfit(wavelengths[mask], data_loc[mask], fit)
-                poly = np.poly1d(fit)
-                waves = np.linspace(np.min(wavelengths),
-                                    np.max(wavelengths),
-                                    1000)
-                sp.plot(waves, poly(waves), '--k')
-
-            else:
-                raise ValueError('Only functions and strings are allowed as fit-parameter values.')
+        # data_loc = data_loc[self._data._survey.all_magnitudes()].values
+        # mask = data_loc > 0
+        # if fit is not None:
+        #     if type(fit) == str:
+        #         if fit == 'blackbody':
+        #             pass
+        #         else:
+        #             raise ValueError('Unknown function\'{}\''.format(fit))
+        #
+        #     # if the fit-parameter is a function
+        #     # use the function as fitting function
+        #     elif callable(fit):
+        #         wavelengths = self._data._survey.get_all_wavelengths()
+        #         popt, pcov = curve_fit(fit,
+        #                                wavelengths[mask],
+        #                                data_loc[mask])
+        #         waves = np.linspace(np.min(wavelengths),
+        #                             np.max(wavelengths),
+        #                             1000)
+        #         # plot the fitted curve as a black dashed line
+        #         sp.plot(waves, fit(waves, *popt), '--k', legend='fit')
+        #     elif type(fit) == int:
+        #         wavelengths = self._data._survey.get_all_wavelengths()
+        #         fit = np.polyfit(wavelengths[mask], data_loc[mask], fit)
+        #         poly = np.poly1d(fit)
+        #         waves = np.linspace(np.min(wavelengths),
+        #                             np.max(wavelengths),
+        #                             1000)
+        #         sp.plot(waves, poly(waves), '--k')
+        #
+        #     else:
+        #         raise ValueError('Only functions and strings are allowed as fit-parameter values.')
 
         sp.set_xlabel('wavelength [$\\AA$]')
         sp.set_ylabel('flux')

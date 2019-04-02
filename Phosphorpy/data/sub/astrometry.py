@@ -14,10 +14,55 @@ def _only_nearest(data):
         for rid in row_ids[row_id_count > 1]:
             g = data[data['row_id'] == rid]
             nearest.append(g[g['angDist'] == np.min(g['angDist'])])
-            gaia = data[data['row_id'] != rid]
         nearest = vstack(nearest)
         data = vstack([nearest, data])
         return data
+
+
+def _download_gaia_data(coordinates):
+    """
+    Downloads the Gaia data for the given coordinates
+
+    :param coordinates: The coordinates of the targets for which Gaia data are required
+    :type coordinates: Phosphorpy.data.sub.coordinates.CoordinateTable
+    :return: The Gaia data
+    :rtype:
+    """
+    g = Gaia()
+
+    gaia = g.query(coordinates.to_table(), 'ra', 'dec', use_xmatch=True, blank=True)
+
+    # find or multiple detections the closest one
+    # gaia = _only_nearest(gaia)
+
+    gaia_coords = gaia[['row_id', 'ra', 'dec']]
+    gaia = gaia.to_pandas()
+    gaia = gaia.drop_duplicates('row_id')
+    gaia = gaia.set_index('row_id')
+
+    # join the downloaded gaia data to create empty lines if gaia doesn't provide data for a specific object
+    gaia = gaia[['ra', 'ra_error', 'dec', 'dec_error',
+                 'parallax', 'parallax_error',
+                 'pmra', 'pmra_error',
+                 'pmdec', 'pmdec_error']]
+    return gaia, gaia_coords
+
+
+def _download_bailer_jones_data(gaia_coords):
+    """
+    Downloads the distances estimated by Bailer-Jones
+
+    :param gaia_coords: The gaia coordinates of the required targets
+    :return:
+    """
+    # download Bailer-Jones distance estimations
+    bj = BailerJones()
+    bj = bj.query(gaia_coords, 'ra', 'dec', use_xmatch=True, blank=True)
+
+    bj = bj[['row_id', 'rest', 'b_rest', 'B_rest', 'rlen', 'ResFlag', 'ModFlag']].to_pandas()
+    bj = bj.drop_duplicates('row_id')
+    bj = bj.set_index('row_id')
+    return bj
 
 
 class AstrometryTable(DataTable):
@@ -42,8 +87,8 @@ class AstrometryTable(DataTable):
                                 'parallax', 'parallax_error',
                                 'pm_ra', 'pm_ra_error',
                                 'pm_dec', 'pm_dec_error']]
-        bj = BailerJones()
-        bj = bj.query(ds.coordinates.as_sky_coord(), 'ra', 'dec', use_xmatch=True, blank=True)
+        # bj = BailerJones()
+        # bj = bj.query(ds.coordinates.as_sky_coord(), 'ra', 'dec', use_xmatch=True, blank=True)
         ds.astrometry = astronomy
 
     @staticmethod
@@ -56,32 +101,10 @@ class AstrometryTable(DataTable):
         :return: An AstrometryTable with the Gaia astrometry (ra, dec, parallax, pmra, pmdec and their errors)
         :rtype: AstrometryTable
         """
-        g = Gaia()
-
-        gaia = g.query(coordinates.to_table(), 'ra', 'dec', use_xmatch=True, blank=True)
-        row_ids, row_id_count = np.unique(gaia['row_id'], return_counts=True)
-
-        # find or multiple detections the closest one
-        # gaia = _only_nearest(gaia)
-
-        gaia_coords = gaia[['row_id', 'ra', 'dec']]
-        gaia = gaia.to_pandas()
-        gaia = gaia.drop_duplicates('row_id')
-        gaia = gaia.set_index('row_id')
-
-        # join the downloaded gaia data to create empty lines if gaia doesn't provide data for a specific object
-        gaia = gaia[['ra', 'ra_error', 'dec', 'dec_error',
-                     'parallax', 'parallax_error',
-                     'pmra', 'pmra_error',
-                     'pmdec', 'pmdec_error']]
+        gaia, gaia_coords = _download_gaia_data(coordinates)
 
         # download Bailer-Jones distance estimations
-        bj = BailerJones()
-        bj = bj.query(gaia_coords, 'ra', 'dec', use_xmatch=True, blank=True)
-
-        bj = bj[['row_id', 'rest', 'b_rest', 'B_rest', 'rlen', 'ResFlag', 'ModFlag']].to_pandas()
-        bj = bj.drop_duplicates('row_id')
-        bj = bj.set_index('row_id')
+        bj = _download_bailer_jones_data(gaia_coords)
 
         # join the original gaia data with the Bailer-Jones distance data
         gaia = gaia.join(bj, how='outer')
@@ -119,7 +142,7 @@ class AstrometryTable(DataTable):
             x_err = np.square(cos_c*x_err)+np.square(x*np.sin(dec_rad)*self._data['dec_error'].values)
             x_err = np.square(x_err)
             x *= cos_c
-        return x, y, x_err, y_err
+        return pd.DataFrame({'pmra': x, 'pmdec': y, 'pmra_err': x_err, 'pmdec_err': y_err})
 
     def total_proper_motion(self):
         """
@@ -154,9 +177,9 @@ class AstrometryTable(DataTable):
         :rtype: numpy.ndarray, numpy.ndarray
         """
         kind = kind.lower()
-        if kind == 'bailer-jones' or kind == 'bj':
-            # todo: implement download of bailer jones gaia distances
-            raise ValueError('Not implement jet')
+        # if the required distance is the distance estimated by Bailer-Jones
+        if kind == ('bailer-jones' or 'bj'):
+            return self.data['rest']/1000
         elif kind == 'simple':
             distance = 1/self._data['parallax'].values
             distance_error = np.abs(1/self._data['parallax'].values**2)*self._data['parallax_error'].values

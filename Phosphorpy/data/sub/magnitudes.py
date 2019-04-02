@@ -4,6 +4,7 @@ from .table import DataTable
 from .plots.magnitude import MagnitudePlot
 from .colors import Colors
 from .flux import FluxTable
+from .tables.magnitude import Magnitude
 import numpy as np
 import configparser
 import numba
@@ -275,6 +276,17 @@ class SurveyData:
             out.extend(self._survey_cols[s])
         return out
 
+    def get_survey_id(self, survey_name):
+        return np.where(self._survey_cols.keys() == survey_name)[0][0]
+
+    def get_corresponding_survey(self, mag_name):
+        for s in self._survey_cols:
+            if mag_name in self._survey_cols[s]:
+                return s
+
+    def get_corresponding_survey_id(self, mag_name):
+        return self.get_survey_id(self.get_corresponding_survey(mag_name))
+
     def get_survey_magnitude(self, survey_name):
         """
         Returns the names of the magnitudes of the different surveys
@@ -351,7 +363,7 @@ class SurveyData:
             survey = self._properties[s]
             for band in survey:
                 out.append(self.effective_wavelength(s, band))
-        return np.array(out)
+        return np.float64(out)
 
     def get_survey_wavelengths(self, survey_name):
         """
@@ -385,9 +397,9 @@ class SurveyData:
         band = band.split('mag')[0]
         props = self._properties[survey][band]
         # check if in the SVO data the vega system is set as the used system
-        if 'vega' in props.keys() and props['vega']:
-            return props['Vega_ergs']
-        return props['AB_ergs']
+        if 'vega' in props.keys() and bool(props['vega']):
+            return float(props['Vega_ergs'])
+        return float(props['AB_ergs'])
 
     def write(self, path, data_format=''):
         """
@@ -455,7 +467,40 @@ class SurveyData:
         return s
 
 
-class Magnitude(DataTable):
+def __check_input__(data, names):
+    """
+    Checks the input data if they have a proper format and covert them (if necessary) to a
+    pandas DataFrame
+
+    :param data: The input data
+    :param names: The names of the columns
+    :return: A DataFrame with the input data
+    :rtype: pandas.DataFrame
+    """
+    if type(data) != DataFrame:
+        if type(data) == Table:
+            data = data.to_pandas()
+        elif type(data) == np.ndarray:
+            if len(data.shape) == 1:
+                data = DataFrame.from_records(data)
+            else:
+                if names is None:
+                    raise ValueError('If the input data are in numpy.ndarray, names are needed!')
+                elif len(names) != data.shape[1]:
+                    raise AttributeError('Number of columns does not the number of names!')
+                else:
+                    data = DataFrame(data=data, columns=names)
+    return data
+
+
+class SurveyMag(DataTable):
+    pass
+
+    def __init__(self, data, names=None, survey='', mask=None):
+        DataTable.__init__(self, mask=mask)
+
+
+class MagnitudeTable(DataTable):
     """
     Class to handle any interactions with magnitudes of multiple surveys
     """
@@ -466,28 +511,26 @@ class Magnitude(DataTable):
     def __init__(self, data, names=None, survey='', mask=None):
         DataTable.__init__(self, mask=mask)
         self._plot = MagnitudePlot(self)
-        if type(data) != DataFrame:
-            if type(data) == Table:
-                data = data.to_pandas()
-            elif type(data) == np.ndarray:
-                if len(data.shape) == 1:
-                    data = DataFrame.from_records(data)
-                else:
-                    if names is None:
-                        raise ValueError('If the input data are in numpy.ndarray, names are needed!')
-                    elif len(names) != data.shape[1]:
-                        raise AttributeError('Number of columns does not the number of names!')
-                    else:
-                        data = DataFrame(data=data, columns=names)
+        data = __check_input__(data, names)
 
         try:
             cols = guess_surveys(data.columns)
             if cols is not None and survey != '':
                 self._survey = SurveyData(survey, cols)
                 self._set_cols(cols)
-                self._data = data[cols]
+                data = data[cols]
+                if type(data) != Magnitude:
+                    data = Magnitude(data, survey, mask=mask)
+                self._data = [data]
+                print(type(self._data[0]))
         except ValueError:
             warnings.warn('No magnitude columns!')
+
+    def __str__(self):
+        string = 'Available magnitudes\n'
+        for d in self._data:
+            string += str(d)
+        return string
 
     def _set_cols(self, cols):
         mag = []
@@ -499,6 +542,17 @@ class Magnitude(DataTable):
                 mag.append(c)
         self._mag_cols = mag
         self._err_cols = err
+
+    def apply_extinction_correction(self, correction):
+        """
+        Applies the extinction correction to the data
+
+        :param correction: A table with the correction values
+        :type correction: astropy.table.Table, pandas.DataFrame
+        :return:
+        """
+        for d in self.data:
+            d.apply_extinction_correction(correction)
 
     def min(self):
         """
@@ -532,22 +586,12 @@ class Magnitude(DataTable):
         Returns the flux of the columns
         :return:
         """
-        # transform the magnitude in the flux scale
-        flux = self.data[self._survey.all_magnitudes()].apply(power_2_10)
-
-        # multiply the flux zero point of all bands of the different surveys
-        for s in self._survey.get_surveys():
-            for m in self._survey[s]:
-                fo = self._survey.flux_zero(s, m)
-                flux[m] *= fo
-
-        # compute the errors of the fluxes
-        errs = self.data[self._survey.all_error_names()]
-        errs = DataFrame(data=flux.values*errs.values*np.log(10.),
-                         columns=errs.columns)
+        flux = []
+        for d in self.data:
+            flux.append(d.get_flux())
 
         # return a merged table out of the fluxes and the flux errors
-        return FluxTable(flux.merge(errs, left_index=True, right_index=True),
+        return FluxTable(flux,
                          survey_head=self._survey, mask=self._mask)
 
     def get_colors(self, cols=None):
@@ -572,38 +616,12 @@ class Magnitude(DataTable):
                 cols[0][0][0]
             except TypeError:
                 cols = [cols]
-        all_cols = cols
-        colors = DataFrame()
-        survey_c = {}
-        if len(self.data) < 1e4:
-            for cols in all_cols:
-                survey = cols[0]
-                cols = cols[-1]
-                color_color_cols = []
-                for i, c1 in enumerate(cols):
-                    for j, c2 in enumerate(cols):
-                        # compute only such colors where the first argument is in a bluer band
-                        # (assumption is that the columns are sorted in such a way)
-                        if i < j:
-                            cc_name = '{} - {}'.format(c1, c2)
-                            color_color_cols.append(cc_name)
-                            colors[cc_name] = self.data[c1] - self.data[c2]
-                survey_c[survey] = color_color_cols
-        else:
-            for cols in all_cols:
-                survey = cols[0]
-                cols = cols[-1]
-                color_color_cols = []
-                for i, c1 in enumerate(cols):
-                    for j, c2 in enumerate(cols):
-                        # compute only such colors where the first argument is in a bluer band
-                        # (assumption is that the columns are sorted in such a way)
-                        if i < j:
-                            cc_name = '{} - {}'.format(c1, c2)
-                            color_color_cols.append(cc_name)
-                            colors[cc_name] = subtract(self.data[c1].values, self.data[c2].values)
-                survey_c[survey] = color_color_cols
-        return Colors(colors, mask=self._mask, survey_colors=survey_c)
+
+        colors = []
+        for d in self._data:
+            colors.append(d.get_colors())
+
+        return Colors(colors, mask=self._mask)
 
     def has_full_photometry(self, survey, previous=True):
         """
@@ -616,15 +634,19 @@ class Magnitude(DataTable):
         :return:
         """
         mask = None
-        for c in self._survey.get_survey_magnitude(survey):
-            k = self._data[c] > -99
+        mag_cols = self.survey.get_survey_magnitude(survey)
+        d = self._data[self.survey.get_survey_id(survey)]
+
+        for c in mag_cols:
+
+            k = d[c] > -99
             if mask is None:
                 mask = k
             else:
                 mask = mask & k
         self.mask.add_mask(mask, 'Mask sources with full photometry in {}'.format(survey), combine=previous)
 
-    def set_limit(self, band, minimum=99, maximum=-99, previous=True):
+    def set_limit(self, band, survey=None, minimum=99, maximum=-99, previous=True):
         """
         Sets a magnitude limit to the magnitude columns with the name band.
 
@@ -637,6 +659,10 @@ class Magnitude(DataTable):
 
         :param band: The name of the band/magnitude column
         :type band: str
+        :param survey: 
+            The name of the specific survey or None. If None all surveys with such a magnitude name will
+            used for the limiting
+        :type survey: str, None
         :param minimum: The minimal magnitude value. Default is 99, which means that no cut will be done.
         :type minimum: float
         :param maximum: The maximal magnitude value. Default is -99, which means that no cut will be done.
@@ -645,32 +671,28 @@ class Magnitude(DataTable):
         :type previous: bool
         :return:
         """
-        if band not in self._survey.all_magnitudes():
-            band_new = band + 'mag'
-            if band_new not in self._survey.all_magnitudes():
-                raise ValueError('Magnitude column {} or {} not found.'.format(band, band_new))
-            band = band_new
-        cut_string = ''
-        if minimum != 99:
-            cut_string = 'minimum={}'.format(minimum)
-        if maximum != -99:
-            max_str = 'maximum={}'.format(maximum)
-            if cut_string == '':
-                cut_string = max_str
-            else:
-                cut_string = '{} and {}'.format(cut_string, max_str)
+        for d in self._data:
+            if survey is None or survey == d.survey_name:
+                try:
+                    d.set_limit(band, minimum=minimum, maximum=maximum, previous=previous)
+                except ValueError:
+                    pass
 
-        mags = self._data[band].values
-        if maximum != -99 and minimum != 99:
-            mask = (mags <= minimum) & (mags >= maximum)
-        elif maximum != -99:
-            mask = mags >= maximum
-        elif minimum != 99:
-            mask = mags <= 99
-        else:
-            raise AttributeError('At least one of maximum or minimum must be different to the default value.')
-        self.mask.add_mask(mask, 'Apply a magnitude cut on the band {} with {}'.format(band, cut_string),
-                           combine=previous)
+    def get_survey_data(self, name):
+        for d in self._data:
+            if name == d.survey_name:
+                return d
+
+    def get_columns(self, cols):
+        out = None
+        for d in self.data:
+            rs = d.get_columns(cols)
+            if len(rs.columns) > 0:
+                if out is None:
+                    out = rs
+                else:
+                    out = out.join(rs)
+        return out
 
     @property
     def mag_names(self):
@@ -688,6 +710,10 @@ class Magnitude(DataTable):
     def survey(self, value):
         self._survey = value
 
+    @property
+    def head(self):
+        return self._survey
+
     def add_survey_mags(self, mags, survey):
         """
         Adds a new set of magnitudes from another survey. If already magnitudes with the same name are
@@ -699,14 +725,14 @@ class Magnitude(DataTable):
         :type survey: str
         :return:
         """
-        if type(mags) is not DataFrame:
-            mags = DataFrame(mags)
         cols = guess_surveys(mags.columns)
-        mags = mags[cols]
+        mags = Magnitude(mags, cols, survey, mask=self.mask)
+        mags.select_columns(cols)
         survey = survey.lower()
+
         if self._data is not None:
             try:
-                self._data = self._data.join(mags, how='outer')
+                self._data.append(mags)
                 self._survey.add_survey(survey, cols)
             # if the magnitudes include magnitudes with the same name already
             except ValueError:
@@ -716,12 +742,14 @@ class Magnitude(DataTable):
                 for c in cols:
                     name_map[c] = '{}_{}'.format(c, survey)
 
-                mags = mags.rename(name_map, axis='columns')
+                mags.rename(name_map, axis='columns')
 
                 # join the data
-                self._data = self._data.join(mags, how='outer')
+                self._data.append(mags)
                 self._survey.add_survey(survey, list(name_map.values()))
         # if no magnitudes are set
         else:
-            self._data = mags
-            self._survey = SurveyData(survey, mags)
+            self._data = [mags]
+
+            self._survey = SurveyData(survey, mags.columns)
+        mags.set_survey_data(self._survey)
