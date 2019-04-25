@@ -5,6 +5,7 @@ from astropy import units as u
 from astropy.units.quantity import Quantity
 from pandas import DataFrame
 from scipy.optimize import curve_fit
+from scipy.constants import h, k, c
 import numpy as np
 import inspect
 
@@ -173,10 +174,21 @@ def _rescale(wavelengths, d, err, x_log, y_log):
         wavelengths = np.log10(wavelengths)
 
     if y_log:
-        err = np.abs(1 / d) * err
+        err = np.abs(1 / d) * err/np.log(10)
         d = np.log10(d)
 
     return wavelengths, d, err
+
+
+def _blackbody(lam, temperature, a):
+    """ Blackbody as a function of wavelength (um) and temperature (K).
+
+    returns units of erg/s/cm^2/cm/Steradian
+    """
+    o = 2*h*c**2 / (lam**5 * (np.exp(h*c / (lam*k*temperature)) - 1))
+    o /= np.max(o)
+    o *= a
+    return o
 
 
 class FluxTable(DataTable):
@@ -391,8 +403,56 @@ class FluxTable(DataTable):
         if self._fits is None:
             raise AttributeError('No fitting date found. Call first a fitting method.')
 
-    def fit_blackbody(self):
-        pass
+    def fit_blackbody(self, error_weighted=True,
+                      lower_limit=None, upper_limit=None):
+        """
+        Fit's a blackbody on the SED data
+
+        :param error_weighted:
+            True, if the fluxes should be weighted by their errors, else False.
+            Default is True
+        :type error_weighted: bool
+        :param lower_limit: The lower limit of the wavelengths. Default is None.
+        :type lower_limit: float
+        :param upper_limit: The upper limit of the wavelengths. Default is None.
+        :type upper_limit: float
+        :return:
+            The result of the fit's and their errors in the same order as the fluxes.
+            The first parameter is the temperature of the black body and the second parameter is
+            the rescaling factor after the normalization.
+        :rtype: pandas.DataFrame
+        """
+        wavelengths, d, err = self._get_sed_data()
+
+        # apply wavelength cuts
+        wavelengths, d, err = _apply_wavelength_limits(wavelengths, d, err,
+                                                       lower_limit, upper_limit)
+
+        # convert angstrom to meter
+        wavelengths /= 1E10
+
+        results = []
+
+        if error_weighted:
+            for sed, sed_err in zip(d, err):
+                try:
+                    popt, pcov = curve_fit(_blackbody, wavelengths, sed, sigma=sed_err,
+                                           p0=(5000., 1.))
+                    results.append(np.append(popt, np.sqrt(np.diag(pcov))))
+                except TypeError as e:
+                    print(e)
+                    results.append([-9999, -9999, -9999, -9999])
+        else:
+            for sed in d:
+                try:
+                    popt, pcov = curve_fit(_blackbody, wavelengths, sed,
+                                           p0=(5000., 1.))
+                    results.append(np.append(popt, np.sqrt(np.diag(pcov))))
+                except TypeError:
+                    results.append([-9999, -9999, -9999, -9999])
+        self._fits = DataFrame(np.array(results), columns=['temperature', 'scaling',
+                                                           'temperature_err', 'scaling_err'])
+        return self._fits
 
     def __str__(self):
         return str(self._data)
