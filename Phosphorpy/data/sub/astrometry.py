@@ -142,7 +142,7 @@ class AstrometryTable(DataTable):
             x_err = np.square(cos_c*x_err)+np.square(x*np.sin(dec_rad)*self._data['dec_error'].values)
             x_err = np.square(x_err)
             x *= cos_c
-        return pd.DataFrame({'pmra': x, 'pmdec': y, 'pmra_err': x_err, 'pmdec_err': y_err}, index=self._data.index)
+        return pd.DataFrame({'pmra': x, 'pmdec': y, 'pmra_err': x_err, 'pmdec_err': y_err})
 
     def total_proper_motion(self):
         """
@@ -162,7 +162,7 @@ class AstrometryTable(DataTable):
         pm = np.hypot(pm_ra, pm_dec)
         pm_err = np.square(pm_ra*pm_ra_error)+np.square(pm_dec*pm_dec_error)
         pm_err /= pm
-        return pd.DataFrame({'pm': pm, 'err': pm_err}, index=self._data.index)
+        return pm, pm_err
 
     def distance(self, kind='bailer-jones'):
         """
@@ -174,38 +174,18 @@ class AstrometryTable(DataTable):
             All other inputs raise a ValueError.
         :type kind: str
         :return: distance and its error in kpc
-        :rtype: pd.DataFrame
+        :rtype: numpy.ndarray, numpy.ndarray
         """
         kind = kind.lower()
         # if the required distance is the distance estimated by Bailer-Jones
         if kind == ('bailer-jones' or 'bj'):
             return self.data['rest']/1000
-        elif kind == 'simple' or kind == 'parallax':
+        elif kind == 'simple':
             distance = 1/self._data['parallax'].values
             distance_error = np.abs(1/self._data['parallax'].values**2)*self._data['parallax_error'].values
-            return pd.DataFrame({'distance': distance, 'error': distance_error}, index=self._data.index)
+            return distance, distance_error
         else:
             raise ValueError(f'Unknown kind: {kind}')
-
-    def set_distance_limit(self, minimal, maximal, kind='bailer-jones'):
-        """
-        Set a limit to the distances (in kpc)
-
-        :param minimal: The minimal distance
-        :type minimal: float
-        :param maximal: The maximal distance
-        :type maximal: float
-        :param kind:
-            The kind of transformation. Current options are 'bailer-jones' or 'bj'
-            for the distances estimated by Bailer-Jones or 'simple' for :math:`distance=1/parallax`.
-            All other inputs raise a ValueError.
-        :type kind: str
-        :return:
-        """
-        d = self.distance(kind)
-        d = d[d.columns.names[0]]
-        m = (d >= minimal) & (d <= maximal)
-        self.mask.add_mask(m, f'Distance limit: {minimal} - {maximal}')
 
     def set_parallax_limit(self, minimal, maximal, with_errors=False):
         """
@@ -227,7 +207,7 @@ class AstrometryTable(DataTable):
             m = (parallax >= minimal) & (parallax <= maximal)
         self.mask.add_mask(m, f'Parallax constrain: {minimal} - {maximal}')
 
-    def set_total_proper_motion_limit(self, minimal, maximal, with_errors=False):
+    def proper_motion_limit(self, minimal, maximal, with_errors=False):
         """
         Set a limit to the total proper motion.
         See :meth:`total_proper_motion` fot he computing details.
@@ -241,36 +221,9 @@ class AstrometryTable(DataTable):
         :type with_errors: bool
         :return:
         """
-        pm = self.total_proper_motion()
+        pm, pm_err = self.total_proper_motion()
         if with_errors:
-            m = (pm['pm'] + pm['err'] >= minimal) & (pm['pm']-pm['err'] <= maximal)
+            m = (pm + pm_err >= minimal) & (pm-pm_err <= maximal)
         else:
-            m = (pm['pm'] >= minimal) & (pm['pm'] <= maximal)
+            m = (pm >= minimal) & (pm <= maximal)
         self.mask.add_mask(m, f'Proper motion limit from {minimal} to {maximal}')
-
-    def set_proper_motion_limit(self, direction, minimal, maximal, with_errors=False, cos_correction=False):
-        """
-        Set a limit to the proper motion
-
-        :param direction: The direction of the proper motion (RA or Dec)
-        :type direction: str
-        :param minimal: The minimal proper motion
-        :type minimal: float
-        :param maximal: The maximal proper motion
-        :type maximal: float
-        :param with_errors: True if the errors should be considered in the mask, else False. Default is False.
-        :type with_errors: bool
-        :param cos_correction: True if the proper motion in RA direction should be declination correct, else False.
-        :return:
-        """
-        direction = direction.lower()
-        if direction != 'ra' and direction != 'dec':
-            raise ValueError('Direction must be RA or Dec!')
-        pm = self.proper_motion(cos_correction)
-        pm_d = pm[f'pm{direction}']
-        if with_errors:
-            pm_d_err = pm[f'pm{direction}_err']
-            m = (pm_d + pm_d_err >= minimal) & (pm_d-pm_d_err <= maximal)
-        else:
-            m = (pm_d >= minimal) & (pm_d <= maximal)
-        self.mask.add_mask(m, f'Proper motion limit in {direction} direction from {minimal} to {maximal}')

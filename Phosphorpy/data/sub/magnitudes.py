@@ -586,8 +586,6 @@ class MagnitudeTable(DataTable):
         Returns the flux of the columns
         :return:
         """
-        if self.data is None:
-            raise AttributeError('No photometric data available!\nDownload data first!')
         flux = []
         for d in self.data:
             flux.append(d.get_flux())
