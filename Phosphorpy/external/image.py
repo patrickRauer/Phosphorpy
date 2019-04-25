@@ -1,3 +1,8 @@
+"""
+This script provides an interface to download and create color images from SDSS and Pan-STARRS.
+These images can be overplotted with markers of the required source and a proper motion arrow.
+"""
+
 import os
 
 import numpy as np
@@ -15,9 +20,12 @@ from Phosphorpy.external.panstarrs import download_all_bands
 def smooth2d(mat, c=5):
     """
     Smooths a 2d-array
-    :param mat:
-    :param c:
-    :return:
+
+    :param mat: The input data
+    :type mat: np.ndarray
+    :param c: The number of smooths
+    :param c: int
+    :return: The c-times smoothed input data
     """
     if c == 0:
         return mat
@@ -39,13 +47,13 @@ def smooth2d(mat, c=5):
 
 class SDSSImage:
     last_coordinate = None
-    color_image_bands = ['g', 'r', 'z']
+    color_image_bands = ['z', 'r', 'u']
     color_image_radius = 2 * u.arcmin
 
     def __init__(self):
         pass
 
-    def get_color_image(self, s, path=''):
+    def get_color_image(self, s, path='', bands=None):
         """
         Download the SDSS images and create an RGB image out of them.
 
@@ -54,9 +62,13 @@ class SDSSImage:
         :param path:
             The path to the save place. Default is '' which means that the image will be shown only.
         :type path: str
+        :param bands: Individual band combination or None. Default is None which means that the default bands are used.
+        :type bands: None, tuple, list
         :return:
         """
-        sd = SDSS.get_images(s, band=self.color_image_bands)
+        if bands is None:
+            bands = self.color_image_bands
+        sd = SDSS.get_images(s, band=bands)
         if sd is None:
             return ''
         # if SDSS took more than one image the area
@@ -89,20 +101,19 @@ class SDSSImage:
                 head = hdu[0].header
                 wcs = WCS(head)
                 wcs_o = wcs
-                data = hdu[0].data
             else:
                 wcs_o = WCS(hdu[0].header)
 
-                data = hdu[0].data
+            data = smooth2d(hdu[0].data)
 
             # make a cut around the target
             cut = Cutout2D(data, s, self.color_image_radius, wcs=wcs_o)
-            imgs.append(cut)
+            imgs.append(cut.data)
 
         pl.clf()
         # create a subplot and use the wcs projection
         sp = pl.subplot(projection=wcs)
-        rgb = make_lupton_rgb(imgs[2].data, imgs[1].data, imgs[0].data, Q=13,
+        rgb = make_lupton_rgb(imgs[2], imgs[1], imgs[0], Q=13,
                               stretch=0.9, minimum=0)
         sp.imshow(rgb, origin='lower')
 
@@ -119,13 +130,13 @@ class SDSSImage:
 
 class PanstarrsImage:
     last_coordinate = None
-    color_image_bands = ['g', 'r', 'z']
+    color_image_bands = ['z', 'r', 'g']
     color_image_radius = 2 * u.arcmin
 
     def __init__(self):
         pass
 
-    def get_normalized_imaged(self, s, smooth):
+    def get_normalized_imaged(self, s, smooth, bands=None):
         """
         Returns the normalized images and the HDU's
 
@@ -133,18 +144,23 @@ class PanstarrsImage:
         :type s: astropy.coordinates.SkyCoord
         :param smooth: The number of linear smooths
         :type smooth: int
+        :param bands:
+            Optional: Set of three bands for the color image (g, r, i, z, y). Order must be red, green and blue
+        :type bands: None, list, tuple
         :return: The normalized images and the original HDU's
         """
+        if bands is None:
+            bands = self.color_image_bands
+        else:
+            if len(bands) != 3:
+                raise ValueError("Bands must include three bands")
         # download Pan-STARRS images
         paths = download_all_bands(s.ra.degree, s.dec.degree, self.color_image_radius,
                                    './temp/')
         imgs = []
-        for c in self.color_image_bands:
+        for c in bands:
             imgs.append(fits.open(paths[c]))
-            # print(imgs[-1][0].header['FPA.ZP'])
 
-        # for k in imgs[2][0].header:
-        #     print(k, imgs[2][0].header[k])
         # create an RGB-array
         rgb = np.zeros((imgs[2][0].shape[0], imgs[2][0].shape[1], 3))
         rgb[:, :, 2] = imgs[2][0].data
@@ -161,13 +177,14 @@ class PanstarrsImage:
         for i in range(3):
             im = rgb[:, :, i]
 
-            med = 0.5 * np.nanmedian(im)
+            med = 2*np.median(np.nanmean(im, axis=0))
 
             im[im < med] = med
+            im -= med
 
             # collect the center count median
-            center_counts.append(np.nanmedian(rgb[center[0] - 5: center[0] + 5,
-                                              center[1] - 5: center[1] + 5, i]))
+            center_counts.append(np.nanmedian(im[center[0] - 2: center[0] + 2,
+                                              center[1] - 2: center[1] + 2]))
 
         # normalize to the center median counts
         for i in range(3):
@@ -175,7 +192,7 @@ class PanstarrsImage:
             rgb[:, :, i] = smooth2d(rgb[:, :, i], smooth)
         return rgb, imgs
 
-    def get_color_image(self, s, path='', smooth=0):
+    def get_color_image(self, s, path='', smooth=2, mark_source=False, proper_motion=None):
         """
         Download the Pan-STARRS images and create an RGB image out of them.
 
@@ -186,15 +203,33 @@ class PanstarrsImage:
         :type path: str
         :param smooth: Number of smooth
         :type smooth: int
+        :param mark_source: True if a circle should be plotted around the source, else False. Default is False.
+        :type mark_source: bool
+        :param proper_motion:
+            The proper motion of the source or None. If the proper motion is given, an arrow will indicate
+            the proper motion, if None no proper motion arrows will be drawn. Default is None.
+        :type proper_motion: None, list
         :return:
         """
         rgb, imgs = self.get_normalized_imaged(s, smooth)
+
         pl.clf()
         # make a chart with a WCS projection
         sp = pl.subplot(projection=WCS(imgs[0][0].header))
+
         sp.imshow(rgb, origin='lower')
+
+        # draw the source marker
+        if mark_source:
+            sp.scatter(s.ra.degree, s.dec.degree, 20, marker='o', c='r')
+
+        # draw the proper motion arrow
+        if proper_motion is not None:
+            sp.arrow(s.ra.degree, s.dec.degree, proper_motion[0], proper_motion[1], color='r')
+
         pl.subplots_adjust(top=0.969, bottom=0.118,
                            left=0.146, right=0.973)
+
         # set the axis labels
         sp.set_xlabel('RA')
         sp.set_ylabel('Dec')

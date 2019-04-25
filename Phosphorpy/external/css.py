@@ -1,9 +1,9 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-Created on Wed Dec 12 18:07:21 2018
+This script provides an interface to the CSS-server to download light curves from it.
 
-@author: patrickr
+(http://nesssi.cacr.caltech.edu/DataRelease/)
+
+@author: Jean Patrick Rauer
 """
 
 import requests
@@ -15,6 +15,16 @@ import os
 
 
 def smooth(d, c=5):
+    """
+    Smooth a 1D data set linearly
+
+    :param d: The input data
+    :type d: np.ndarray
+    :param c: The number of smooth
+    :param c: int
+    :return: The c-times smoothed input data
+    :rtype: np.ndarray
+    """
     if c == 0:
         return d
     x = np.zeros(len(d))
@@ -25,6 +35,18 @@ def smooth(d, c=5):
 
 
 def smooth_err(d, err, c=5):
+    """
+    Smooth a 1D data set with respect to the errors
+
+    :param d: The input data
+    :type d: np.ndarray
+    :param err: The errors of the data
+    :type err: np.ndarray
+    :param c: The number of smooths
+    :type c: int
+    :return: The c-times smoothed input data
+    :rtype: np.ndarray
+    """
     if c == 0:
         return d
     e = 1/err
@@ -36,6 +58,16 @@ def smooth_err(d, err, c=5):
 
 
 def vari_index(d, err):
+    """
+    Computes the variability index
+
+    :param d: The input data
+    :type d: np.ndarray
+    :param err: The errors of the input data
+    :type err: np.ndarray
+    :return: The variability index
+    :rtype: float
+    """
     return 1/(len(d)-1)*np.sum(np.square(d-np.mean(d))/err**2)
 
 
@@ -64,6 +96,56 @@ def download_light_curve(ra, dec):
         raise ValueError('No light curve available.')
 
 
+def download_light_curves(ra, dec):
+    """
+    Downloads a set of CSS light curves from the CSS server
+
+    :param ra: The RA coordinates
+    :type ra: list
+    :param dec: The Dec coordinates
+    :type dec: list
+    :return: The downloaded light curves
+    :rtype: pandas.DataFrame
+    """
+    url = 'http://nesssi.cacr.caltech.edu/cgi-bin/getmulticonedb_release2.cgi'
+    url2 = 'http://nesssi.cacr.caltech.edu/cgi-bin/getdatamulti.cgi?ID={}&txtInput=0000'
+    results = []
+#    try:
+    if True:
+        part_size = 80
+        parts = len(ra)//part_size+1
+        for i in range(parts):
+            d_ra = ra[i*part_size: (i+1)*part_size]
+            d_dec = dec[i*part_size: (i+1)*part_size]
+            with open('temp.txt', 'w') as f:
+                for j, (r, d) in enumerate(zip(d_ra, d_dec)):
+                    row_id = i*part_size+j
+                    f.write(f"{row_id}\t{r}\t{d}\n")
+
+            with open('temp.txt', 'rb') as f:
+                r = requests.post(url,
+                                  data={'DB': 'photcat', 'OUT': 'csv', 
+                                        'SHORT': 'short'},
+                                  files={'upload_file': f})
+                
+            r = r.text.split('value="file')[-1]
+            r = r.split('"')[0]
+            r = 'file' + r
+            r = requests.get(url2.format(r))
+            
+            r = r.text.split('href=')[-1]
+            r = r.split('>download')[0]
+            urllib.request.urlretrieve(r, "temp.csv")
+            pd = pandas.read_csv('temp.csv')
+            os.remove('temp.csv')
+            results.append(pd)
+            
+
+#    except ValueError:
+#        raise ValueError('No light curve available.')
+    return pandas.concat(results)
+
+
 def daily_average(d):
     """
     Takes the daily average of the light curve to reduce the noise.
@@ -81,7 +163,7 @@ def plot_light_curve(ra, dec):
     
     :param ra: RA coordinate in degree
     :type ra: float
-    :param dec: Dec coordinate in degre
+    :param dec: Dec coordinate in degree
     :type dec: float
     """
     lc = download_light_curve(ra, dec)

@@ -1,20 +1,24 @@
-from Phosphorpy.data.sub.magnitudes import Magnitude, SurveyData
+from Phosphorpy.data.sub.magnitudes import MagnitudeTable as Magnitude, SurveyData
 from Phosphorpy.data.sub.colors import Colors
 from Phosphorpy.data.sub.coordinates import CoordinateTable
 from Phosphorpy.data.sub.flux import FluxTable
 from Phosphorpy.external.vizier import query_by_name, constrain_query
 from Phosphorpy.data.sub.plots.plot import Plot
 from Phosphorpy.data.sub.table import Mask
+from Phosphorpy.data.sub.light_curve import LightCurves
 from Phosphorpy.external.image import PanstarrsImage, SDSSImage
 from Phosphorpy.data.sub.astrometry import AstrometryTable
+from Phosphorpy.report.Report import DataSetReport
 from astropy.table import Table
 from astropy.io import fits
+from extinction.extinction import get_extinctions
 import pandas as pd
 from pandas import DataFrame
 import numpy as np
 import zipfile
 import os
 import warnings
+import sys
 
 
 def add_to_zip(zi, data, name, format='csv'):
@@ -31,9 +35,15 @@ def add_to_zip(zi, data, name, format='csv'):
     :type format: str
     :return:
     """
-    data.write('./{}'.format(name), data_format=format)
-    zi.write('./{}'.format(name), name)
-    os.remove('./{}'.format(name))
+    p = f'./{name}'
+    paths = data.write(p, data_format=format)
+    if paths is None:
+        zi.write(p, name)
+        os.remove(p)
+    else:
+        for p in paths:
+            zi.write(p, p.split('./')[-1])
+            os.remove(p)
 
 
 def read_from_zip(zi, name):
@@ -52,7 +62,7 @@ def read_from_zip(zi, name):
     if ending == 'fits':
         d = Table.read(name).to_pandas()
     elif ending == 'csv':
-        d = pd.read_csv(name)
+        d = pd.read_csv(name, index_col=0)
     elif ending == 'ini':
         return SurveyData.read(name)
     else:
@@ -70,10 +80,10 @@ class DataSet:
     _colors = None
     _flux = None
     _astrometry = None
+    _light_curves = None
     _plot = None
 
-    def __init__(self, data=None, index=None, coordinates=None, magnitudes=None, colors=None, flux=None,
-                 survey=None):
+    def __init__(self, data=None, index=None, coordinates=None, magnitudes=None, colors=None, flux=None):
         """
         Standard data class for a survey like dataset. It requires a data file or at least coordinates and magnitudes.
         If no other data are given, it will try to compute the colors and index the sources.
@@ -89,7 +99,10 @@ class DataSet:
         :param colors: A list with colors, they must have the same length as index, coordinates and magnitudes
         :type colors: numpy.ndarray
         """
-        self._mask = Mask()
+        try:
+            self._mask = Mask(len(data))
+        except TypeError:
+            self._mask = Mask(len(coordinates))
         if data is not None:
             if type(data) == np.ndarray:
                 cols = data.dtype.names
@@ -108,34 +121,38 @@ class DataSet:
             self._magnitudes = Magnitude(data, mask=self._mask)
 
         # if no data are given but coordinates, magnitudes and maybe colors
-        elif coordinates is not None and magnitudes is not None and colors is not None:
-            if coordinates.shape[0] != magnitudes.shape[0]:
-                raise AttributeError('Coordinates and magnitudes do not have the same length!')
+        elif coordinates is not None and magnitudes is not None:
+            # if coordinates.shape[0] != magnitudes.shape[0]:
+            #     raise AttributeError('Coordinates and magnitudes do not have the same length!')
             if type(coordinates) != CoordinateTable:
                 coordinates = CoordinateTable(coordinates, mask=self._mask)
 
-            self.coordinates = coordinates
+            self._coordinates = coordinates
 
             if type(magnitudes) != Magnitude:
                 magnitudes = Magnitude(magnitudes, mask=self._mask)
 
-            self.magnitudes = magnitudes
+            self._magnitudes = magnitudes
 
-            if type(colors) is bool and colors:
-                self.colors = self.magnitudes.get_colors()
-            else:
-                if type(colors) != Colors:
-                    self.colors = Colors(colors, mask=self._mask)
+            if colors is not None:
+                if type(colors) is bool and colors:
+                    self._colors = self.magnitudes.get_colors()
+                else:
+                    if type(colors) != Colors:
+                        self._colors = Colors(colors, mask=self._mask)
+                    else:
+                        self._colors = colors
 
-            if type(flux) != FluxTable:
-                flux = FluxTable(flux)
+            if flux is not None:
+                if type(flux) != FluxTable:
+                    flux = FluxTable(flux)
 
-            self._flux = flux
+                self._flux = flux
 
             if index is not None:
-                self.index = index
+                self._index = index
             else:
-                self.index = np.arange(1, len(coordinates), 1)
+                self._index = np.arange(1, len(coordinates), 1)
         else:
             raise AttributeError('data or at least coordinates and magnitudes are required!')
 
@@ -159,11 +176,6 @@ class DataSet:
     def coordinates(self):
         return self._coordinates
 
-    @coordinates.setter
-    def coordinates(self, value):
-        # todo: implement mask system
-        self._coordinates = value
-
     @property
     def magnitudes(self):
         """
@@ -173,21 +185,11 @@ class DataSet:
         """
         return self._magnitudes
 
-    @magnitudes.setter
-    def magnitudes(self, value):
-        # todo: implement mask system
-        self._magnitudes = value
-
     @property
     def colors(self):
         if self._colors is None:
             self._colors = self._magnitudes.get_colors()
         return self._colors
-
-    @colors.setter
-    def colors(self, value):
-        # todo: implement mask system
-        self._colors = value
 
     @property
     def flux(self):
@@ -199,11 +201,6 @@ class DataSet:
     def index(self):
         return self._index
 
-    @index.setter
-    def index(self, value):
-        # todo: implement mask system
-        self._index = value
-
     @property
     def plot(self):
         return self._plot
@@ -213,10 +210,6 @@ class DataSet:
         if self._astrometry is None:
             self._astrometry = AstrometryTable.load_astrometry(self._coordinates)
         return self._astrometry
-
-    def add_row(self, coordinate, magnitude, index=None, color=None):
-        # todo: implement add row
-        pass
 
     def remove_unmasked_data(self):
         """
@@ -295,19 +288,60 @@ class DataSet:
         else:
             return self.__get_row__(item)
 
+    def __load_from_vizier__(self, name):
+        d = query_by_name(name, self.coordinates.to_table())
+        self._magnitudes.add_survey_mags(d, name)
+
     def load_from_vizier(self, name):
         """
         Load new photometric data from Vizier
 
-        :param name: Name of the survey
-        :type name: str
+        :param name:
+            A single name or a list of names of surveys or one of the keywords 'optical' or 'nir' to
+            download all optical or NIR surveys
+        :type name: str, list, tuple
         :return:
         """
-        d = query_by_name(name, self.coordinates.to_table())
-        self._magnitudes.add_survey_mags(d, name)
-        # return DataSet(d)
+        if type(name) == str:
+            if name.lower() == 'optical':
+                self.load_from_vizier(['sdss', 'ps', 'kids', 'gaia'])
+            elif name.lower() == 'nir':
+                self.load_from_vizier(['2mass', 'ukidss', 'viking'])
+            elif name.lower() == 'all':
+                self.load_from_vizier(['galex', 'optical', 'nir', 'wise'])
+            else:
+                self.__load_from_vizier__(name)
+        elif type(name) == list or type(name) == tuple:
+            for n in name:
+                self.load_from_vizier(n)
 
-    def images(self, survey, source_id, directory=''):
+    def add_magnitudes(self, data, survey_info, ra_name='ra', dec_name='dec'):
+        """
+        Adds magnitudes from a different source to the DataSet
+
+        :param data: The new data with coordinates and the magnitudes
+        :type data: pd.DataFrame, Table
+        :param survey_info:
+        :param ra_name: The name of the R.A. column
+        :type ra_name: str
+        :param dec_name: The name of the Dec column
+        :type dec_name: str
+        :return:
+        """
+        # check the type of data
+        if type(data) != (pd.DataFrame or Table):
+            raise ValueError('pandas DataFrame or astropy Table is required')
+        elif type(data) == Table:
+            data = data.to_pandas()
+
+        # rename the columns if they aren't the default names
+        if ra_name != 'ra' or dec_name != 'dec':
+            data = data.rename({ra_name: 'ra', dec_name: 'dec'})
+        # TODO: implement
+        data = self.coordinates.match(data)
+        pass
+
+    def images(self, survey, source_id, directory='', bands=None):
         """
         Download images from SDSS or Pan-STARRS and create a colored image out of them
 
@@ -317,6 +351,8 @@ class DataSet:
         :type source_id: int
         :param directory: The path to the directory, where the images should be saved
         :type directory: str
+        :param bands: Individual filter combination. Default is None, which means the default combination is used.
+        :type bands: None, tuple, list
         :return:
         """
         survey = survey.lower()
@@ -339,11 +375,11 @@ class DataSet:
                 directory = directory + '/'
             directory = directory + coord.to_string('hmsdms')+'.png'
         try:
-            s.get_color_image(coord, directory)
+            s.get_color_image(coord, directory, bands=bands)
         except ValueError:
             warnings.warn("Image is not available", UserWarning)
 
-    def all_images(self, survey, directory=''):
+    def all_images(self, survey, directory='', bands=None):
         """
         Downloads images of all sources and create a colored image for every source.
 
@@ -351,6 +387,8 @@ class DataSet:
         :type survey: str
         :param directory: The path to the directory, where the images should be stored
         :type directory: str
+        :param bands: Individual filter combination. Default is None, which means the default combination is used.
+        :type bands: None, tuple, list
         :return:
         """
         try:
@@ -360,7 +398,46 @@ class DataSet:
         for i in range(len(self.coordinates)):
             if not m[i]:
                 continue
-            self.images(survey, i, directory)
+            self.images(survey, i, directory, bands=bands)
+
+    @property
+    def light_curves(self):
+        """
+        Downloads all light curves from CSS
+        :return:
+        """
+        if self._light_curves is None:
+            self._light_curves = LightCurves(self._coordinates)
+        return self._light_curves
+
+    def correct_extinction(self):
+        """
+        Estimates and applies the extinction correction based on
+        Schlafly & Finkbeiner 2011 (ApJ 737, 103) to the magnitudes.
+        If fluxes are colors are already computed, then they will be computed
+        again after the correction.
+        :return:
+        """
+        extinc = get_extinctions(self.coordinates['ra'],
+                                 self.coordinates['dec'],
+                                 wavelengths=self.magnitudes.survey.get_all_wavelengths(),
+                                 filter_names=self.magnitudes.survey.all_magnitudes())
+        self.magnitudes.apply_extinction_correction(extinc)
+
+        # recompute flux and colors if they are already computed
+        if self._flux is not None:
+            self._flux = None
+            self.flux
+
+        if self._colors is not None:
+            self._colors = None
+            self.colors
+
+    def reset_masks(self):
+        self.magnitudes.set_mask(self._mask)
+        self.flux.set_mask(self._mask)
+        self.colors.set_mask(self._mask)
+        self.coordinates.set_mask(self._mask)
 
     def __combine_all__(self):
         """
@@ -389,8 +466,9 @@ class DataSet:
         """
         with zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED) as zi:
             add_to_zip(zi, self.coordinates, 'coordinates.{}'.format(format), format=format)
-            add_to_zip(zi, self.magnitudes, 'magnitudes.{}'.format(format), format=format)
-            add_to_zip(zi, self.magnitudes.survey, 'survey.ini', format='init')
+            if self._magnitudes.data is not None:
+                add_to_zip(zi, self.magnitudes, 'magnitudes.{}'.format(format), format=format)
+                add_to_zip(zi, self.magnitudes.survey, 'survey.ini', format='init')
             if self._colors is not None:
                 add_to_zip(zi, self.colors, 'colors.{}'.format(format), format=format)
             if self._flux is not None:
@@ -404,7 +482,6 @@ class DataSet:
         :param path: The path to the save place
         :type path: str
         """
-        # todo: change to multi layer
         hdu_list = [self.coordinates.to_astropy_table('coordinates'),
                     self.magnitudes.to_astropy_table('magnitudes')]
 
@@ -414,9 +491,6 @@ class DataSet:
             hdu_list.append(self.flux.to_astropy_table('flux'))
         hdu_list = fits.HDUList(hdu_list)
         hdu_list.writeto(path, overwrite=True)
-        # combined = self.__combine_all__()
-        # combined = Table.from_pandas(combined)
-        # combined.write(path, format='fits')
 
     def __write_as_csv__(self, path):
         """
@@ -431,8 +505,9 @@ class DataSet:
     def __write_as_report__(self, path):
         # todo: implement report writing
         a = self.plot
-        raise AttributeError('Report is not implemented yet')
-        pass
+        report = DataSetReport(self)
+        report.html(path)
+        # raise AttributeError('Report is not implemented yet')
 
     def write(self, path, format='zip', in_zip_format='fits'):
         """
@@ -479,6 +554,12 @@ class DataSet:
             s += 'Flux computed: False\n'
         return s
 
+    def __sizeof__(self):
+        total_size = 56
+        if self._coordinates is not None:
+            total_size += sys.getsizeof(self._coordinates)
+        return total_size
+
     @staticmethod
     def read_from_file(name, format='zip'):
         """
@@ -495,13 +576,38 @@ class DataSet:
             d = {}
             head = None
             with zipfile.ZipFile(name) as zip_file:
+                mags = None
+                flux = FluxTable()
+                colors = Colors()
                 for file_name in zip_file.namelist():
+
                     if '.ini' not in file_name:
-                        d[file_name.split('.')[0]] = read_from_zip(zip_file, file_name)
+                        if 'magnitude' in file_name:
+                            if mags is None:
+                                mags = Magnitude(read_from_zip(zip_file, file_name),
+                                                 survey=file_name.split('.')[0].split('magnitudes_')[-1])
+                            else:
+                                mags.add_survey_mags(read_from_zip(zip_file, file_name),
+                                                     file_name.split('.')[0].split('magnitudes_')[-1])
+                        elif 'flux' in file_name:
+                            flux.add_fluxes(read_from_zip(zip_file, file_name),
+                                            file_name.split('.')[0].split('magnitudes_')[-1])
+                        elif 'colors' in file_name:
+                            colors.add_colors(read_from_zip(zip_file, file_name),
+                                              file_name.split('.')[0].split('magnitudes_')[-1])
+                        elif 'coordinates' in file_name:
+                            d['coordinates'] = read_from_zip(zip_file, file_name)
+                        elif 'light_curves' in file_name:
+                            # todo: implement light curve load
+                            pass
                     else:
                         head = read_from_zip(zip_file, file_name)
+                d['magnitudes'] = mags
+                d['flux'] = flux
+                d['colors'] = colors
             ds = DataSet(**d)
             ds._magnitudes._survey = head
+            ds.reset_masks()
             return ds
         elif format == 'fits':
             with fits.open(name) as fi:
@@ -524,6 +630,12 @@ class DataSet:
     def load_coordinates(path, format='fits', ra_name='ra', dec_name='dec'):
         """
         Creates a DataSet object from a file with coordinates.
+
+        .. code-block::
+
+            from Phosphorpy import DataSet
+
+            ds = DataSet.load_coordinates('./my_coordinates.fits', ra_name='RAJ2000', dec_name='DEJ2000')
 
         :param path: The path to the file
         :type path: str
@@ -551,6 +663,12 @@ class DataSet:
     def from_vizier(name, **constrains):
         """
         Stars a constrain query on a vizier catalog and convert the output to a DataSet object.
+
+        .. code-block::
+
+            from Phosphorpy import DataSet
+
+            ds = DataSet.from_vizier('SDSS', {'rmag': '<17', 'class': 'STAR'})
 
         :param name: The name of the survey
         :type name: str

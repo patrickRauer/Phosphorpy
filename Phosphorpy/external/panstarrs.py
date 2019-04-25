@@ -111,7 +111,7 @@ def download_all_bands(ra, dec, size, save_path):
         img_path = path.format(b)
         # start a new thread to download every bands
         th = Thread(target=_download_band,
-                    args=('http:' + img_urls[b],
+                    args=(f'http:{img_urls[b]}',
                           img_path, q))
         th.start()
         ths.append(th)

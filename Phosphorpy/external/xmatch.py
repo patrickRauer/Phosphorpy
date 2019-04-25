@@ -47,8 +47,10 @@ def __write_temp_file__(data, ra_name, dec_name):
             data = data.rename({ra_name: '{}_input'.format(ra_name),
                                 dec_name: '{}_input'.format(dec_name)},
                                axis='columns')
-        data = __check_row_id__(data, data.columns)
-        data[coords].to_csv('temp.csv')
+        cols = list(data.columns)
+        cols.append(data.index.name)
+        data = __check_row_id__(data, cols)
+        data.to_csv('temp.csv')
     # if the input data are an astropy.table.Table
     elif type(data) == Table:
         if 'input' not in ra_name:
@@ -104,6 +106,22 @@ def find_suffix(cols):
             return c.split(pre)[-1]
 
 
+def _compute_gaia_mags(rs):
+    conv = {'phot_g_mean_mag': "Gmag",
+            'phot_bp_mean_mag': 'BPmag',
+            'phot_rp_mean_mag': 'RPmag',
+            'parallax': 'Plx',
+            'parallax_error': 'e_Plx'}
+    rs = rs.rename(conv, axis='columns')
+    rs['e_Gmag'] = 2.5*rs['phot_g_mean_flux_error']/(np.log(10) *
+                                                     rs['phot_g_mean_flux'])
+    rs['e_BPmag'] = 2.5*rs['phot_bp_mean_flux_error']/(np.log(10) *
+                                                       rs['phot_bp_mean_flux'])
+    rs['e_RPmag'] = 2.5*rs['phot_rp_mean_flux_error']/(np.log(10) *
+                                                       rs['phot_rp_mean_flux'])
+    return rs
+
+
 def xmatch(data, ra_name, dec_name, survey, max_distance=1.*u.arcsec, blank=False):
     """
     Interface to the astroquery.xmatch.XMatch module
@@ -146,18 +164,7 @@ def xmatch(data, ra_name, dec_name, survey, max_distance=1.*u.arcsec, blank=Fals
 
     # handle the labeling of XMatch Gaia
     if survey == 'GAIA':
-        conv = {'phot_g_mean_mag': "Gmag",
-                'phot_bp_mean_mag': 'BPmag',
-                'phot_rp_mean_mag': 'RPmag',
-                'parallax': 'Plx',
-                'parallax_error': 'e_Plx'}
-        rs = rs.rename(conv, axis='columns')
-        rs['e_Gmag'] = 2.5*rs['phot_g_mean_flux_error']/(np.log(10) *
-                                                         rs['phot_g_mean_flux'])
-        rs['e_BPmag'] = 2.5*rs['phot_bp_mean_flux_error']/(np.log(10) *
-                                                           rs['phot_bp_mean_flux'])
-        rs['e_RPmag'] = 2.5*rs['phot_rp_mean_flux_error']/(np.log(10) *
-                                                           rs['phot_rp_mean_flux'])
+        rs = _compute_gaia_mags(rs)
 
     else:
         # check if the config-file contains special hints for the labeling
@@ -199,5 +206,8 @@ def xmatch(data, ra_name, dec_name, survey, max_distance=1.*u.arcsec, blank=Fals
 
     rs = rs.groupby('row_id')
     rs = rs.aggregate(np.nanmean)
+
+    # make sure that the input and the output data have the same length and the same order
+    rs = data[[]].join(rs, how='left')
 
     return rs

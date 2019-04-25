@@ -68,22 +68,22 @@ class Color:
         :return:
         """
         # exclude data with nan values
-        m = self._color.data[cols[0]] > -999
+        d = self._color.get_columns(cols)
+        m = d[cols[0]] > -999
         for i in range(1, len(cols)):
-            m = m & (self._color.data[cols[i]] > -999)
-        d = self._color.data[cols]
+            m = m & (d[cols[i]] > -999)
 
         hue = None
         if self._color.mask.get_mask_count() > 0:
             d['selection'] = '          '
             hue = 'selection'
-            for i in range(self._color.mask.get_mask_count()):
+            for i in range(1, self._color.mask.get_mask_count()):
                 d.loc[self._color.mask.get_mask(i), 'selection'] = self._color.mask.get_description(i)
         d = d[m]
         pp = seaborn.PairGrid(d, hue=hue)
         pp.map_diag(pl.hist)
         pp.map_lower(pl.scatter, marker='.')
-        # pp.map_upper(seaborn.kdeplot, cmap="Blues_d")
+
         pp.fig.subplots_adjust(wspace=0.02, hspace=0.02)
 
         # change the current labels, which are the default column names to a proper style
@@ -127,16 +127,18 @@ class Color:
         :type legend: bool
         :return:
         """
+        color1 = self._color.get_column(cols[0])
+        color2 = self._color.get_column(cols[1])
         sp = pl.subplot()
-        sp.scatter(self._color.data[cols[0]],
-                   self._color.data[cols[1]],
+        sp.scatter(color1,
+                   color2,
                    marker='.', c='k')
 
         # iterate over all masks
         for i in range(self._color.mask.get_mask_count()):
             m = self._color.mask.get_mask(i)
-            sp.scatter(self._color.data[cols[0]][m],
-                       self._color.data[cols[1]][m],
+            sp.scatter(color1[m],
+                       color2[m],
                        marker='.', label=self._color.mask.get_description(i))
         replace_labels(sp, cols, labels)
 

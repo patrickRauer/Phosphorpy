@@ -4,11 +4,22 @@ class Plot:
 
     def __init__(self, data_set):
         """
+        This class is an interface to the plotting environments of the different sub tables.
 
         :param data_set:
         :type data_set: Phosphorpy.data.data.DataSet
         """
         self._data_set = data_set
+
+    def magnitude_hist(self, *args, **kwargs):
+        """
+        Plots a magnitude histogram
+
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        self._data_set.magnitudes.plot.hist(*args, **kwargs)
 
     def sed(self, *args, **kwargs):
         """

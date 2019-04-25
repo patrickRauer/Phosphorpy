@@ -486,7 +486,11 @@ def get_survey(name):
         survey = Apass()
     elif name == 'ukidss':
         survey = Ukidss()
-    elif name == 'bailer-jones' or name =='bj':
+    elif name == 'kids':
+        survey = Kids()
+    elif name == 'viking':
+        survey = Viking()
+    elif name == 'bailer-jones' or name == 'bj':
         survey = BailerJones()
     else:
         raise AttributeError('No survey with name {} known!'.format(name))
@@ -500,7 +504,7 @@ def query_by_name(name, data, ra_name='ra', dec_name='dec'):
     :param name: Name of the survey
     :type name: str
     :param data: data with the coordinates, it must have at least two columns with 'ra_name' and 'dec_name'
-    :type data:
+    :type data: astropy.table.Table, pandas.DataFrame
     :param ra_name: Name of the RA column
     :type ra_name: str
     :param dec_name: Name of the Dec column
