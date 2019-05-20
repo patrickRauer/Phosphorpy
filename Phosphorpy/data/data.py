@@ -11,7 +11,11 @@ from Phosphorpy.data.sub.astrometry import AstrometryTable
 from Phosphorpy.report.Report import DataSetReport
 from astropy.table import Table
 from astropy.io import fits
-from extinction.extinction import get_extinctions
+try:
+    from extinction.extinction import get_extinctions
+except ImportError:
+    from Phosphorpy.external.extinction import get_extinctions
+
 import pandas as pd
 from pandas import DataFrame
 import numpy as np

@@ -5,10 +5,7 @@ ADS_LINK = 'https://ui.adsabs.harvard.edu/?#abs/{}'
 
 def create_dict(line):
     line = line.split(' ')
-    temp = []
-    for line_part in line:
-        if line_part != '':
-            temp.append(line_part.strip(','))
+    temp = [line_part for line_part in line if line_part != '']
     items = temp[1:]
     if len(items) == 1:
         items = items[0]

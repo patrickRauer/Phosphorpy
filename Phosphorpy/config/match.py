@@ -75,12 +75,14 @@ def match_catalogs(d1, d2, ra1, dec1, ra2, dec2, join_type='outer',
     if type(match_radius) is not Quantity:
         match_radius = match_radius * u.arcsec
 
-    x = np.zeros((len(d1) + len(d2), 2))
-    x[:len(d1), 0] = d1[ra1]
-    x[:len(d1), 1] = d1[dec1]
-    x[len(d1):, 0] = d2[ra2]
-    x[len(d1):, 1] = d2[dec2]
+    len_d1 = len(d1)
+    x = np.zeros((len_d1 + len(d2), 2))
+    x[:len_d1, 0] = d1[ra1]
+    x[:len_d1, 1] = d1[dec1]
+    x[len_d1:, 0] = d2[ra2]
+    x[len_d1:, 1] = d2[dec2]
 
+    # apply the DBSCAN with the match radius in degree
     db = DBSCAN(eps=match_radius.to(u.deg).value,
                 min_samples=2)
     db.fit(x)
@@ -88,8 +90,8 @@ def match_catalogs(d1, d2, ra1, dec1, ra2, dec2, join_type='outer',
     d1 = convert_input_data(d1)
     d2 = convert_input_data(d2)
 
-    d1['label'] = db.labels_[:len(d1)]
-    d2['label'] = db.labels_[len(d1):]
+    d1['label'] = db.labels_[:len_d1]
+    d2['label'] = db.labels_[len_d1:]
 
     max_label = np.max(db.labels_) + 1
 
@@ -115,7 +117,6 @@ def group_by_coordinates(d, ra_name, dec_name):
     :return: The mean values of sources with multiple entries or the values itself if there is one entry only
     :rtype: astropy.table.Table
     """
-    print(d.colnames)
     # exclude targets with NAN values in the coordinates (in the stupid way)
     d = d[(d[ra_name] > -99) & (d[dec_name] > -99)]
 
@@ -132,7 +133,7 @@ def group_by_coordinates(d, ra_name, dec_name):
     out = [d[mask]]
 
     # select sources with multiple entries
-    d = d[mask == False]
+    d = d[np.invert(mask)]
 
     if len(d) != 0:
         # group the sources with multiple entries by their coordinate label and compute the nanmean value

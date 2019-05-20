@@ -42,12 +42,34 @@ class Table:
             self.__data.__setattr__(key, value)
 
     def set_mask(self, mask):
+        """
+        Sets a new mask to the table
+
+        :param mask: The new mask
+
+        :return:
+        """
         self.__mask = mask
 
     def select_columns(self, columns):
+        """
+        Select a subset of columns
+
+        :param columns: The name of the columns
+        :type columns: Union
+        :return:
+        """
         self.__data = self.__data[columns]
 
     def rename(self, name_map, axis=None):
+        """
+        Rename of columns
+
+        :param name_map: The rename map
+        :type name_map: dict
+        :param axis:
+        :return:
+        """
         self.__data.rename(name_map, axis)
 
     def merge(self, right, left_index=False, right_index=False):

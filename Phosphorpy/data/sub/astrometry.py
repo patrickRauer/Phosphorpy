@@ -110,8 +110,8 @@ class AstrometryTable(DataTable):
         gaia = gaia.join(bj, how='outer')
 
         df = pd.DataFrame()
-        df['row_id'] = np.linspace(1, len(coordinates.data), len(coordinates.data),
-                                   dtype=np.int32)
+        df['row_id'] = np.arange(coordinates.data.index.values.min(),
+                                 coordinates.data.index.values.max())
         df = df.set_index('row_id')
         gaia = df.join(gaia, how='outer')
 

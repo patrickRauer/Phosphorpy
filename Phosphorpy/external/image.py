@@ -192,7 +192,7 @@ class PanstarrsImage:
             rgb[:, :, i] = smooth2d(rgb[:, :, i], smooth)
         return rgb, imgs
 
-    def get_color_image(self, s, path='', smooth=2, mark_source=False, proper_motion=None):
+    def get_color_image(self, s, path='', smooth=2, mark_source=False, proper_motion=None, bands=None):
         """
         Download the Pan-STARRS images and create an RGB image out of them.
 
