@@ -45,15 +45,31 @@ def smooth2d(mat, c=5):
     return smooth2d(out, c=c-1)
 
 
-class SDSSImage:
-    last_coordinate = None
-    color_image_bands = ['z', 'r', 'u']
-    color_image_radius = 2 * u.arcmin
+def write(path, c_image, bands):
+    if '.fit' in path:
+        path = path.split('.fit')[0]
+    for img, b in zip(c_image, bands):
+        img.writeto(f'{path}_{b}.fits', overwrite=True)
 
-    def __init__(self):
+
+class Image:
+    last_coordinate = None
+    color_image_bands = None
+    color_image_radius = None
+
+    def get_color_image(self, s, path='', bands=None, size=None):
         pass
 
-    def get_color_image(self, s, path='', bands=None):
+
+class SDSSImage(Image):
+
+    def __init__(self):
+        Image.__init__(self)
+        self.last_coordinate = None
+        self.color_image_bands = ['z', 'r', 'u']
+        self.color_image_radius = 2 * u.arcmin
+
+    def get_color_image(self, s, path='', bands=None, size=None):
         """
         Download the SDSS images and create an RGB image out of them.
 
@@ -64,6 +80,8 @@ class SDSSImage:
         :type path: str
         :param bands: Individual band combination or None. Default is None which means that the default bands are used.
         :type bands: None, tuple, list
+        :param size: The wanted size of the image
+        :type size: float, astropy.units.Quantity
         :return:
         """
         if bands is None:
@@ -107,8 +125,18 @@ class SDSSImage:
             data = smooth2d(hdu[0].data)
 
             # make a cut around the target
-            cut = Cutout2D(data, s, self.color_image_radius, wcs=wcs_o)
+            if size is not None:
+                if type(size) != u.Quantity:
+                    size = size * u.arcmin
+            else:
+                size = self.color_image_radius
+
+            cut = Cutout2D(data, s, size, wcs=wcs_o)
             imgs.append(cut.data)
+
+        if '.fit' in path:
+            write(path, imgs, bands)
+            return
 
         pl.clf()
         # create a subplot and use the wcs projection
@@ -128,15 +156,15 @@ class SDSSImage:
             pl.savefig(path)
 
 
-class PanstarrsImage:
-    last_coordinate = None
-    color_image_bands = ['z', 'r', 'g']
-    color_image_radius = 2 * u.arcmin
+class PanstarrsImage(Image):
 
     def __init__(self):
-        pass
+        Image.__init__(self)
+        self.last_coordinate = None
+        self.color_image_bands = ['z', 'r', 'g']
+        self.color_image_radius = 2 * u.arcmin
 
-    def get_normalized_imaged(self, s, smooth, bands=None):
+    def get_normalized_imaged(self, s, smooth, bands=None, size=None):
         """
         Returns the normalized images and the HDU's
 
@@ -147,6 +175,8 @@ class PanstarrsImage:
         :param bands:
             Optional: Set of three bands for the color image (g, r, i, z, y). Order must be red, green and blue
         :type bands: None, list, tuple
+        :param size: Optional: A customized size of the image in arcmin
+        :type size: float
         :return: The normalized images and the original HDU's
         """
         if bands is None:
@@ -155,7 +185,12 @@ class PanstarrsImage:
             if len(bands) != 3:
                 raise ValueError("Bands must include three bands")
         # download Pan-STARRS images
-        paths = download_all_bands(s.ra.degree, s.dec.degree, self.color_image_radius,
+        if size is not None:
+            if type(size) != u.Quantity:
+                size = size * u.arcmin
+        else:
+            size = self.color_image_radius
+        paths = download_all_bands(s.ra.degree, s.dec.degree, size,
                                    './temp/')
         imgs = []
         for c in bands:
@@ -192,7 +227,8 @@ class PanstarrsImage:
             rgb[:, :, i] = smooth2d(rgb[:, :, i], smooth)
         return rgb, imgs
 
-    def get_color_image(self, s, path='', smooth=2, mark_source=False, proper_motion=None, bands=None):
+    def get_color_image(self, s, path='', smooth=2, mark_source=False, proper_motion=None, bands=None,
+                        size=None):
         """
         Download the Pan-STARRS images and create an RGB image out of them.
 
@@ -209,9 +245,17 @@ class PanstarrsImage:
             The proper motion of the source or None. If the proper motion is given, an arrow will indicate
             the proper motion, if None no proper motion arrows will be drawn. Default is None.
         :type proper_motion: None, list
+        :param bands: Optional argument with bands other than the defaults (z, r, g)
+        :type bands: list
+        :param size: The wanted size of the image
+        :type size: float, astropy.units.Quantity
         :return:
         """
-        rgb, imgs = self.get_normalized_imaged(s, smooth)
+        rgb, imgs = self.get_normalized_imaged(s, smooth, bands=bands, size=size)
+
+        if '.fit' in path:
+            write(path, imgs, bands)
+            return
 
         pl.clf()
         # make a chart with a WCS projection
