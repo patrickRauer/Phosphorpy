@@ -13,6 +13,7 @@ GALEX = 'GALEX'
 GAIA = 'GAIA'
 UKIDSS = 'UKIDSS'
 BAILER_JONES = 'Bailer-Jones'
+SkyMapper = 'SkyMapper'
 
 # Dict where the keys are the survey names and
 # the items are a list of the corresponding filter names

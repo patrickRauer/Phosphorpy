@@ -5,6 +5,7 @@ from astropy import units as u
 from astropy.table import Table, join, vstack
 from astropy.units.quantity import Quantity
 from sklearn.cluster import DBSCAN
+from sklearn.neighbors import NearestNeighbors
 import pandas
 
 warnings.simplefilter('ignore')
@@ -47,6 +48,19 @@ def convert_input_data(d):
             d = Table(d)
     return d
 
+
+def next_neighbour_id(d1, d2, ra1, dec1, ra2, dec2):
+
+    x = np.zeros((len(d1), 2))
+    x[:, 0] = d1[ra1].values
+    x[:, 1] = d1[dec1].values
+
+    nn = NearestNeighbors.fit(x)
+
+    y = np.zeros((len(d2), 2))
+    y[:, 0] = d2[ra2].values
+    y[:, 1] = d2[dec2].values
+    distance, ids = nn.kneighbors(y)
 
 def match_catalogs(d1, d2, ra1, dec1, ra2, dec2, join_type='outer',
                    match_radius=2 * u.arcsec):

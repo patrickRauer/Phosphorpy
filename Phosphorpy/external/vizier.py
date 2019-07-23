@@ -5,6 +5,7 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.table import Table, vstack
 from astroquery.vizier import Vizier as Viz
+from astroquery.simbad import Simbad
 from ..config.survey_data import SURVEY_DATA
 from ..config import names
 from .xmatch import xmatch
@@ -17,6 +18,7 @@ import warnings
 warnings.simplefilter('ignore')
 
 Viz.ROW_LIMIT = -1
+Simbad.add_votable_fields('otype')
 
 
 class Vizier:
@@ -60,12 +62,12 @@ class Vizier:
         # except it is GALEX
         if self.name != names.GALEX:
             for c in selected_survey['magnitude']:
-                cols.append('{}mag'.format(c))
-                cols.append('e_{}mag'.format(c))
+                cols.append(f'{c}mag')
+                cols.append(f'e_{c}mag')
         else:
             for c in selected_survey['magnitude']:
                 cols.append(c)
-                cols.append('e_{}'.format(c))
+                cols.append(f'e_{c}')
 
         # if there are additional columns set
         if 'columns' in selected_survey.keys():
@@ -114,7 +116,7 @@ class Vizier:
                 if self.name == 'GAIA':
                     ra_name = 'RA_ICRS'
                     dec_name = "DE_ICRS"
-                elif self.name == 'SDSS':
+                elif self.name == 'SDSS' or self.name == 'SkyMapper':
                     ra_name = '_RAJ2000'
                     dec_name = '_DEJ2000'
                 else:
@@ -125,6 +127,7 @@ class Vizier:
                 o.rename_column(ra_name, 'ra')
                 o.rename_column(dec_name, 'dec')
                 o = o.to_pandas()
+                # print(o.columns)
                 o = o.groupby('id')
                 o = o.aggregate(np.nanmean)
 
@@ -172,7 +175,7 @@ class Vizier:
             # if coord has another length than 2, raise an error
             else:
                 raise ValueError('If the coordinate are a tuple or list, ' +
-                                 'it must have 2 elements, not {}!'.format(len(coord)))
+                                 f'it must have 2 elements, not {len(coord)}!')
             coord = SkyCoord(ra*u.deg, dec*u.deg)
         return self.__query_single__(coord)[0]
 
@@ -196,7 +199,7 @@ class Vizier:
         # If there are more than 100 entries, use the xmatch interface to get the data
         # this will be faster
         try:
-            if len(data) > 100 or use_xmatch:
+            if len(data) > 0 or use_xmatch:
                 out = xmatch(data, ra_name, dec_name, self.name, blank=blank)
 
                 return out
@@ -263,6 +266,23 @@ class TwoMass(Vizier):
         Child class to query 2MASS data
         """
         Vizier.__init__(self)
+        self.vizier = Viz(columns=self.columns)
+        self.vizier.ROW_LIMIT = -1
+
+
+class SkyMapper(Vizier):
+
+    name = names.SkyMapper
+
+    def __init__(self):
+        """
+        Child class to query 2MASS data
+        """
+        Vizier.__init__(self)
+        self.columns = ['_RAJ2000', '_DEJ2000',
+                        'uPetro', 'e_uPetro', 'vPetro', 'e_vPetro',
+                        'gPetro', 'e_gPetro', 'rPetro', 'e_rPetro',
+                        'iPetro', 'e_iPetro', 'zPetro', 'e_zPetro']
         self.vizier = Viz(columns=self.columns)
         self.vizier.ROW_LIMIT = -1
 
@@ -492,8 +512,10 @@ def get_survey(name):
         survey = Viking()
     elif name == 'bailer-jones' or name == 'bj':
         survey = BailerJones()
+    elif name == 'skymapper':
+        survey = SkyMapper()
     else:
-        raise AttributeError('No survey with name {} known!'.format(name))
+        raise AttributeError(f'No survey with name {name} known!')
     return survey
 
 
@@ -534,3 +556,32 @@ def constrain_query(name, **kwargs):
     """
     survey = get_survey(name)
     return survey.query_constrain(**kwargs)
+
+
+def query_simbad(coordinates):
+    """
+    Queries the Simbad database for potential entries/classifications
+
+    :param coordinates: The coordinates
+    :type coordinates: Phosphorpy.data.sub.coordinates.CoordinateTable
+    :return:
+    """
+    sc = coordinates.as_sky_coord()
+    rs = Simbad.query_region(sc, radius=2*u.arcsec)
+    if rs is None:
+        return rs
+    coord = []
+    ra_str = '{}h{}m{}s'
+    dec_str = ' {}d{}m{}s'
+    for ra, dec in zip(rs['RA'], rs['DEC']):
+        c = ra_str.format(*(ra.split(' ')))
+        c += dec_str.format(*(dec.split(' ')))
+        coord.append(c)
+
+    s = SkyCoord(np.array(coord))
+    rs['ra'] = s.ra
+    rs['dec'] = s.dec
+
+    rs = coordinates.match(rs)
+
+    return rs

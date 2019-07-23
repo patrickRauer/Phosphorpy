@@ -69,6 +69,7 @@ class Color:
         """
         # exclude data with nan values
         d = self._color.get_columns(cols)
+
         m = d[cols[0]] > -999
         for i in range(1, len(cols)):
             m = m & (d[cols[i]] > -999)
@@ -181,7 +182,7 @@ class Color:
                 # todo: implement a col selection with a dict (maybe a list of dicts?)
                 pass
             else:
-                raise ValueError('{} is not supported format for color names.'.format(type(cols)))
+                raise ValueError(f'{type(cols)} is not supported format for color names.')
             cols = use_cols
 
         pl.clf()

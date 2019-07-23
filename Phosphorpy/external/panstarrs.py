@@ -24,6 +24,9 @@ def get_all_image_urls(ra, dec, size):
     :return: Dict with where the keys are the name of the bands and the items are the urls to images
     :rtype: dict
     """
+
+    if ra < 0 or ra > 360 or dec < -30 or dec > 90:
+        raise ValueError('Coordinates out of range.\n ra={ra}\tdec{dec}')
     bands = ['g', 'r', 'i', 'z', 'y']
     user_agent = ''.join(['Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_4; en-US) ',
                           'AppleWebKit/534.3 (KHTML, like Gecko) Chrome/6.0.472.63 Safari/534.3'])

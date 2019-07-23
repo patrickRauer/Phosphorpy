@@ -1,3 +1,4 @@
+import pandas as pd
 from .table import DataTable
 from .plots.color import Color, create_color_name
 from Phosphorpy.data.sub.tables.color import Color as ColorTab
@@ -77,7 +78,11 @@ class Colors(DataTable):
                 if out is None:
                     out = o
                 else:
-                    out = out.join(o)
+                    if type(cols) == pd.core.indexes.base.Index:
+                        if len(o.columns) > len(out.columns):
+                            out = o
+                    else:
+                        out = out.join(o)
         return out
 
     def get_column(self, col):

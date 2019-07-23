@@ -62,7 +62,7 @@ def get_survey_cols(cols, s_cols, prefix):
             # if the survey magnitude name is in and the prefix is in
             # of if there is no prefix and the magnitude name is equal to the survey name
             if ((s in c and prefix in c and not prefix_cond) or
-                    (prefix_cond and (c == s or 'mag' in c))):
+                    (prefix_cond and (c == s or 'mag' in c or 'Petro' in c))):
                 out.append(c)
                 break
 
@@ -94,17 +94,23 @@ def guess_surveys(mag_cols):
         gaia = 0
         galex = 0
         ukidss = 0
+        skymapper = 0
 
         # count how often a band could be part of a survey
         for mag in mag_cols:
             # ignore error columns or J2000 coordinate columns
-            if 'e_' in mag or 'J2000' in mag or 'deg' in mag:
+            if 'e_' in mag or 'J2000' in mag or 'deg' in mag or 'ra' in mag or 'dec' in mag:
                 continue
             # strip mag postfix
-            mag = mag.split('mag')[0]
+            if 'mag' in mag:
+                mag = mag.split('mag')[0]
+            elif 'Petro' in mag:
+                mag = mag.split('Petro')[0]
+
             if 'u' in mag:
                 kids += 1
                 sdss += 1
+                skymapper += 1
             elif 'g' in mag or 'r' in mag or 'i' in mag:
                 if 'p' in mag:
                     apass += 1
@@ -112,10 +118,12 @@ def guess_surveys(mag_cols):
                     pan_starrs += 1
                     sdss += 1
                     kids += 1
+                    skymapper += 1
 
             elif 'z' in mag:
                 pan_starrs += 1
                 sdss += 1
+                skymapper += 1
             elif 'y' in mag:
                 pan_starrs += 1
             elif 'Y' in mag or 'Z' in mag:
@@ -133,8 +141,20 @@ def guess_surveys(mag_cols):
                 galex += 1
             elif 'B' in mag or 'V' in mag:
                 apass += 1
+            elif 'v' in mag:
+                skymapper += 1
         # TODO: use data from local file
         # decide which survey it is
+        if skymapper == 6:
+            kids -= 4
+            sdss -= 5
+            pan_starrs -= 4
+            prefix = get_prefix(mag_cols, 'v')
+            s_cols = ['u', 'v', 'g', 'r', 'i', 'z']
+            print(mag_cols, s_cols, prefix)
+            mag_cols, cols = get_survey_cols(mag_cols, s_cols, prefix)
+            return cols
+
         if pan_starrs == 5 or (pan_starrs > 5 and 'y' in mag_cols):
             kids -= 3
             sdss -= 4
@@ -258,7 +278,10 @@ class SurveyData:
     def __add_survey_properties__(self, survey, cols):
         survey_properties = {}
         for c in cols:
-            c = c.split('mag')[0]
+            if 'mag' in c:
+                c = c.split('mag')[0]
+            elif 'Petro' in c:
+                c = c.split('Petro')[0]
             survey_properties[c] = get_survey_filter_information(survey, c)
         self._properties[survey] = survey_properties
 
@@ -522,7 +545,6 @@ class MagnitudeTable(DataTable):
                 if type(data) != Magnitude:
                     data = Magnitude(data, survey, mask=mask)
                 self._data = [data]
-                print(type(self._data[0]))
         except ValueError:
             warnings.warn('No magnitude columns!')
 
@@ -728,9 +750,11 @@ class MagnitudeTable(DataTable):
         :return:
         """
         cols = guess_surveys(mags.columns)
+        print(cols)
         mags = Magnitude(mags, cols, survey, mask=self.mask)
         mags.select_columns(cols)
         survey = survey.lower()
+        print(mags.data)
 
         if self._data is not None:
             try:

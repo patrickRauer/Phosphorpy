@@ -40,10 +40,10 @@ class CoordinateTable(DataTable):
             if type(data) != np.ndarray or len(data.shape) == 1:
                 columns = get_column_names(data)
 
-                s = SkyCoord(np.array(data[find_ra_column(columns)])*u.deg,
-                             np.array(data[find_dec_column(columns)])*u.deg)
+                s = SkyCoord(np.array(data[find_ra_column(columns)]) * u.deg,
+                             np.array(data[find_dec_column(columns)]) * u.deg)
             else:
-                s = SkyCoord(data[:, 0]*u.deg, data[:, 1]*u.deg)
+                s = SkyCoord(data[:, 0] * u.deg, data[:, 1] * u.deg)
             ra = np.array(s.ra.degree)
             dec = np.array(s.dec.degree)
             lon = np.array(s.galactic.l)
@@ -114,10 +114,10 @@ class CoordinateTable(DataTable):
         :rtype: astropy.coordinates.SkyCoord
         """
         if source_id == -1:
-            s = SkyCoord(self.data['ra'].values*u.deg, self.data['dec'].values*u.deg)
+            s = SkyCoord(self.data['ra'].values * u.deg, self.data['dec'].values * u.deg)
         else:
-            s = SkyCoord(self.data['ra'].values[source_id]*u.deg,
-                         self.data['dec'].values[source_id]*u.deg)
+            s = SkyCoord(self.data['ra'].values[source_id] * u.deg,
+                         self.data['dec'].values[source_id] * u.deg)
         return s
 
     def _combine_coordinates(self, other):
@@ -127,7 +127,7 @@ class CoordinateTable(DataTable):
             d = np.zeros((len(other), 2))
             d[:, 0] = other.ra.degree
             d[:, 1] = other.dec.degree
-        elif type(other) == (CoordinateTable or Table or DataFrame):
+        elif type(other) == CoordinateTable or type(other) == Table or type(other) == DataFrame:
             d = np.zeros((len(other), 2))
             d[:, 0] = other['ra']
             d[:, 1] = other['dec']
@@ -139,7 +139,8 @@ class CoordinateTable(DataTable):
         x = np.concatenate((self._data[:, :2].values, d), axis=0)
         return x
 
-    def match(self, other, radius=1*u.arcsec):
+    def match(self, other, radius=2 * u.arcsec,
+              ra_name='ra', dec_name='dec'):
         """
         Matches these coordinates with another coordinate set. To do that it uses a nearest neighbor algorithm
         to find the next neighbor.
@@ -169,16 +170,27 @@ class CoordinateTable(DataTable):
         :returns: An array with the indices of the match sources. Sources without a match will have -1.
         :rtype: pandas.DataFrame
         """
-        x = self._combine_coordinates(other)
+        x = self._data[['ra', 'dec']].values
         # convert the radius to degree and to a float
         if type(radius) == Quantity:
             radius = radius.to(u.deg).value
 
+        if type(other) != DataFrame:
+            if type(other) == Table:
+                other = other.to_pandas()
+            elif type(other) == np.array:
+                other = DataFrame(other)
+            else:
+                raise ValueError('Unsupported input type ({})'.format(str(type(other))))
+
         # approximate small distance
         x[:, 0] *= np.cos(np.deg2rad(x[:, 1]))
-        nn = NearestNeighbors(n_neighbors=2).fit(x[:len(self)])
-        distances, indices = nn.kneighbors(x[len(self):])
-        m = distances[:, 1] <= radius
+        nn = NearestNeighbors(n_neighbors=1).fit(x)
+
+        y = other[[ra_name, dec_name]].values
+        y[:, 0] *= np.cos(np.deg2rad(y[:, 1]))
+        distances, indices = nn.kneighbors(y)
+        m = distances[:, 0] <= radius
 
         new_indices = self.data.index.values[indices[:, 0][m]]
 
@@ -197,7 +209,7 @@ class CoordinateTable(DataTable):
         elif data_format == 'latex':
             data.to_latex(path)
         elif data_format == 'fits':
-            Table.from_pandas(self.data).write(path)
+            Table.from_pandas(data).write(path, overwrite=True)
 
 
 def get_column_names(d):

@@ -4,12 +4,12 @@ import pandas as pd
 
 
 class Mask:
-    _mask = []
-    _desc = []
+    _mask = None
+    _desc = None
 
     def __init__(self, length):
-        self._mask.append(pd.Series(length*[True], np.arange(length)))
-        self._desc.append('initialization')
+        self._mask = [pd.Series(length*[True], np.arange(length))]
+        self._desc = ['initialization']
 
     def __str__(self):
         string = ''
@@ -289,7 +289,7 @@ class DataTable:
         elif data_format == 'fits':
             return self._write(path, 'fits')
         else:
-            raise ValueError('Format {} is not supported.'.format(data_format))
+            raise ValueError(f'Format {data_format} is not supported.')
 
     def __str__(self):
         return str(self._data)

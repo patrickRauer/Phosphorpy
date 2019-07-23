@@ -2,7 +2,7 @@ from Phosphorpy.data.sub.magnitudes import MagnitudeTable as Magnitude, SurveyDa
 from Phosphorpy.data.sub.colors import Colors
 from Phosphorpy.data.sub.coordinates import CoordinateTable
 from Phosphorpy.data.sub.flux import FluxTable
-from Phosphorpy.external.vizier import query_by_name, constrain_query
+from Phosphorpy.external.vizier import query_by_name, constrain_query, query_simbad
 from Phosphorpy.data.sub.plots.plot import Plot
 from Phosphorpy.data.sub.table import Mask
 from Phosphorpy.data.sub.light_curve import LightCurves
@@ -70,7 +70,7 @@ def read_from_zip(zi, name):
     elif ending == 'ini':
         return SurveyData.read(name)
     else:
-        raise ValueError('Format {} is not supported.'.format(format))
+        raise ValueError(f'Format {format} is not supported.')
     os.remove(name)
     return d
 
@@ -115,7 +115,7 @@ class DataSet:
             elif type(data) == DataFrame:
                 cols = data.columns
             else:
-                raise TypeError('Unsupported data type: {}'.format(type(data)))
+                raise TypeError(f'Unsupported data type: {type(data)}')
 
             if 'index' in cols:
                 self._index = np.array(data['index'], dtype=np.int32)
@@ -257,7 +257,7 @@ class DataSet:
         elif item == 'mask':
             return self._mask
         else:
-            error = 'Key {} not known! Possible option are index, coordinates, magnitudes and colors.'.format(item)
+            error = f'Key {item} not known! Possible option are index, coordinates, magnitudes and colors.'
             raise KeyError(error)
 
     def __get_row__(self, item):
@@ -345,7 +345,10 @@ class DataSet:
         data = self.coordinates.match(data)
         pass
 
-    def images(self, survey, source_id, directory='', bands=None):
+    def get_simbad_data(self):
+        return query_simbad(self.coordinates)
+
+    def images(self, survey, source_id, directory='', bands=None, size=None):
         """
         Download images from SDSS or Pan-STARRS and create a colored image out of them
 
@@ -357,6 +360,8 @@ class DataSet:
         :type directory: str
         :param bands: Individual filter combination. Default is None, which means the default combination is used.
         :type bands: None, tuple, list
+        :param size: The wanted size of the image
+        :type size: float, astropy.units.Quantity
         :return:
         """
         survey = survey.lower()
@@ -383,7 +388,7 @@ class DataSet:
         except ValueError:
             warnings.warn("Image is not available", UserWarning)
 
-    def all_images(self, survey, directory='', bands=None):
+    def all_images(self, survey, directory='', bands=None, size=None):
         """
         Downloads images of all sources and create a colored image for every source.
 
@@ -393,6 +398,8 @@ class DataSet:
         :type directory: str
         :param bands: Individual filter combination. Default is None, which means the default combination is used.
         :type bands: None, tuple, list
+        :param size: The wanted size of the image
+        :type size: float, astropy.units.Quantity
         :return:
         """
         try:
@@ -402,7 +409,7 @@ class DataSet:
         for i in range(len(self.coordinates)):
             if not m[i]:
                 continue
-            self.images(survey, i, directory, bands=bands)
+            self.images(survey, i, directory, bands=bands, size=size)
 
     @property
     def light_curves(self):
@@ -469,14 +476,14 @@ class DataSet:
         :return:
         """
         with zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED) as zi:
-            add_to_zip(zi, self.coordinates, 'coordinates.{}'.format(format), format=format)
+            add_to_zip(zi, self.coordinates, f'coordinates.{format}', format=format)
             if self._magnitudes.data is not None:
-                add_to_zip(zi, self.magnitudes, 'magnitudes.{}'.format(format), format=format)
+                add_to_zip(zi, self.magnitudes, f'magnitudes.{format}', format=format)
                 add_to_zip(zi, self.magnitudes.survey, 'survey.ini', format='init')
             if self._colors is not None:
-                add_to_zip(zi, self.colors, 'colors.{}'.format(format), format=format)
+                add_to_zip(zi, self.colors, f'colors.{format}', format=format)
             if self._flux is not None:
-                add_to_zip(zi, self.flux, 'flux.{}'.format(format), format=format)
+                add_to_zip(zi, self.flux, f'flux.{format}', format=format)
                 # todo: add plots to the zip file if some of them were made.
 
     def __write_as_fits__(self, path):
@@ -535,15 +542,15 @@ class DataSet:
         elif format == 'report':
             self.__write_as_report__(path)
         else:
-            raise ValueError('Format {} is not supported.'.format(format))
+            raise ValueError(f'Format {format} is not supported.')
 
     def __str__(self):
-        s = 'Number of entries: {}\n'.format(len(self.coordinates))
+        s = f'Number of entries: {len(self.coordinates)}\n'
         s += 'Available surveys:\n'
         if self._magnitudes is not None:
             if self._magnitudes.survey is not None:
                 for su in self._magnitudes.survey.get_surveys():
-                    s += '\t{}\n'.format(su)
+                    s += f'\t{su}\n'
             else:
                 s += '\tno survey data set\n'
         else:
@@ -628,7 +635,7 @@ class DataSet:
             # todo: implement csv reading
             pass
         else:
-            raise ValueError('Format {} is not supported.'.format(format))
+            raise ValueError(f'Format {format} is not supported.')
 
     @staticmethod
     def load_coordinates(path, format='fits', ra_name='ra', dec_name='dec'):
@@ -659,7 +666,7 @@ class DataSet:
         elif format == 'csv':
             coords = DataFrame.from_csv(path)
         else:
-            raise ValueError('Format \'{}\' is not supported.'.format(format))
+            raise ValueError(f'Format \'{format}\' is not supported.')
 
         return DataSet(coords)
 

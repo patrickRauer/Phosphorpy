@@ -158,7 +158,9 @@ class AstrometryTable(DataTable):
         :return: pm, pm_err
         :rtype: numpy.ndarray, numpy.ndarray
         """
-        pm_ra, pm_dec, pm_ra_error, pm_dec_error = self.proper_motion(True)
+        temp = self.proper_motion(True)
+        pm_ra, pm_dec = temp['pmra'].values, temp['pmdec'].values
+        pm_ra_error, pm_dec_error = temp['pmra_err'].values, temp['pmdec_err'].values
         pm = np.hypot(pm_ra, pm_dec)
         pm_err = np.square(pm_ra*pm_ra_error)+np.square(pm_dec*pm_dec_error)
         pm_err /= pm
