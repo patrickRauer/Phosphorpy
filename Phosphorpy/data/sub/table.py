@@ -1,131 +1,9 @@
 from astropy.table import Table
+from astropy.io import fits
 import numpy as np
-import pandas as pd
+import sqlite3
 
-
-class Mask:
-    _mask = None
-    _desc = None
-
-    def __init__(self, length):
-        self._mask = [pd.Series(length*[True], np.arange(length))]
-        self._desc = ['initialization']
-
-    def __str__(self):
-        string = ''
-        for i in range(self.get_mask_count()):
-            string += 'Mask No {}: {}\n'.format(i, self.get_description(i))
-        return string
-
-    def add_mask(self, mask, description='', combine=True):
-        """
-        Adds a new mask to the storage.
-
-        :param mask:
-            The new mask with the size of the complete dataset or with the size of passed rows in the previous mask.
-        :type mask: pandas.Series
-        :param description: The description of the mask. Default is an empty string.
-        :type description: str
-        :param combine: True if the previous mask should be used (have True values), too, else False. Default is True.
-        :type combine: bool
-        :return:
-        """
-        if combine:
-            if len(self._mask) > 0:
-                # Aligns the new incoming mask with the previous mask
-                # because if a survey doesn't contain all sources the incoming mask
-                # will have different size
-                # join left because the original mask is the largest by definition
-                # fill_value is True because missing values can not be selected
-                mask = self._mask[-1].align(mask, fill_value=True, join='left')[1]
-                mask &= self._mask[-1]
-
-        self._mask.append(mask)
-        self._desc.append(description)
-
-    def get_latest_mask(self):
-        """
-        Returns the latest mask.
-
-        :return: The latest mask
-        :rtype: numpy.ndarray
-        """
-        return self.get_mask(-1)
-
-    def get_latest_description(self):
-        """
-        Returns the latest description.
-
-        :return: The description text
-        :rtype: int
-        """
-        return self.get_description(-1)
-
-    def get_mask(self, level):
-        """
-        Returns the description of the mask at the corresponding level.
-
-        :param level: The level of the mask.
-        :type level: int
-        :return: The mask of the data
-        :rtype: numpy.ndarray
-        """
-        return self._mask[level]
-
-    def get_description(self, level):
-        """
-        Returns the description of the mask at the corresponding level.
-
-        :param level: The level of the mask.
-        :type level: int
-        :return: The description of the mask
-        :rtype: str
-        """
-        return self._desc[level]
-
-    def get_mask_count(self):
-        """
-        Returns the number of masks.
-
-        :return: The number of masks
-        :rtype: int
-        """
-        return len(self._mask)
-
-    def remove_mask(self, mask_id):
-        """
-        Removes a mask from the list.
-
-        :param mask_id:
-        :return:
-        """
-        pass
-
-    def reset_mask(self):
-        """
-        Deletes all masks
-        :return:
-        """
-        self._mask = []
-        self._desc = []
-
-    @property
-    def mask(self):
-        return self.get_latest_mask()
-
-    @property
-    def description(self):
-        return self.get_latest_description()
-
-    def __call__(self, *args, **kwargs):
-        # if no mask was set
-        if len(self._mask) == 0:
-            # return the input data
-            return args[0]
-        # if at least one mask was set
-        else:
-            # return the mask data
-            return args[0][self.get_latest_mask()]
+from Phosphorpy.core.structure import Mask
 
 
 class DataTable:
@@ -137,23 +15,32 @@ class DataTable:
     _plot = None
     _q = [0.15, 0.25, 0.75, 0.85]
 
-    def __init__(self, mask=None):
+    _category = None
+
+    def __init__(self, data=None, mask=None, category='table'):
         """
         Basic data table class
         """
-        self._mask = mask
+        if data is not None:
+            self._data = data
+            if mask is None:
+                mask = Mask(len(self._data))
+            self._mask = mask
+        elif mask is not None:
+            self._mask = mask
+        self._category = category
 
     def set_mask(self, mask):
+        if type(mask) != Mask:
+            raise ValueError('Mask must be a mask object.')
         self._mask = mask
-        if type(self.data) == list:
-            print(self.data)
-            for d in self.data:
-                print(type(d))
-                d.set_mask(mask)
+        # if type(self.data) == list:
+        #     for d in self.data:
+        #         d.set_mask(mask)
 
     def stats(self):
         """
-        Returns basic statistics (mean, median, std, min, max) of the magnitudes
+        Returns basic statistics (mean, median, std (unbiased), min, max) of the magnitudes
 
         :return: A DataFrame with the resulting statistics
         :rtype: pandas.core.frame.DataFrame
@@ -184,7 +71,7 @@ class DataTable:
         :param func:
         :return:
         """
-        self.apply(func)
+        return self.apply(func)
 
     def remove_unmasked_data(self):
         """
@@ -199,8 +86,29 @@ class DataTable:
         Select all rows with a NaN value
         :return:
         """
-        d = self._data[column].values
+        if type(column) != str:
+            for c in column:
+                self.select_nan(c)
+        d = self._data[column]
         self.mask.add_mask(d == d, f'Mask all NaN values in {column}')
+
+    def min(self):
+        """
+        Returns the minimal values of all magnitudes (the magnitudes can come from different sources)
+
+        :return: A pandas series with the column names as indices and the minimal values
+        :rtype: pandas.core.series.Series
+        """
+        return self.apply(np.min)
+
+    def max(self):
+        """
+        Returns the maximal values of all magnitudes (the magnitudes can come from different sources)
+
+        :return: A pandas series with the column names as indices and the minimal values
+        :rtype: pandas.core.series.Series
+        """
+        return self.apply(np.max)
 
     @property
     def shape(self):
@@ -240,16 +148,36 @@ class DataTable:
     def mask(self, value):
         self._mask = value
 
-    def to_astropy_table(self, category='table'):
+    @property
+    def columns(self):
+        if type(self._data) == list:
+            out = []
+            for d in self._data:
+                out.extend(d.columns)
+        else:
+            return self._data.columns
+
+    def to_astropy_table(self, category='table', one=True):
         """
         Returns the data as an astropy.table.Table
 
         :return: the data
         :rtype: astropy.table.Table
         """
-        d = Table.from_pandas(self._data)
-        d.meta['category'] = category
+        if one or type(self.data) != list:
+            d = Table.from_pandas(self.combine())
+            d.meta['category'] = category
+        else:
+            d = [Table.from_pandas(data) for data in self.data]
+
         return d
+
+    def to_bin_table_hdu(self, category='table'):
+        t = self.to_astropy_table(category, one=False)
+        if type(t) == list:
+            return [fits.BinTableHDU(k) for k in t]
+
+        return fits.BinTableHDU(t)
 
     def _write(self, path, function):
         paths = []
@@ -267,7 +195,19 @@ class DataTable:
             paths.append(path)
         return paths
 
-    def write(self, path, data_format='parquet'):
+    def _to_sql(self, path, **kwargs):
+        """
+        Writes the data to sql database
+        :param path: Path to the sql-database
+        :type path: str
+        :param kwargs: Additional arguments for pandas to_sql
+        :return:
+        """
+        con = sqlite3.Connection(path)
+        self._data.to_sql(self._category, con, **kwargs)
+        return path
+
+    def write(self, path, data_format='parquet', **kwargs):
         """
         Writes the data to a file
 
@@ -283,16 +223,43 @@ class DataTable:
         elif data_format == 'csv':
             return self._write(path, 'to_csv')
         elif data_format == 'sql':
-            return self._write(path, 'to_sql')
+            return self._to_sql(path, **kwargs)
         elif data_format == 'latex':
             return self._write(path, 'to_latex')
         elif data_format == 'fits':
-            return self._write(path, 'fits')
+            return self.to_astropy_table().write(path, overwrite=True)
         else:
             raise ValueError(f'Format {data_format} is not supported.')
+
+    def combine(self):
+        """
+        Combines all sub tables into one big table.
+        If no sub tables exists, the data are returned
+        :return:
+        """
+        if type(self.data) != list:
+            return self.data
+        out = None
+        for d in self.data:
+            if out is None:
+                out = d.copy()
+            else:
+                out = out.join(d)
+        return out
+
+    def has_data(self):
+        if self._data is not None:
+            if type(self._data) == list and len(self._data) == 0:
+                return False
+            return True
+        else:
+            return False
 
     def __str__(self):
         return str(self._data)
 
     def __getitem__(self, item):
-        return self._data[item]
+        return self._data.loc[item]
+
+    def __len__(self):
+        return len(self._data)

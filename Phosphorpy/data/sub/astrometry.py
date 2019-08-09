@@ -1,6 +1,6 @@
 from Phosphorpy.external.vizier import Gaia, BailerJones
 from Phosphorpy.data.sub.plots.astrometry import AstrometryPlot
-from astropy.table import vstack
+from astropy.table import Table, vstack
 from .table import DataTable
 import numpy as np
 import pandas as pd
@@ -11,12 +11,12 @@ def _only_nearest(data):
         row_ids, row_id_count = np.unique(data['row_id'], return_counts=True)
         # find or multiple detections the closest one
         nearest = []
-        for rid in row_ids[row_id_count > 1]:
+        for rid in row_ids[row_id_count >= 1]:
             g = data[data['row_id'] == rid]
             nearest.append(g[g['angDist'] == np.min(g['angDist'])])
         nearest = vstack(nearest)
-        data = vstack([nearest, data])
-        return data
+        # data = vstack([nearest, data])
+        return nearest
 
 
 def _download_gaia_data(coordinates):
@@ -30,14 +30,16 @@ def _download_gaia_data(coordinates):
     """
     g = Gaia()
 
-    gaia = g.query(coordinates.to_table(), 'ra', 'dec', use_xmatch=True, blank=True)
+    gaia = g.query(coordinates.to_astropy_table(), 'ra', 'dec', use_xmatch=True, blank=True)
 
     # find or multiple detections the closest one
     # gaia = _only_nearest(gaia)
 
-    gaia_coords = gaia[['row_id', 'ra', 'dec']]
-    gaia = gaia.to_pandas()
+    if type(gaia) == Table:
+        gaia = gaia.to_pandas()
     gaia = gaia.drop_duplicates('row_id')
+    gaia_coords = gaia[['row_id', 'ra', 'dec']]
+
     gaia = gaia.set_index('row_id')
 
     # join the downloaded gaia data to create empty lines if gaia doesn't provide data for a specific object
@@ -57,9 +59,15 @@ def _download_bailer_jones_data(gaia_coords):
     """
     # download Bailer-Jones distance estimations
     bj = BailerJones()
+    if type(gaia_coords) == pd.DataFrame:
+        gaia_coords = Table.from_pandas(gaia_coords)
+    elif type(gaia_coords) != Table:
+        gaia_coords = Table.from_pandas(gaia_coords.data)
     bj = bj.query(gaia_coords, 'ra', 'dec', use_xmatch=True, blank=True)
 
-    bj = bj[['row_id', 'rest', 'b_rest', 'B_rest', 'rlen', 'ResFlag', 'ModFlag']].to_pandas()
+    bj = bj[['row_id', 'rest', 'b_rest', 'B_rest', 'rlen', 'ResFlag', 'ModFlag']]
+    if type(bj) == Table:
+        bj = bj.to_pandas()
     bj = bj.drop_duplicates('row_id')
     bj = bj.set_index('row_id')
     return bj
@@ -80,16 +88,9 @@ class AstrometryTable(DataTable):
 
     @staticmethod
     def load_to_dataset(ds):
-        g = Gaia()
-        gaia = g.query(ds.coordinates.as_sky_coord(), 'ra', 'dec', use_xmatch=True, blank=True)
-        astronomy = AstrometryTable(ds.mask)
-        astronomy._data = gaia[['ra', 'ra_error', 'dec', 'dec_error',
-                                'parallax', 'parallax_error',
-                                'pm_ra', 'pm_ra_error',
-                                'pm_dec', 'pm_dec_error']]
-        # bj = BailerJones()
-        # bj = bj.query(ds.coordinates.as_sky_coord(), 'ra', 'dec', use_xmatch=True, blank=True)
-        ds.astrometry = astronomy
+        astrometry = AstrometryTable.load_astrometry(ds.coordinates)
+
+        ds.set_astrometry(astrometry)
 
     @staticmethod
     def load_astrometry(coordinates):
@@ -109,11 +110,11 @@ class AstrometryTable(DataTable):
         # join the original gaia data with the Bailer-Jones distance data
         gaia = gaia.join(bj, how='outer')
 
-        df = pd.DataFrame()
-        df['row_id'] = np.arange(coordinates.data.index.values.min(),
-                                 coordinates.data.index.values.max())
-        df = df.set_index('row_id')
-        gaia = df.join(gaia, how='outer')
+        # df = pd.DataFrame()
+        # df['row_id'] = np.arange(coordinates.data.index.values.min(),
+        #                          coordinates.data.index.values.max())
+        # df = df.set_index('row_id')
+        # gaia = df.join(gaia, how='outer')
 
         astronomy = AstrometryTable(coordinates.mask)
 
@@ -180,9 +181,13 @@ class AstrometryTable(DataTable):
         """
         kind = kind.lower()
         # if the required distance is the distance estimated by Bailer-Jones
-        if kind == ('bailer-jones' or 'bj'):
-            return self.data['rest']/1000
-        elif kind == 'simple' or kind == 'parallax':
+        if kind in ('bailer-jones', 'bj'):
+            lower = self.data['rest'].values-self.data['b_rest'].values
+            upper = self.data['B_rest'].values-self.data['rest'].values
+            return pd.DataFrame({'distance': self.data['rest'].values/1000,
+                                 'error': (lower+upper)/2},
+                                index=self._data.index)
+        elif kind in ('simple', 'parallax'):
             distance = 1/self._data['parallax'].values
             distance_error = np.abs(1/self._data['parallax'].values**2)*self._data['parallax_error'].values
             return pd.DataFrame({'distance': distance, 'error': distance_error}, index=self._data.index)
@@ -204,8 +209,10 @@ class AstrometryTable(DataTable):
         :type kind: str
         :return:
         """
+        if minimal >= maximal:
+            raise ValueError(f'Minimal distance must be larger than maximal distance: {minimal} >= {maximal}.')
         d = self.distance(kind)
-        d = d[d.columns.names[0]]
+        d = d['distance']
         m = (d >= minimal) & (d <= maximal)
         self.mask.add_mask(m, f'Distance limit: {minimal} - {maximal}')
 
@@ -221,9 +228,11 @@ class AstrometryTable(DataTable):
         :type with_errors: bool
         :return:
         """
-        parallax = self._data['parallax'].values
+        if minimal >= maximal:
+            raise ValueError(f'Minimal value must be smaller than maximal: {minimal} > {maximal}')
+        parallax = self._data['parallax']
         if with_errors:
-            parallax_error = self._data['parallax_error'].values
+            parallax_error = self._data['parallax_error']
             m = (parallax+parallax_error >= minimal) & (parallax-parallax_error <= maximal)
         else:
             m = (parallax >= minimal) & (parallax <= maximal)
@@ -243,6 +252,9 @@ class AstrometryTable(DataTable):
         :type with_errors: bool
         :return:
         """
+        if minimal >= maximal:
+            raise ValueError(f'Minimal value must be smaller than maximal: {minimal} > {maximal}')
+
         pm = self.total_proper_motion()
         if with_errors:
             m = (pm['pm'] + pm['err'] >= minimal) & (pm['pm']-pm['err'] <= maximal)
@@ -268,6 +280,10 @@ class AstrometryTable(DataTable):
         direction = direction.lower()
         if direction != 'ra' and direction != 'dec':
             raise ValueError('Direction must be RA or Dec!')
+
+        if minimal >= maximal:
+            raise ValueError(f'Minimal value must be smaller than maximal: {minimal} > {maximal}')
+
         pm = self.proper_motion(cos_correction)
         pm_d = pm[f'pm{direction}']
         if with_errors:

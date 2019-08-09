@@ -23,7 +23,7 @@ class Magnitude(Table):
         self._set_cols(names)
 
     def __str__(self):
-        return 'Magnitude of {} with {} entries\n'.format(self.survey_name, len(self))
+        return f'Magnitude of {self.survey_name} with {len(self)} entries\n'
 
     def set_survey_data(self, survey_data):
         self._survey = survey_data
@@ -47,7 +47,7 @@ class Magnitude(Table):
         :type correction: astropy.table.Table, pandas.DataFrame
         :return:
         """
-        rows = self.index.values-1
+        rows = np.arange(len(self))
         for c in self._mag_cols:
             self[c] -= correction[c][rows]
 
@@ -62,7 +62,7 @@ class Magnitude(Table):
 
         # multiply the flux zero point of all bands of the different surveys
         for m in self._mag_cols:
-            fo = self._survey.flux_zero(self.survey_name, m)
+            fo = self._survey.flux_zero(self.survey_name.lower(), m)
             flux[m] *= fo
 
         # compute the errors of the fluxes

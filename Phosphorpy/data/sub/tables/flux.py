@@ -25,18 +25,40 @@ class Flux(Table):
         return str(self.data)
 
     def get_fluxes(self):
+        """
+        Returns all fluxes without their errors
+        :return:
+        """
         names = [n for n in self.data.columns if 'e_' not in n]
         return self.data[names]
 
     def get_errors(self):
+        """
+        Returns all errors without their fluxes
+        :return:
+        """
         names = [n for n in self.data.columns if 'e_' in n]
         return self.data[names]
 
     def get_flux(self, index):
-        return self.get_fluxes().iloc[index].values
+        """
+        Returns the fluxes of one source without their errors
+
+        :param index: The index of the source
+        :type index: int
+        :return:
+        """
+        return self.get_fluxes().iloc[index]
 
     def get_error(self, index):
-        return self.get_errors().iloc[index].values
+        """
+        Returns the errors of a source without the flux
+
+        :param index: The index of the source
+        :type index: int
+        :return:
+        """
+        return self.get_errors().iloc[index]
 
     def get_wavelengths(self):
         print(self.survey)

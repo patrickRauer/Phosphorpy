@@ -4,6 +4,14 @@ ADS_LINK = 'https://ui.adsabs.harvard.edu/?#abs/{}'
 
 
 def create_dict(line):
+    """
+    Creates a dict from a line of the config file.
+
+    :param line: A line from the config file
+    :type line: str
+    :return: A dict with one element
+    :rtype: dict
+    """
     line = line.split(' ')
     temp = [line_part for line_part in line if line_part != '']
     items = temp[1:]

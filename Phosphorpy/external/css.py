@@ -122,22 +122,23 @@ def download_light_curves(ra, dec):
                     row_id = i*part_size+j
                     f.write(f"{row_id}\t{r}\t{d}\n")
 
-            with open('temp.txt', 'rb') as f:
+            with open('temp.txt') as f:
                 r = requests.post(url,
                                   data={'DB': 'photcat', 'OUT': 'csv', 
                                         'SHORT': 'short'},
                                   files={'upload_file': f})
-                
-            r = r.text.split('value="file')[-1]
-            r = r.split('"')[0]
-            r = 'file' + r
-            r = requests.get(url2.format(r))
-            
-            r = r.text.split('href=')[-1]
-            r = r.split('>download')[0]
+
+            r = r.text.split('location.href=\'')[-1]
+            r = r.split('\'')[0]
+            # r = 'file' + r
+            # r = requests.get(url2.format(r))
+            #
+            # r = r.text.split('href=')[-1]
+            # r = r.split('>download')[0]
             urllib.request.urlretrieve(r, "temp.csv")
             pd = pandas.read_csv('temp.csv')
             os.remove('temp.csv')
+            os.remove('temp.txt')
             results.append(pd)
             
 
