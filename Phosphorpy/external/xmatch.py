@@ -23,7 +23,7 @@ def __check_row_id__(data, colnames):
     :rtype: astropy.table.Table, pandas.DataFrame
     """
     if 'row_id' not in colnames:
-        data['row_id'] = np.linspace(1, len(data), len(data), dtype=np.int32)
+        data['row_id'] = np.arange(len(data))+1
     return data
 
 
@@ -48,11 +48,11 @@ def __write_temp_file__(data, ra_name, dec_name):
                                 dec_name: '{}_input'.format(dec_name)},
                                axis='columns')
         cols = list(data.columns)
-        cols.append(data.index.name)
         data = __check_row_id__(data, cols)
         data.to_csv('temp.csv')
     # if the input data are an astropy.table.Table
     elif type(data) == Table:
+        data = data.copy()
         if 'input' not in ra_name:
             data.rename_column(ra_name, '{}_input'.format(ra_name))
             data.rename_column(dec_name, '{}_input'.format(dec_name))
@@ -94,6 +94,14 @@ def __output_columns__(survey):
 
 
 def find_suffix(cols):
+    """
+    Finds the suffix in the case of non-default labeling
+
+    :param cols: The column labels
+    :type cols: Union
+    :return: The suffix of the magnitude labels
+    :rtype: str
+    """
     for c in cols:
         if 'mag' in c:
             pre = c.split('mag')[0]
@@ -107,6 +115,15 @@ def find_suffix(cols):
 
 
 def _compute_gaia_mags(rs):
+    """
+    Computes the Gaia magnitudes from the flux errors and rename
+    the columns to the Vizier labeling
+
+    :param rs: The gaia data with the flux errors (default gaia DR2 labeling)
+    :type rs: pd.DataFrame
+    :return: The input DataFrame with the errors and the new column labels
+    :rtype: pd.DataFrame
+    """
     conv = {'phot_g_mean_mag': "Gmag",
             'phot_bp_mean_mag': 'BPmag',
             'phot_rp_mean_mag': 'RPmag',
@@ -153,8 +170,10 @@ def xmatch(data, ra_name, dec_name, survey, max_distance=1.*u.arcsec, blank=Fals
 
     # remove the temp file
     os.remove('temp.csv')
+
+    # if blank is true, return the results without formatting
     if blank:
-        return rs
+        return rs.to_pandas()
 
     # reduce the number of columns to the required ones
     output_cols, coord_cols = __output_columns__(survey)
@@ -207,6 +226,8 @@ def xmatch(data, ra_name, dec_name, survey, max_distance=1.*u.arcsec, blank=Fals
     rs = rs.groupby('row_id')
     rs = rs.aggregate(np.nanmean)
 
+    if type(data) == Table:
+        data = data.to_pandas()
     # make sure that the input and the output data have the same length and the same order
     rs = data[[]].join(rs, how='left')
 

@@ -21,25 +21,51 @@ class Color(Table):
         Table.__init__(self, data, name, mask=mask)
 
     def __str__(self):
-        return 'Colors:\n{}\n'.format(len(self))
+        return f'Colors:\n{len(self)}\n'
 
     def __repr__(self):
         return str(self)
         
     def __get_mask_data__(self, col, minimum, maximum, previous):
-        col = create_color_name(col)
-        d = self[col].values
+        if col not in self.columns.values:
+            col = create_color_name(col)
+        d = self[col]
         mask = (d < maximum) & (d > minimum)
-        self._mask.add_mask(mask, 'Color cut (minimum={}, maximum={}'.format(minimum,
-                                                                             maximum),
-                            combine=previous)
+        self.mask.add_mask(mask,
+                           f'Color cut (minimum={minimum}, maximum={maximum}',
+                           combine=previous)
 
     def get_columns(self, cols):
+        """
+        Returns all columns, which are or include a part of the given names.
+        If no columns are found, then a ValueError raises.
+
+        :param cols: The name (parts) of the required columns
+        :type cols: Union, str
+        :return: DataFrame with the required columns
+        :rtype: pd.DataFrame
+        """
+        if type(cols) == str:
+            cols = [cols]
+        elif type(cols) != (list or tuple or set):
+            raise AttributeError('Input must be a string, list, tuple or a set.')
+
         use_cols = []
         col_names = self.columns
         for c in cols:
+            if type(c) != str:
+                raise ValueError('Elements must be strings.')
             if c in col_names:
                 use_cols.append(c)
+            else:
+                for column in col_names:
+                    if c in column:
+                        use_cols.append(column)
+
+        if len(use_cols) == 0:
+            raise ValueError('No columns with the given name (parts) found.')
+
+        use_cols = list(np.unique(use_cols))
         return self[use_cols]
         
     def outlier_detection(self):
@@ -79,12 +105,12 @@ class Color(Table):
             self.__get_mask_data__(col, minimum, maximum, previous)
         elif type(col) == list or type(col) == tuple:
             if len(col) == 2:
-                for c in self.column:
+                for c in self.columns:
                     if col[0] in c and col[1] in c:
                         self.__get_mask_data__(c, minimum, maximum, previous)
                         break
             elif len(col) == 3:
-                for c in self.column:
+                for c in self.columns:
                     if col[0] in c and col[1] in c and col[2] in c:
                         self.__get_mask_data__(c, minimum, maximum, previous)
                         break

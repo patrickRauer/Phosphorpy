@@ -2,11 +2,12 @@ from setuptools import setup
 
 setup(
     name='Phosphorpy',
-    version='0.5.4.3',
+    version='0.5.4.6',
     packages=['Phosphorpy', 'Phosphorpy.data',
               'Phosphorpy.data.sub', 'Phosphorpy.data.sub.plots',
               'Phosphorpy.config', 'Phosphorpy.report',
-              'Phosphorpy.fitting', 'Phosphorpy.external'],
+              'Phosphorpy.fitting', 'Phosphorpy.external',
+              'Phosphorpy.core', 'Phosphorpy.data.sub.tables'],
     # package_dir={'': 'Phosphorpy'},
     include_package_data=True,
     package_data={

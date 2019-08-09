@@ -36,10 +36,8 @@ class Colors(DataTable):
         self.data.append(ColorTab(data, survey_name))
 
     def __get_mask_data__(self, col, minimum, maximum, previous):
-        col = create_color_name(col)
-        d = self._data[col].values
-        mask = (d < maximum) & (d > minimum)
-        self._mask.add_mask(mask, f'Color cut (minimum={minimum}, maximum={maximum})', combine=previous)
+        for d in self.data:
+            d.set_limit(col, minimum, maximum)
 
     def set_limit(self, col, minimum=-99, maximum=99, previous=True, survey=None):
         """
@@ -58,6 +56,9 @@ class Colors(DataTable):
         :type previous: bool
         :return:
         """
+
+        if minimum >= maximum:
+            raise ValueError(f'Minimum must be bigger than maximum: {minimum} >= {maximum}')
         for d in self.data:
             if survey is None or survey == d.survey_name:
                 d.set_limit(col, minimum=minimum, maximum=maximum, previous=previous)
@@ -67,7 +68,7 @@ class Colors(DataTable):
         Returns all colors with the given color names
 
         :param cols: The required colors
-        :type cols: list
+        :type cols: list, str
         :return: All colors with the given names in it
         :rtype: pd.DataFrame
         """
