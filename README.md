@@ -11,7 +11,7 @@ light curves downloads.
 
 All accessable data are publicly available and for the references, see the
 [survey config file](https://gitlab.sron.nl/asg/jonker/Phosphorpy/blob/master/Phosphorpy/local/survey.conf).
-This file includes the references to the corresponding papers.
+This file includes the references to the corresponding publications.
 
 Details are on the [wiki page](https://gitlab.sron.nl/patrickr/Phosphorpy/wikis/home)
 
