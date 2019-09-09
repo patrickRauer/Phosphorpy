@@ -40,4 +40,4 @@ and do the calculations.
 
 ## Example
 See [example](https://gitlab.sron.nl/patrickr/Phosphorpy/wikis/Example) for
-a almost complete example.
+an extended example, which includes the main functionalities of **Phosphorpy**.
