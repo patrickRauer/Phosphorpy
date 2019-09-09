@@ -16,7 +16,7 @@ This file includes the references to the corresponding papers.
 Details are on the [wiki page](https://gitlab.sron.nl/patrickr/Phosphorpy/wikis/home)
 
 ## Installation
-**Phosphorpy** is available via Pypi and can be installt with pip
+**Phosphorpy** is available via [Pypi](https://pypi.org/) and can be installt with pip
 ```
 pip install Phosphorpy
 ```
