@@ -70,7 +70,9 @@ class Color(Table):
         
     def outlier_detection(self):
         """
-        Makes an outlier detection based on a DBSCAN
+        Makes an outlier detection based on a DBSCAN.
+
+        NaN values in the colors are replaced with the mean of the color.
         
         .. warning:
             
@@ -81,10 +83,12 @@ class Color(Table):
         db = DBSCAN(eps=2, min_samples=5)
         values = self.values.copy()
         for i in range(len(values[0])):
-            values[:, i] /= np.std(values[:, i])
-            k = values[:, i] != values[:, i]
-            values[:, i][k] = np.mean(values[:, i])
-        db.fit(self.values)
+            v = values[:, i]
+            v /= np.nanstd(v)
+            k = v != v
+            v[k] = np.nanmean(v)
+            values[:, i] = v
+        db.fit(values)
         mask_values = db.labels_ != -1
         mask_values = pd.Series(mask_values, self.index.values)
         self.mask.add_mask(mask_values, 'DBSCAN outlier detection')
