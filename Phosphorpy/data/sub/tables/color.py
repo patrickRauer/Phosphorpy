@@ -82,6 +82,8 @@ class Color(Table):
         values = self.values.copy()
         for i in range(len(values[0])):
             values[:, i] /= np.std(values[:, i])
+            k = values[:, i] != values[:, i]
+            values[:, i][k] = np.mean(values[:, i])
         db.fit(self.values)
         mask_values = db.labels_ != -1
         mask_values = pd.Series(mask_values, self.index.values)
