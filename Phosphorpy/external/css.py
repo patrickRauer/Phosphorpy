@@ -111,16 +111,18 @@ def download_light_curves(ra, dec):
     url2 = 'http://nesssi.cacr.caltech.edu/cgi-bin/getdatamulti.cgi?ID={}&txtInput=0000'
     results = []
 #    try:
+    print(type(ra), dec)
     if True:
         part_size = 80
         parts = len(ra)//part_size+1
         for i in range(parts):
+            print(i)
             d_ra = ra[i*part_size: (i+1)*part_size]
             d_dec = dec[i*part_size: (i+1)*part_size]
             with open('temp.txt', 'w') as f:
                 for j, (r, d) in enumerate(zip(d_ra, d_dec)):
                     row_id = i*part_size+j
-                    f.write(f"{row_id}\t{r}\t{d}\n")
+                    f.write(f"{row_id}\t{round(r, 5)}\t{round(d, 5)}\n")
 
             with open('temp.txt') as f:
                 r = requests.post(url,
@@ -130,11 +132,11 @@ def download_light_curves(ra, dec):
 
             r = r.text.split('location.href=\'')[-1]
             r = r.split('\'')[0]
-            # r = 'file' + r
-            # r = requests.get(url2.format(r))
-            #
-            # r = r.text.split('href=')[-1]
-            # r = r.split('>download')[0]
+            if 'Query service results' in r:
+                r = url2.format(
+                    r.split('name="ID" value="')[-1].split('"')[0]
+                )
+                
             urllib.request.urlretrieve(r, "temp.csv")
             pd = pandas.read_csv('temp.csv')
             os.remove('temp.csv')
