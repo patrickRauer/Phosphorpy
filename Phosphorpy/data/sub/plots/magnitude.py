@@ -1,5 +1,5 @@
-import pylab as pl
 import numpy as np
+import pylab as pl
 
 
 def _hist(sp, x, bins, histtype, label=''):
@@ -37,7 +37,7 @@ class MagnitudePlot:
         if cols is None:
             cols = all_columns
         elif type(cols) == str:
-            cols = cols
+            cols = [cols]
 
         # check every input column if it contains 'mag' in its name, if not add 'mag'
         # to the end of the column name to convert it to the default style
@@ -59,7 +59,6 @@ class MagnitudePlot:
                       label=c.split('mag')[0])
             else:
                 for i in range(d.mask.get_mask_count()):
-                    print(d[c])
                     _hist(sp, d[c][self._data.mask.get_mask(i)],
                           bins='auto', histtype='step', label=c)
 

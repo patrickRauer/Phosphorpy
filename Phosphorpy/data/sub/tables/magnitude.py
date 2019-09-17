@@ -5,12 +5,13 @@ Created on Wed Mar 13 08:43:54 2019
 
 @author: Jean Patrick Rauer
 """
-from Phosphorpy.core.functions import power_2_10, subtract
-from Phosphorpy.core.structure import Table
-from .flux import Flux
-from .color import Color
 import numpy as np
 import pandas as pd
+
+from Phosphorpy.core.functions import power_2_10, subtract
+from Phosphorpy.core.structure import Table
+from .color import Color
+from .flux import Flux
 
 
 class Magnitude(Table):

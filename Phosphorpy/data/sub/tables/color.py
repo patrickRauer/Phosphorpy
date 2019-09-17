@@ -5,9 +5,9 @@ Created on Wed Mar 13 09:07:21 2019
 
 @author: Jean Patrick Rauer
 """
-from sklearn.cluster import DBSCAN
 import numpy as np
 import pandas as pd
+from sklearn.cluster import DBSCAN
 
 from Phosphorpy.core.structure import Table
 from Phosphorpy.data.sub.plots.color import create_color_name
