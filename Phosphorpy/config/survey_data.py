@@ -48,4 +48,33 @@ def read_survey_data():
     return surveys
 
 
+def add_survey(name, vizier_path, release, reference, magnitudes, coordinates=None, xmatch=None):
+
+    resource_package = 'Phosphorpy'
+    resource_path = '/'.join(('local', 'survey.conf'))
+    shortcut_path = pkg_resources.resource_filename(resource_package, resource_path)
+
+    conf = configparser.ConfigParser()
+    conf.read(shortcut_path)
+
+    sections = list(conf.sections())
+
+    sid = 'survey{}'.format(int(sections[-1].split('survey')[-1])+1)
+    conf.add_section(sid)
+
+    conf.set(sid, 'name', value=name)
+    conf.set(sid, 'release', release)
+    conf.set(sid, 'reference', reference)
+    conf.set(sid, 'magnitude', ', '.join(magnitudes))
+    conf.set(sid, 'vizier', vizier_path)
+
+    if coordinates is not None:
+        conf.set(sid, 'coordinate', ', '.join(coordinates))
+
+    if xmatch is not None:
+        conf.set(sid, 'xmatch', xmatch)
+
+    # conf.write()
+
+
 SURVEY_DATA = read_survey_data()
