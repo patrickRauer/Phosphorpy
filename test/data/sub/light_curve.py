@@ -32,3 +32,14 @@ class TestLightCurve(unittest.TestCase):
     def test_get_light_curve(self):
         l = self.lc.get_light_curve(0)
         l.plot.light_curve(0)
+
+
+class TestLightCurveDataSet(unittest.TestCase):
+
+    def setUp(self) -> None:
+        from Phosphorpy import DataSet
+        self.ds = DataSet.load_coordinates('/Users/patrickr/Documents/temp/comb_ra_lte_180.fits', 'fits', 'ra', 'dec')
+        self.ds.load_from_vizier(['SDSS', '2MASS'])
+
+    def test_get_light_curves(self):
+        self.ds.light_curves
