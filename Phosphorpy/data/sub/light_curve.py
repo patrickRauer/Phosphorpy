@@ -1,8 +1,9 @@
-from Phosphorpy.external.css import download_light_curves
-from Phosphorpy.data.sub.plots.light_curve import LightCurvePlot
-from astropy.table import Table
 import numpy as np
 import pandas as pd
+from astropy.table import Table
+
+from Phosphorpy.data.sub.plots.light_curve import LightCurvePlot
+from Phosphorpy.external.css import download_light_curves
 
 
 class LightCurves:

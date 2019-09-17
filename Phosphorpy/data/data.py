@@ -1,16 +1,18 @@
-from Phosphorpy.data.sub.magnitudes import MagnitudeTable as Magnitude, SurveyData
+from astropy.io import fits
+from astropy.table import Table
+
+from Phosphorpy.data.sub.astrometry import AstrometryTable
 from Phosphorpy.data.sub.colors import Colors
 from Phosphorpy.data.sub.coordinates import CoordinateTable
 from Phosphorpy.data.sub.flux import FluxTable
-from Phosphorpy.external.vizier import query_by_name, constrain_query, query_simbad
+from Phosphorpy.data.sub.light_curve import LightCurves
+from Phosphorpy.data.sub.magnitudes import MagnitudeTable as Magnitude, SurveyData
 from Phosphorpy.data.sub.plots.plot import Plot
 from Phosphorpy.data.sub.table import Mask
-from Phosphorpy.data.sub.light_curve import LightCurves
 from Phosphorpy.external.image import PanstarrsImage, SDSSImage
-from Phosphorpy.data.sub.astrometry import AstrometryTable
+from Phosphorpy.external.vizier import query_by_name, constrain_query, query_simbad
 from Phosphorpy.report.Report import DataSetReport
-from astropy.table import Table
-from astropy.io import fits
+
 try:
     from extinction.extinction import get_extinctions
 except ImportError:
@@ -290,7 +292,6 @@ class DataSet:
 
         elif type(item) == int:
             out = self.coordinates[item]
-            print('coordinate output', out)
             if self._magnitudes.has_data():
                 out = out.concat(self.magnitudes[item], axis=1)
             if self._colors is not None and self._colors.has_data():
@@ -401,7 +402,7 @@ class DataSet:
                 directory = directory + '/'
             directory = directory + coord.to_string('hmsdms')+'.png'
         try:
-            s.get_color_image(coord, directory, bands=bands)
+            s.get_color_image(coord, directory, bands=bands, size=size)
         except ValueError:
             warnings.warn("Image is not available", UserWarning)
 

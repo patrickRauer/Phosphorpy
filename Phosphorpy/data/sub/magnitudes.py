@@ -1,18 +1,19 @@
-from pandas import DataFrame
-from astropy.table import Table
-from .table import DataTable
-from .plots.magnitude import MagnitudePlot
-from .colors import Colors
-from .flux import FluxTable
-from .tables.magnitude import Magnitude
-import numpy as np
 import configparser
-import numba
 import sqlite3
 import warnings
 
-from Phosphorpy.core.structure import Mask
+import numba
+import numpy as np
 from armapy.svo import get_survey_filter_information
+from astropy.table import Table
+from pandas import DataFrame
+
+from Phosphorpy.core.structure import Mask
+from .colors import Colors
+from .flux import FluxTable
+from .plots.magnitude import MagnitudePlot
+from .table import DataTable
+from .tables.magnitude import Magnitude
 
 
 def power_2_10(x):
@@ -84,6 +85,7 @@ def guess_surveys(mag_cols):
             SDSS has the column u, g, r, i and z and PAN-STARRS g, r, i, z, y
             so both have 5 bands but PAN-STARRS doesn't have u and SDSS
             doesn't have y.
+
         :return:
         """
         pan_starrs = 0
@@ -153,7 +155,6 @@ def guess_surveys(mag_cols):
             pan_starrs -= 4
             prefix = get_prefix(mag_cols, 'v')
             s_cols = ['u', 'v', 'g', 'r', 'i', 'z']
-            print(mag_cols, s_cols, prefix)
             mag_cols, cols = get_survey_cols(mag_cols, s_cols, prefix)
             return cols
 
@@ -247,7 +248,7 @@ def guess_surveys(mag_cols):
 
 def mag_cols_only(cols):
     """
-    Returns only the columns names of the magnitudes by excluding columns with 'e_' in it.
+    Returns only the columns names of the magnitudes by excluding columns with "e\_" in it.
 
     :param cols: A list with all column names
     :type cols: list
@@ -510,7 +511,6 @@ class SurveyData:
         :param data_format: Not used
         :return:
         """
-        print('write magnitudes')
         data_format = data_format.lower()
         if data_format == 'config' or data_format == 'init':
             self._to_config(path)
@@ -856,7 +856,13 @@ class MagnitudeTable(DataTable):
         :type survey: str
         :return:
         """
-        cols = guess_surveys(mags.columns)
+        # cols = guess_surveys(mags.columns)
+        cols = []
+        for c in mags.columns:
+            cl = c.lower()
+            if 'ra' in cl or 'de' in cl:
+                continue
+            cols.append(c)
         mags = Magnitude(mags, cols, survey, mask=self.mask)
         mags.select_columns(cols)
         survey = survey.lower()
