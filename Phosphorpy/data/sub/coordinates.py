@@ -1,14 +1,14 @@
-from astropy.coordinates import SkyCoord
-from astropy.units.quantity import Quantity
-from astropy import units as u
-from astropy.table import Table
-from sklearn.neighbors import NearestNeighbors
-from pandas import DataFrame
-import numpy as np
 import numba as nb
+import numpy as np
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+from astropy.table import Table
+from astropy.units.quantity import Quantity
+from pandas import DataFrame
+from sklearn.neighbors import NearestNeighbors
 
-from .table import DataTable
 from .plots.coordinates import CoordinatePlot
+from .table import DataTable
 
 RA_NAMES = ['ra', 'Ra', 'RA', 'RAJ2000', 'RA_ICRS', '_RAJ2000']
 DEC_NAMES = ['dec', 'Dec', 'DEC', 'DEJ2000', 'DECJ2000', 'DE_ICRS', '_DEJ2000']
@@ -160,22 +160,22 @@ class CoordinateTable(DataTable):
         to find the next neighbor.
         The distance is computed with the approximation of small angles
 
-        .. math:
+        .. math::
 
-            d = \sqrt{\left(\Delta\alpha \cdot \cos\left(\delta\right)\right)^2 + \left(\Delta \delta\right)^2}
+            d = \sqrt{\left(\Delta\\alpha \cdot \cos\left(\delta\\right)\\right)^2 + \left(\Delta \delta\\right)^2}
 
         as an additional approximation because performance reasons, in this algorithm its assumed that
 
-        .. math:
+        .. math::
 
-            \cos \delta_1 \approx \cos \delta_2
+            \cos \delta_1 \\approx \cos \delta_2
 
         and therefore we can use
 
-        .. math:
+        .. math::
 
-            \Delta \alpha \cdot \cos \delta = \alpha_1 \cdot \cos \delta - \alpha_2 \cdot \cos \delta
-            \approx \alpha_1 \cos\delta_1 - \alpha_2 \cos \delta_2
+            \Delta \\alpha \cdot \cos \delta = \\alpha_1 \cdot \cos \delta - \\alpha_2 \cdot \cos \delta \\\\
+            \\approx \\alpha_1 \cos\delta_1 - \\alpha_2 \cos \delta_2
 
         :param other: The second coordinate set to match with it
         :type other: numpy.ndarray, astropy.coordinates.SkyCoord, Phosphorpy.data.sub.coordinates.CoordinateTable
@@ -283,9 +283,9 @@ def spherical_distance(x1, x2):
     """
     Computes the spherical distance in the approximation of small distances
 
-    .. math:
+    .. math::
 
-        d = \sqrt{x1\cdot \cos\left(x2\right) + x2}
+        d = \sqrt{x1\cdot \cos\left(x2\\right) + x2}
 
     :param x1: The first vector
     :type x1: Union

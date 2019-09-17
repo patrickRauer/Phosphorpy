@@ -1,9 +1,10 @@
-from Phosphorpy.external.vizier import Gaia, BailerJones
-from Phosphorpy.data.sub.plots.astrometry import AstrometryPlot
-from astropy.table import Table, vstack
-from .table import DataTable
 import numpy as np
 import pandas as pd
+from astropy.table import Table, vstack
+
+from Phosphorpy.data.sub.plots.astrometry import AstrometryPlot
+from Phosphorpy.external.vizier import Gaia, BailerJones
+from .table import DataTable
 
 
 def _only_nearest(data):
@@ -150,14 +151,15 @@ class AstrometryTable(DataTable):
         Return the total proper motion and its errors.
 
         .. math::
-            \mu = \sqrt{\left(\mu_\alpha^*\right)^2+\mu_\delta^2}
+            \mu = \sqrt{\left(\mu_{\\alpha^*}\\right)^2+\mu_\delta^2}
 
         with
-        .. math::
-            \mu_\alpha^* = \mu_\alpha*\cos (\delta)
 
-        :return: pm, pm_err
-        :rtype: numpy.ndarray, numpy.ndarray
+        .. math::
+            \mu_{\\alpha^*} = \mu_{\\alpha}*\cos (\delta)
+
+        :return: The total proper motion and its errors in a DataFrame
+        :rtype: pandas.DataFrame
         """
         temp = self.proper_motion(True)
         pm_ra, pm_dec = temp['pmra'].values, temp['pmdec'].values

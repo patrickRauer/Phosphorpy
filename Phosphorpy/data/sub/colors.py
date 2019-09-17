@@ -1,7 +1,8 @@
 import pandas as pd
-from .table import DataTable
-from .plots.color import Color, create_color_name
+
 from Phosphorpy.data.sub.tables.color import Color as ColorTab
+from .plots.color import Color
+from .table import DataTable
 
 
 class Colors(DataTable):
