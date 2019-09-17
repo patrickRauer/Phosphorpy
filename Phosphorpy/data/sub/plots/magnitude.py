@@ -58,8 +58,8 @@ class MagnitudePlot:
                       bins='auto', histtype='step',
                       label=c.split('mag')[0])
             else:
-                for i in range(d.mask.get_mask_count()):
-                    _hist(sp, d[c][self._data.mask.get_mask(i)],
+                for i in range(self._data.mask.get_mask_count()):
+                    _hist(sp, d[c][self._data.mask.get_mask(i).values],
                           bins='auto', histtype='step', label=c)
 
         # set the axis-labels

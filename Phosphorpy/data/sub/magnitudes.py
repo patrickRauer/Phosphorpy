@@ -822,7 +822,7 @@ class MagnitudeTable(DataTable):
                 if out is None:
                     out = rs
                 else:
-                    out = out.join(rs)
+                    out = out.join(rs, rsuffix=f'_{d.survey_name}')
         return out
 
     @property
@@ -860,7 +860,8 @@ class MagnitudeTable(DataTable):
         cols = []
         for c in mags.columns:
             cl = c.lower()
-            if 'ra' in cl or 'de' in cl:
+            # todo: magnitude columns from config file
+            if 'ra' in cl or 'de' in cl or 'plx' in cl:
                 continue
             cols.append(c)
         mags = Magnitude(mags, cols, survey, mask=self.mask)
