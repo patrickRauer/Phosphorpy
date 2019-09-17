@@ -1,6 +1,6 @@
-from astropy.coordinates import Angle
-from astropy import units as u
 import pylab as pl
+from astropy import units as u
+from astropy.coordinates import Angle
 
 
 def _angle_plot(x, y, sp, marker, color):

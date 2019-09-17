@@ -22,11 +22,7 @@ def gaus(x, a, b, c, d, e):
     """
     Fitting function with a gaussian component, a linear component and a static component
 
-
-    .. math:
-
-        f(\lambda) = a*e^{-\frac{(\lambda-lambda_0)**2}{2*\sigma**2}}+b*\lambda+c
-
+    :math:`f(x) = a*\exp\left(-\\frac{(x-x_0)^2}{2*\sigma^2}\\right)+b*x+c`
 
     :param x: The variable values
     :param a: The strength of the gaussian

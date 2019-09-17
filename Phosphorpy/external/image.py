@@ -121,6 +121,20 @@ class Image:
                     raise ValueError('The unit of \'size\' must be equivalent to degrees.')
 
     def get_color_image(self, s, path='', bands=None, size=None):
+        """
+        Interface for the return of a rgb-color image from a survey
+
+        :param s: THe central coordinates of the target
+        :type s: astropy.coordinates.SkyCoord
+        :param path: The path to the storage place.
+        :type path: str
+        :param bands: The used bands, if others than the default are required
+        :type bands: Union
+        :param size: The size of the image, if not the default size should be used.
+        :type size: float
+        :return: The three different color channels
+        :rtype: numpy.ndarray
+        """
         pass
 
 
