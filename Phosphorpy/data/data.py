@@ -312,7 +312,7 @@ class DataSet:
 
     def __load_from_vizier__(self, name):
         d = query_by_name(name, self.coordinates.to_table())
-        self._magnitudes.add_survey_mags(d, name)
+        self._magnitudes.add_survey_mags(d, name.lower())
 
     def load_from_vizier(self, name):
         """
@@ -366,7 +366,7 @@ class DataSet:
     def get_simbad_data(self):
         return query_simbad(self.coordinates)
 
-    def images(self, survey, source_id, directory='', bands=None, size=None):
+    def images(self, survey, source_id, directory='', bands=None, size=None, smooth=0):
         """
         Download images from SDSS or Pan-STARRS and create a colored image out of them
 
@@ -380,6 +380,8 @@ class DataSet:
         :type bands: None, tuple, list
         :param size: The wanted size of the image
         :type size: float, astropy.units.Quantity
+        :param smooth: Number of smoothings. Default is 0.
+        :type smooth: int
         :return:
         """
         survey = survey.lower()
@@ -406,7 +408,7 @@ class DataSet:
         except ValueError:
             warnings.warn("Image is not available", UserWarning)
 
-    def all_images(self, survey, directory='', bands=None, size=None):
+    def all_images(self, survey, directory='', bands=None, size=None, smooth=0):
         """
         Downloads images of all sources and create a colored image for every source.
 
@@ -418,6 +420,8 @@ class DataSet:
         :type bands: None, tuple, list
         :param size: The wanted size of the image
         :type size: float, astropy.units.Quantity
+        :param smooth: Number of smoothings. Default is 0.
+        :type smooth: int
         :return:
         """
         try:
@@ -449,6 +453,7 @@ class DataSet:
         """
         if self.magnitudes.data is None:
             raise AttributeError('No magnitudes are set.')
+        # todo: handle same band names
         extinc = get_extinctions(self.coordinates['ra'],
                                  self.coordinates['dec'],
                                  wavelengths=self.magnitudes.survey.get_all_wavelengths(),

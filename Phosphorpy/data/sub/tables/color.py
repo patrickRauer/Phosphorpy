@@ -47,7 +47,7 @@ class Color(Table):
         """
         if type(cols) == str:
             cols = [cols]
-        elif type(cols) != (list or tuple or set):
+        elif type(cols) != list and type(cols) != tuple and type(cols) != set and type(cols) != np.ndarray:
             raise AttributeError('Input must be a string, list, tuple or a set.')
 
         use_cols = []

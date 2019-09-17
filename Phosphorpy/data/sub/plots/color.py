@@ -170,9 +170,9 @@ class Color:
         # todo: if a survey and cols are set, check if the cols are in the survey colors and then use this colors only
         if cols is None:
             if survey is None:
-                cols = self._color.data.columns
+                cols = self._color.data.columns.values
             else:
-                cols = self._color.survey_colors[survey]
+                cols = self._color.survey_colors[survey].values
         else:
             use_cols = []
             if type(cols) is list:
