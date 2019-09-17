@@ -42,7 +42,7 @@ def max_count(rgb, center, box_size=2):
     """
     Finds the maximal count in the box for every layer
     :param rgb: The rgb layers
-    :type rgb: numpy.ndarray
+    :type rgb: ndarray
     :param center: The central coordinates (pixel)
     :type center: tuple, list
     :param box_size: The half box size
@@ -55,7 +55,6 @@ def max_count(rgb, center, box_size=2):
         im = rgb[:, :, i].copy()
 
         med = 2 * np.nanmedian(np.nanmean(im, axis=0))
-        print(med, np.nanmedian(im))
         im[im < med] = med
         # im -= med
 
@@ -299,6 +298,7 @@ class PanstarrsImage(Image):
         for i in range(3):
             img = rgb[:, :, i]
             img /= center_counts[i]
+            img[img > 100] = 100
             img -= np.nanmin(img)
             img = np.log10(smooth2d(img, smooth))
             img -= np.nanmedian(img)
