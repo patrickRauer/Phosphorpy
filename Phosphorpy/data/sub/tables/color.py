@@ -79,7 +79,7 @@ class Color(Table):
             Use this outlier detection for larger amount of data (N > 1000).
         """
         db = DBSCAN(eps=2, min_samples=5)
-        values = self.values
+        values = self.values.copy()
         for i in range(len(values[0])):
             values[:, i] /= np.std(values[:, i])
         db.fit(self.values)
