@@ -425,7 +425,7 @@ class DataSet:
         :return:
         """
         try:
-            m = self._mask.get_latest_mask()
+            m = self._mask.get_latest_mask().values
         except IndexError:
             m = np.ones(len(self.coordinates))
         for i in range(len(self.coordinates)):

@@ -79,7 +79,9 @@ class Color:
             d['selection'] = '          '
             hue = 'selection'
             for i in range(1, self._color.mask.get_mask_count()):
-                d.loc[self._color.mask.get_mask(i), 'selection'] = self._color.mask.get_description(i)
+                print(d[[]])
+                print(self._color.mask.get_mask(i))
+                d.loc[self._color.mask.get_mask(i)]['selection'] = self._color.mask.get_description(i)
         d = d[m]
         pp = seaborn.PairGrid(d, hue=hue)
         pp.map_diag(pl.hist)

@@ -96,7 +96,7 @@ class Magnitude(Table):
             except TypeError:
                 cols = [cols]
 
-        colors = Color(None, self.survey_name, mask=self.mask)
+        colors = Color(self.data[[]], self.survey_name, mask=self.mask)
         color_color_cols = []
         for i, c1 in enumerate(cols):
             for j, c2 in enumerate(cols):
