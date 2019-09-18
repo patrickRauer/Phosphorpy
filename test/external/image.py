@@ -103,7 +103,6 @@ class TestPanstarrsImage(unittest.TestCase):
                 pass
 
 
-=======
 from Phosphorpy.external.image import PanstarrsImage, SDSSImage
 import unittest
 
@@ -136,4 +135,7 @@ def test_smoothing():
     coord = SkyCoord(163.05867 * u.deg, -24.79324 * u.deg)
     ps.get_color_image(coord)
     # ps.get_color_image(coord, smooth=6)
+<<<<<<< HEAD
 >>>>>>> testing
+=======
+>>>>>>> master

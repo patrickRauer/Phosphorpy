@@ -1,0 +1,897 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="3ab91758-bdb1-4027-bacc-d2f3437681aa" name="Default Changelist" comment="Merge branch 'master' of https://gitlab.sron.nl/patrickr/Phosphorpy.git&#10;&#10;Conflicts:&#10;&#9;Phosphorpy/core/functions.py&#10;&#9;Phosphorpy/core/structure.py&#10;&#9;Phosphorpy/data/data.py&#10;&#9;Phosphorpy/data/sub/astrometry.py&#10;&#9;Phosphorpy/data/sub/light_curve.py&#10;&#9;Phosphorpy/data/sub/magnitudes.py&#10;&#9;Phosphorpy/data/sub/table.py&#10;&#9;Phosphorpy/data/sub/tables/color.py&#10;&#9;Phosphorpy/external/css.py&#10;&#9;Phosphorpy/external/image.py&#10;&#9;Phosphorpy/external/xmatch.py&#10;&#9;setup.py&#10;&#9;test/data/data.py&#10;&#9;test/data/sub/light_curve.py">
+      <change beforePath="$PROJECT_DIR$/Phosphorpy/core/functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/Phosphorpy/core/functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Phosphorpy/core/structure.py" beforeDir="false" afterPath="$PROJECT_DIR$/Phosphorpy/core/structure.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Phosphorpy/data/data.py" beforeDir="false" afterPath="$PROJECT_DIR$/Phosphorpy/data/data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Phosphorpy/data/sub/light_curve.py" beforeDir="false" afterPath="$PROJECT_DIR$/Phosphorpy/data/sub/light_curve.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Phosphorpy/external/image.py" beforeDir="false" afterPath="$PROJECT_DIR$/Phosphorpy/external/image.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Phosphorpy/external/vizier.py" beforeDir="false" afterPath="$PROJECT_DIR$/Phosphorpy/external/vizier.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Phosphorpy/external/xmatch.py" beforeDir="false" afterPath="$PROJECT_DIR$/Phosphorpy/external/xmatch.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/setup.py" beforeDir="false" afterPath="$PROJECT_DIR$/setup.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/data/data.py" beforeDir="false" afterPath="$PROJECT_DIR$/test/data/data.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/data/sub/light_curve.py" beforeDir="false" afterPath="$PROJECT_DIR$/test/data/sub/light_curve.py" afterDir="false" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="DatabaseView">
+    <option name="SHOW_INTERMEDIATE" value="true" />
+    <option name="GROUP_DATA_SOURCES" value="true" />
+    <option name="GROUP_SCHEMA" value="true" />
+    <option name="GROUP_CONTENTS" value="false" />
+    <option name="SORT_POSITIONED" value="false" />
+    <option name="SHOW_EMPTY_GROUPS" value="false" />
+    <option name="AUTO_SCROLL_FROM_SOURCE" value="false" />
+    <option name="HIDDEN_KINDS">
+      <set />
+    </option>
+    <expand />
+    <select />
+  </component>
+  <component name="FileEditorManager">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Phosphorpy/data/data.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="357">
+              <caret line="406" column="85" selection-start-line="406" selection-start-column="85" selection-end-line="406" selection-end-column="85" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Phosphorpy/external/xmatch.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="2169">
+              <caret line="161" column="22" selection-start-line="161" selection-start-column="22" selection-end-line="161" selection-end-column="22" />
+              <folding>
+                <element signature="e#122#158#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Phosphorpy/external/vizier.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1261">
+              <caret line="232" column="17" selection-start-line="232" selection-start-column="12" selection-end-line="232" selection-end-column="17" />
+              <folding>
+                <element signature="e#1#29#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Phosphorpy/core/structure.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-3110">
+              <caret line="40" column="55" selection-start-line="40" selection-start-column="55" selection-end-line="40" selection-end-column="55" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/Phosphorpy/data/sub/magnitudes.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1683">
+              <caret line="804" column="27" selection-start-line="804" selection-start-column="27" selection-end-line="804" selection-end-column="27" />
+              <folding>
+                <element signature="e#0#19#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Phosphorpy/external/image.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="175">
+              <caret line="125" column="20" selection-start-line="125" selection-start-column="20" selection-end-line="125" selection-end-column="20" />
+              <folding>
+                <element signature="e#200#209#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Phosphorpy/data/sub/tables/magnitude.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="379">
+              <caret line="187" column="22" selection-start-line="187" selection-start-column="22" selection-end-line="187" selection-end-column="22" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Phosphorpy/data/sub/plots/coordinates.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state>
+              <folding>
+                <element signature="e#0#18#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Phosphorpy/data/sub/colors.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1755">
+              <caret line="121" column="25" selection-start-line="121" selection-start-column="25" selection-end-line="121" selection-end-column="25" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Phosphorpy/data/sub/plots/color.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="403">
+              <caret line="95" column="20" selection-start-line="95" selection-start-column="20" selection-end-line="95" selection-end-column="20" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>wri</find>
+      <find>pr</find>
+      <find>extin</find>
+      <find>print</find>
+    </findStrings>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/test/config/names.py" />
+        <option value="$PROJECT_DIR$/test/external/vizier.py" />
+        <option value="$PROJECT_DIR$/Phosphorpy/data/mask.py" />
+        <option value="$PROJECT_DIR$/test/data/mask.py" />
+        <option value="$PROJECT_DIR$/test/data/sub/table.py" />
+        <option value="$PROJECT_DIR$/test/data/sub/magnitudes.py" />
+        <option value="$PROJECT_DIR$/test/data/sub/tables/magnitudes.py" />
+        <option value="$PROJECT_DIR$/test/data/sub/tables/magnitude.py" />
+        <option value="$PROJECT_DIR$/test/data/sub/tables/flux.py" />
+        <option value="$PROJECT_DIR$/test/data/sub/coordinates.py" />
+        <option value="$PROJECT_DIR$/test/data/sub/tables/color.py" />
+        <option value="$PROJECT_DIR$/test/data/sub/astrometry.py" />
+        <option value="$PROJECT_DIR$/test/external/css.py" />
+        <option value="$PROJECT_DIR$/test/data/sub/colors.py" />
+        <option value="$PROJECT_DIR$/Phosphorpy/data/sub/table.py" />
+        <option value="$PROJECT_DIR$/setup.py" />
+        <option value="$PROJECT_DIR$/doc/data/data.rst" />
+        <option value="$PROJECT_DIR$/doc/data/sub/astrometry.rst" />
+        <option value="$PROJECT_DIR$/doc/core/functions.rst" />
+        <option value="$PROJECT_DIR$/conf.py" />
+        <option value="$PROJECT_DIR$/Phosphorpy/core/functions.py" />
+        <option value="$PROJECT_DIR$/doc/core/structure.rst" />
+        <option value="$PROJECT_DIR$/doc/external/css.rst" />
+        <option value="$PROJECT_DIR$/doc/external/extinction.rst" />
+        <option value="$PROJECT_DIR$/doc/external/image.rst" />
+        <option value="$PROJECT_DIR$/index.rst" />
+        <option value="$PROJECT_DIR$/Phosphorpy/config/survey_data.py" />
+        <option value="$PROJECT_DIR$/build/lib/Phosphorpy/data/sub/magnitudes.py" />
+        <option value="$PROJECT_DIR$/Phosphorpy/data/sub/plots/flux.py" />
+        <option value="$PROJECT_DIR$/build/lib/Phosphorpy/data/sub/tables/flux.py" />
+        <option value="$PROJECT_DIR$/Phosphorpy/data/sub/flux.py" />
+        <option value="$PROJECT_DIR$/Phosphorpy/data/sub/tables/flux.py" />
+        <option value="$PROJECT_DIR$/Phosphorpy/external/vizier.py" />
+        <option value="$PROJECT_DIR$/test/data/sub/light_curve.py" />
+        <option value="$PROJECT_DIR$/Phosphorpy/external/css.py" />
+        <option value="$PROJECT_DIR$/Phosphorpy/data/sub/light_curve.py" />
+        <option value="$PROJECT_DIR$/test/external/image.py" />
+        <option value="$PROJECT_DIR$/test/data/data.py" />
+        <option value="$PROJECT_DIR$/Phosphorpy/data/sub/plots/magnitude.py" />
+        <option value="$PROJECT_DIR$/Phosphorpy/data/sub/colors.py" />
+        <option value="$PROJECT_DIR$/Phosphorpy/data/sub/tables/color.py" />
+        <option value="$PROJECT_DIR$/Phosphorpy/data/sub/coordinates.py" />
+        <option value="$PROJECT_DIR$/Phosphorpy/data/sub/tables/magnitude.py" />
+        <option value="$PROJECT_DIR$/Phosphorpy/data/sub/astrometry.py" />
+        <option value="$PROJECT_DIR$/Phosphorpy/data/sub/plots/astrometry.py" />
+        <option value="$PROJECT_DIR$/Phosphorpy/data/sub/magnitudes.py" />
+        <option value="$PROJECT_DIR$/Phosphorpy/external/xmatch.py" />
+        <option value="$PROJECT_DIR$/Phosphorpy/data/data.py" />
+        <option value="$PROJECT_DIR$/Phosphorpy/external/image.py" />
+        <option value="$PROJECT_DIR$/Phosphorpy/data/sub/plots/color.py" />
+        <option value="$PROJECT_DIR$/Phosphorpy/core/structure.py" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectConfigurationFiles">
+    <option name="files">
+      <list>
+        <option value="$PROJECT_DIR$/.idea/Phosphorpy.iml" />
+        <option value="$PROJECT_DIR$/.idea/misc.xml" />
+        <option value="$PROJECT_DIR$/.idea/vcs.xml" />
+        <option value="$PROJECT_DIR$/.idea/modules.xml" />
+        <option value="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" />
+        <option value="$PROJECT_DIR$/.idea/encodings.xml" />
+        <option value="$PROJECT_DIR$/.idea/dictionaries/patrickr.xml" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectFrameBounds">
+    <option name="y" value="23" />
+    <option name="width" value="1280" />
+    <option name="height" value="731" />
+  </component>
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scope" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="Phosphorpy" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Phosphorpy" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Phosphorpy" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Phosphorpy" type="462c0819:PsiDirectoryNode" />
+              <item name="doc" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Phosphorpy" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Phosphorpy" type="462c0819:PsiDirectoryNode" />
+              <item name="Phosphorpy" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Phosphorpy" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Phosphorpy" type="462c0819:PsiDirectoryNode" />
+              <item name="Phosphorpy" type="462c0819:PsiDirectoryNode" />
+              <item name="core" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Phosphorpy" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Phosphorpy" type="462c0819:PsiDirectoryNode" />
+              <item name="Phosphorpy" type="462c0819:PsiDirectoryNode" />
+              <item name="data" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Phosphorpy" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Phosphorpy" type="462c0819:PsiDirectoryNode" />
+              <item name="Phosphorpy" type="462c0819:PsiDirectoryNode" />
+              <item name="data" type="462c0819:PsiDirectoryNode" />
+              <item name="sub" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Phosphorpy" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Phosphorpy" type="462c0819:PsiDirectoryNode" />
+              <item name="Phosphorpy" type="462c0819:PsiDirectoryNode" />
+              <item name="data" type="462c0819:PsiDirectoryNode" />
+              <item name="sub" type="462c0819:PsiDirectoryNode" />
+              <item name="plots" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Phosphorpy" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Phosphorpy" type="462c0819:PsiDirectoryNode" />
+              <item name="Phosphorpy" type="462c0819:PsiDirectoryNode" />
+              <item name="data" type="462c0819:PsiDirectoryNode" />
+              <item name="sub" type="462c0819:PsiDirectoryNode" />
+              <item name="tables" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Phosphorpy" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Phosphorpy" type="462c0819:PsiDirectoryNode" />
+              <item name="Phosphorpy" type="462c0819:PsiDirectoryNode" />
+              <item name="external" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Phosphorpy" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Phosphorpy" type="462c0819:PsiDirectoryNode" />
+              <item name="Phosphorpy" type="462c0819:PsiDirectoryNode" />
+              <item name="fitting" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Phosphorpy" type="b2602c69:ProjectViewProjectNode" />
+              <item name="Phosphorpy" type="462c0819:PsiDirectoryNode" />
+              <item name="Phosphorpy" type="462c0819:PsiDirectoryNode" />
+              <item name="local" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="Phosphorpy" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
+    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager" selected="Python tests.pytest for data.test_add_magnitudes">
+    <configuration name="pytest for data.test_add_magnitudes" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+      <module name="Phosphorpy" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/test/data" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;data.test_add_magnitudes&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="pytest for image.TestPSImage" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+      <module name="Phosphorpy" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/test/external" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;image.TestPSImage&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="pytest for image.test_smoothing" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+      <module name="Phosphorpy" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/test/external" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;image.test_smoothing&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="pytest for light_curve.TestLightCurve" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+      <module name="Phosphorpy" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/test/data/sub" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;light_curve.TestLightCurve&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="pytest for light_curve.TestLightCurveDataSet" type="tests" factoryName="py.test" temporary="true" nameIsGenerated="true">
+      <module name="Phosphorpy" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/test/data/sub" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;light_curve.TestLightCurveDataSet&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python tests.pytest for data.test_add_magnitudes" />
+        <item itemvalue="Python tests.pytest for image.test_smoothing" />
+        <item itemvalue="Python tests.pytest for image.TestPSImage" />
+        <item itemvalue="Python tests.pytest for light_curve.TestLightCurveDataSet" />
+        <item itemvalue="Python tests.pytest for light_curve.TestLightCurve" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="3ab91758-bdb1-4027-bacc-d2f3437681aa" name="Default Changelist" comment="" />
+      <created>1563879353194</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1563879353194</updated>
+      <workItem from="1563879357441" duration="87807000" />
+      <workItem from="1565337272204" duration="8371000" />
+      <workItem from="1567487977518" duration="827000" />
+      <workItem from="1567570998332" duration="593000" />
+      <workItem from="1568016614615" duration="807000" />
+      <workItem from="1568018071627" duration="4275000" />
+      <workItem from="1568036236369" duration="501000" />
+      <workItem from="1568635844693" duration="22333000" />
+      <workItem from="1568788121808" duration="161000" />
+      <workItem from="1568795454970" duration="4082000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TestHistory">
+    <history-entry file="pytest_for_image_test_smoothing - 2019.09.17 at 12h 16m 44s.xml">
+      <configuration name="pytest for image.test_smoothing" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_for_image_test_smoothing - 2019.09.17 at 12h 18m 37s.xml">
+      <configuration name="pytest for image.test_smoothing" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_for_image_test_smoothing - 2019.09.17 at 12h 19m 02s.xml">
+      <configuration name="pytest for image.test_smoothing" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_for_image_test_smoothing - 2019.09.17 at 12h 20m 03s.xml">
+      <configuration name="pytest for image.test_smoothing" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_for_image_test_smoothing - 2019.09.17 at 12h 20m 29s.xml">
+      <configuration name="pytest for image.test_smoothing" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_for_data_test_add_magnitudes - 2019.09.17 at 13h 30m 59s.xml">
+      <configuration name="pytest for data.test_add_magnitudes" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_for_data_test_add_magnitudes - 2019.09.17 at 13h 31m 39s.xml">
+      <configuration name="pytest for data.test_add_magnitudes" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_for_data_test_add_magnitudes - 2019.09.17 at 13h 32m 19s.xml">
+      <configuration name="pytest for data.test_add_magnitudes" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_for_data_test_add_magnitudes - 2019.09.17 at 13h 35m 42s.xml">
+      <configuration name="pytest for data.test_add_magnitudes" configurationId="tests" />
+    </history-entry>
+    <history-entry file="pytest_for_data_test_add_magnitudes - 2019.09.17 at 13h 36m 42s.xml">
+      <configuration name="pytest for data.test_add_magnitudes" configurationId="tests" />
+    </history-entry>
+  </component>
+  <component name="TimeTrackingManager">
+    <option name="totallyTimeSpent" value="129757000" />
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="0" y="23" width="1280" height="731" extended-state="0" />
+    <editor active="true" />
+    <layout>
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.4779874" visible="true" weight="0.28594506" />
+      <window_info id="Structure" order="1" sideWeight="0.5220126" side_tool="true" visible="true" weight="0.28594506" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.32954547" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.49919224" weight="0.32792208" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Version Control" order="8" weight="0.32792208" />
+      <window_info anchor="bottom" id="YouTrack" order="9" />
+      <window_info anchor="bottom" id="Database Changes" order="10" />
+      <window_info anchor="bottom" id="Terminal" order="11" visible="true" weight="0.22564936" />
+      <window_info anchor="bottom" id="Event Log" order="12" sideWeight="0.50080776" side_tool="true" weight="0.32954547" />
+      <window_info anchor="bottom" id="Python Console" order="13" />
+      <window_info anchor="right" id="Commander" order="0" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="Database" order="3" />
+      <window_info anchor="right" id="SciView" order="4" weight="0.32956383" />
+    </layout>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_flux_TestFlux.coverage" NAME="pytest for flux.TestFlux Coverage Results" MODIFIED="1565074842088" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/data/sub/tables" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_data_test_add_magnitudes.coverage" NAME="pytest for data.test_add_magnitudes Coverage Results" MODIFIED="1568720176633" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/data" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_table_TestDataTable.coverage" NAME="pytest for table.TestDataTable Coverage Results" MODIFIED="1564654782642" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/data/sub" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_magnitude_TestMagnitude.coverage" NAME="pytest for magnitude.TestMagnitude Coverage Results" MODIFIED="1565005534393" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/data/sub/tables" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_light_curve_TestLightCurveDataSet.coverage" NAME="pytest for light_curve.TestLightCurveDataSet Coverage Results" MODIFIED="1568710226693" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/data/sub" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_structure_TestTable.coverage" NAME="pytest for structure.TestTable Coverage Results" MODIFIED="1564402488354" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/core" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_mask_TestMask.coverage" NAME="pytest for mask.TestMask Coverage Results" MODIFIED="1564576312475" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/data" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_coordinates_TestCoordinateTable.coverage" NAME="pytest for coordinates.TestCoordinateTable Coverage Results" MODIFIED="1565078824785" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/data/sub" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_magnitudes_TestSurveyData.coverage" NAME="pytest for magnitudes.TestSurveyData Coverage Results" MODIFIED="1564667744094" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/data/sub" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_colors_TestColors.coverage" NAME="pytest for colors.TestColors Coverage Results" MODIFIED="1565098088915" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/data/sub" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_match_TestMatch.coverage" NAME="pytest for match.TestMatch Coverage Results" MODIFIED="1564557317550" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/config" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_color_TestColor.coverage" NAME="pytest for color.TestColor Coverage Results" MODIFIED="1565083216758" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/data/sub/tables" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_in_css_py.coverage" NAME="pytest in css.py Coverage Results" MODIFIED="1565093209299" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/external" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_light_curve_TestLightCurve.coverage" NAME="pytest for light_curve.TestLightCurve Coverage Results" MODIFIED="1568702427018" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/data/sub" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_table_TestMask.coverage" NAME="pytest for table.TestMask Coverage Results" MODIFIED="1564579833328" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/data/sub" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_functions_TestFunctions.coverage" NAME="pytest for functions.TestFunctions Coverage Results" MODIFIED="1564388774785" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/core" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_survey_data_TestConfig.coverage" NAME="pytest for survey_data.TestConfig Coverage Results" MODIFIED="1564479718400" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/config" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_xmatch_TestXMatch.coverage" NAME="pytest for xmatch.TestXMatch Coverage Results" MODIFIED="1564468920529" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/external" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_structure_TestHead.coverage" NAME="pytest for structure.TestHead Coverage Results" MODIFIED="1564395753951" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/core" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_extinction_test_get_extinctions.coverage" NAME="pytest for extinction.test_get_extinctions Coverage Results" MODIFIED="1564404407223" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/external" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_image_TestPSImage.coverage" NAME="pytest for image.TestPSImage Coverage Results" MODIFIED="1568712954299" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/external" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_magnitudes_TestMagnitudeTable.coverage" NAME="pytest for magnitudes.TestMagnitudeTable Coverage Results" MODIFIED="1565004463356" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/data/sub" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_css_test_download_light_curves.coverage" NAME="pytest for css.test_download_light_curves Coverage Results" MODIFIED="1565093013003" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/external" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_names_TestNames.coverage" NAME="pytest for names.TestNames Coverage Results" MODIFIED="1564558594507" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/config" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_magnitudes_TestMagnitudes.coverage" NAME="pytest for magnitudes.TestMagnitudes Coverage Results" MODIFIED="1564655316559" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/data/sub" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_image_TestImage.coverage" NAME="pytest for image.TestImage Coverage Results" MODIFIED="1564389086882" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/external" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_in_astrometry_py.coverage" NAME="pytest in astrometry.py Coverage Results" MODIFIED="1565091943127" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/data/sub" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_mask_TestMaskLog.coverage" NAME="pytest for mask.TestMaskLog Coverage Results" MODIFIED="1564573809076" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/data" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_image_TestPanstarrsImage.coverage" NAME="pytest for image.TestPanstarrsImage Coverage Results" MODIFIED="1564393943077" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/external" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_data_TestData.coverage" NAME="pytest for data.TestData Coverage Results" MODIFIED="1565339493633" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/data" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_image_test_smoothing.coverage" NAME="pytest for image.test_smoothing Coverage Results" MODIFIED="1568715616100" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/external" />
+    <SUITE FILE_PATH="coverage/Phosphorpy$pytest_for_vizier_TestVizier.coverage" NAME="pytest for vizier.TestVizier Coverage Results" MODIFIED="1564572485351" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/test/external" />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$USER_HOME$/anaconda3/lib/python3.7/site-packages/Phosphorpy-0.5.4.6-py3.7.egg/Phosphorpy/data/sub/magnitudes.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="177">
+          <caret line="434" column="11" lean-forward="true" selection-start-line="434" selection-start-column="11" selection-end-line="434" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/build/lib/Phosphorpy/config/match.py" />
+    <entry file="file://$PROJECT_DIR$/test/data/sub/colors.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="480">
+          <caret line="54" column="43" selection-start-line="54" selection-start-column="43" selection-end-line="54" selection-end-column="43" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/doc/data/data.rst" />
+    <entry file="file://$PROJECT_DIR$/doc/data/sub/astrometry.rst" />
+    <entry file="file://$PROJECT_DIR$/doc/core/structure.rst" />
+    <entry file="file://$PROJECT_DIR$/doc/core/functions.rst" />
+    <entry file="file://$PROJECT_DIR$/doc/external/css.rst" />
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/external/extinction.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <folding>
+            <element signature="e#0#41#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/doc/external/extinction.rst" />
+    <entry file="file://$PROJECT_DIR$/doc/external/image.rst" />
+    <entry file="file://$PROJECT_DIR$/doc/source/Phosphorpy.data.rst">
+      <provider selected="true" editor-type-id="restructured-text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/doc/source/Phosphorpy.core.rst">
+      <provider selected="true" editor-type-id="restructured-text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/doc/source/Phosphorpy.rst">
+      <provider selected="true" editor-type-id="restructured-text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/doc/source/modules.rst">
+      <provider selected="true" editor-type-id="restructured-text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/setup.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="40">
+          <caret line="4" column="18" selection-start-line="4" selection-start-column="18" selection-end-line="4" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/index.rst">
+      <provider selected="true" editor-type-id="restructured-text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/conf.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret line="34" column="4" selection-start-line="34" selection-start-column="4" selection-end-line="34" selection-end-column="4" />
+          <folding>
+            <element signature="e#534#543#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/config/config.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-633">
+          <folding>
+            <element signature="e#0#35#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/config/survey_data.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="539">
+          <caret line="71" column="59" selection-start-line="71" selection-start-column="59" selection-end-line="71" selection-end-column="59" />
+          <folding>
+            <element signature="e#0#19#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/data/sub/table.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="45">
+          <caret line="9" column="6" selection-start-line="9" selection-start-column="6" selection-end-line="9" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/build/lib/Phosphorpy/data/sub/magnitudes.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="324">
+          <caret line="415" column="25" selection-start-line="415" selection-start-column="25" selection-end-line="415" selection-end-column="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/build/lib/Phosphorpy/data/sub/tables/flux.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="175">
+          <caret line="41" lean-forward="true" selection-start-line="41" selection-end-line="43" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/data/sub/tables/flux.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="361">
+          <caret line="67" column="11" lean-forward="true" selection-start-line="67" selection-start-column="11" selection-end-line="67" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/data/sub/temp.txt" />
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/data/sub/flux.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="93">
+          <caret line="490" column="38" selection-start-line="490" selection-start-column="38" selection-end-line="490" selection-end-column="38" />
+          <folding>
+            <element signature="e#0#14#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/data/sub/light_curve.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="277">
+          <caret line="47" column="35" selection-start-line="47" selection-start-column="35" selection-end-line="47" selection-end-column="35" />
+          <folding>
+            <element signature="e#0#4#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/data/sub/light_curve.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="69">
+          <caret line="33" column="43" selection-start-line="33" selection-start-column="43" selection-end-line="33" selection-end-column="43" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/data/sub/plots/flux.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="180">
+          <caret line="21" column="61" selection-start-line="21" selection-start-column="61" selection-end-line="21" selection-end-column="61" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/external/css.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4">
+          <caret line="154" column="7" selection-start-line="154" selection-start-column="7" selection-end-line="154" selection-end-column="7" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/external/xmatch.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <folding>
+            <element signature="e#0#15#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/core/functions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-113">
+          <caret line="38" column="4" selection-start-line="38" selection-start-column="4" selection-end-line="38" selection-end-column="4" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/external/image.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="277">
+          <caret line="34" selection-start-line="34" selection-end-line="34" />
+          <folding>
+            <element signature="e#0#40#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/data/data.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="322">
+          <caret line="172" column="49" selection-start-line="172" selection-start-column="49" selection-end-line="172" selection-end-column="49" />
+          <folding>
+            <element signature="e#0#31#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/build/lib/Phosphorpy/data/sub/tables/color.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="178">
+          <caret line="37" column="8" selection-start-line="37" selection-start-column="8" selection-end-line="37" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/local/survey.conf">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="426">
+          <caret line="29" column="19" selection-start-line="29" selection-start-column="19" selection-end-line="29" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/data/sub/coordinates.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="272">
+          <caret line="65" column="57" selection-start-line="65" selection-start-column="57" selection-end-line="65" selection-end-column="57" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/data/sub/plots/magnitude.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="257">
+          <caret line="61" column="69" selection-start-line="61" selection-start-column="69" selection-end-line="61" selection-end-column="69" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/data/sub/astrometry.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2175">
+          <caret line="145" column="106" selection-start-line="145" selection-start-column="106" selection-end-line="145" selection-end-column="106" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/data/sub/plots/astrometry.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="420">
+          <caret line="28" column="14" selection-start-line="28" selection-start-column="14" selection-end-line="28" selection-end-column="14" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/data/sub/tables/color.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="19" column="8" selection-start-line="19" selection-start-column="8" selection-end-line="19" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/data/sub/plots/coordinates.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/data/sub/colors.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1755">
+          <caret line="121" column="25" selection-start-line="121" selection-start-column="25" selection-end-line="121" selection-end-column="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/external/vizier.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1261">
+          <caret line="232" column="17" selection-start-line="232" selection-start-column="12" selection-end-line="232" selection-end-column="17" />
+          <folding>
+            <element signature="e#1#29#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/external/xmatch.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2169">
+          <caret line="161" column="22" selection-start-line="161" selection-start-column="22" selection-end-line="161" selection-end-column="22" />
+          <folding>
+            <element signature="e#122#158#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/data/data.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="357">
+          <caret line="406" column="85" selection-start-line="406" selection-start-column="85" selection-end-line="406" selection-end-column="85" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/external/image.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="175">
+          <caret line="125" column="20" selection-start-line="125" selection-start-column="20" selection-end-line="125" selection-end-column="20" />
+          <folding>
+            <element signature="e#200#209#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/data/sub/plots/color.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="403">
+          <caret line="95" column="20" selection-start-line="95" selection-start-column="20" selection-end-line="95" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/data/sub/tables/magnitude.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="379">
+          <caret line="187" column="22" selection-start-line="187" selection-start-column="22" selection-end-line="187" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/core/structure.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-3110">
+          <caret line="40" column="55" selection-start-line="40" selection-start-column="55" selection-end-line="40" selection-end-column="55" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Phosphorpy/data/sub/magnitudes.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1683">
+          <caret line="804" column="27" selection-start-line="804" selection-start-column="27" selection-end-line="804" selection-end-column="27" />
+          <folding>
+            <element signature="e#0#19#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>

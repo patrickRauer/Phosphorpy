@@ -35,7 +35,7 @@ and do the calculations.
 * scikit-learn
 * scipy
 * urllib
-* armapy
+* [armapy](https://github.com/patrickRauer/armapy)
 * extinction
 
 ## Example
