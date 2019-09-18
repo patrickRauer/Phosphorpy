@@ -642,6 +642,24 @@ class MagnitudeTable(DataTable):
         self._mag_cols = mag
         self._err_cols = err
 
+    def apply_extinction_correction_to_survey(self, correction, survey):
+        """
+        Applies the extinction correction to one specific survey
+
+        :param correction:
+            Table with the extinction correction.
+            The number of rows must be the same as the number of detections in the survey and the columns
+            must have the same names as the magnitude columns in the survey
+        :type correction: Table, DataFrame
+        :param survey: The name of the survey
+        :type survey: str
+        :return:
+        """
+        for d in self.data:
+            if d.survey_name == survey:
+                d.apply_extinction_correction(correction)
+                break
+
     def apply_extinction_correction(self, correction):
         """
         Applies the extinction correction to the data
