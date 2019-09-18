@@ -120,7 +120,7 @@ def download_light_curves(ra, dec):
             with open('temp.txt', 'w') as f:
                 for j, (r, d) in enumerate(zip(d_ra, d_dec)):
                     row_id = i*part_size+j
-                    f.write(f"{row_id}\t{r}\t{d}\n")
+                    f.write(f"{row_id}\t{round(r, 5)}\t{round(d, 5)}\n")
 
             with open('temp.txt') as f:
                 r = requests.post(url,
@@ -130,11 +130,15 @@ def download_light_curves(ra, dec):
 
             r = r.text.split('location.href=\'')[-1]
             r = r.split('\'')[0]
-            # r = 'file' + r
-            # r = requests.get(url2.format(r))
-            #
-            # r = r.text.split('href=')[-1]
-            # r = r.split('>download')[0]
+
+            if 'Query service results' in r:
+                r = url2.format(
+                    r.split('name="ID" value="')[-1].split('"')[0]
+                )
+                r = requests.get(r).text
+
+                r = r.split('href=')[-1].split('>download')[0]
+
             urllib.request.urlretrieve(r, "temp.csv")
             pd = pandas.read_csv('temp.csv')
             os.remove('temp.csv')

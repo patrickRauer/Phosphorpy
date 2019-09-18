@@ -1,7 +1,8 @@
-from astropy.table import Table
-from astropy.io import fits
-import numpy as np
 import sqlite3
+
+import numpy as np
+from astropy.io import fits
+from astropy.table import Table
 
 from Phosphorpy.core.structure import Mask
 

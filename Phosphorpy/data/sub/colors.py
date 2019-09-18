@@ -1,7 +1,8 @@
 import pandas as pd
-from .table import DataTable
-from .plots.color import Color, create_color_name
+
 from Phosphorpy.data.sub.tables.color import Color as ColorTab
+from .plots.color import Color
+from .table import DataTable
 
 
 class Colors(DataTable):
@@ -15,6 +16,12 @@ class Colors(DataTable):
         self._survey_colors = survey_colors
 
         self._plot = Color(self)
+
+    def __str__(self):
+        s = 'Colors:\n'
+        for d in self.data:
+            s += str(d) + '\n'
+        return s[:-2]
 
     @property
     def survey_colors(self):
@@ -74,16 +81,19 @@ class Colors(DataTable):
         """
         out = None
         for d in self.data:
-            o = d.get_columns(cols)
-            if len(o.columns) > 0:
-                if out is None:
-                    out = o
-                else:
-                    if type(cols) == pd.core.indexes.base.Index:
-                        if len(o.columns) > len(out.columns):
-                            out = o
+            try:
+                o = d.get_columns(cols)
+                if len(o.columns) > 0:
+                    if out is None:
+                        out = o
                     else:
-                        out = out.join(o)
+                        if type(cols) == pd.core.indexes.base.Index:
+                            if len(o.columns) > len(out.columns):
+                                out = o
+                        else:
+                            out = out.join(o)
+            except ValueError:
+                pass
         return out
 
     def get_column(self, col):

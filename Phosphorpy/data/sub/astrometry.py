@@ -1,9 +1,12 @@
-from Phosphorpy.external.vizier import Gaia, BailerJones
-from Phosphorpy.data.sub.plots.astrometry import AstrometryPlot
-from astropy.table import Table, vstack
-from .table import DataTable
 import numpy as np
 import pandas as pd
+from astropy.table import Table, vstack
+from astropy.coordinates import SkyCoord, Distance
+from astropy import units as u
+
+from Phosphorpy.data.sub.plots.astrometry import AstrometryPlot
+from Phosphorpy.external.vizier import Gaia, BailerJones
+from .table import DataTable
 
 
 def _only_nearest(data):
@@ -140,8 +143,11 @@ class AstrometryTable(DataTable):
         if cos_correction:
             dec_rad = np.deg2rad(self._data['dec'].values)
             cos_c = np.cos(dec_rad)
-            x_err = np.square(cos_c*x_err)+np.square(x*np.sin(dec_rad)*self._data['dec_error'].values)
-            x_err = np.square(x_err)
+            x_err = np.square(cos_c*x_err)+np.square(x*np.sin(dec_rad)*self._data['dec_error'].values/1000)
+            x_err = np.sqrt(x_err)
+            k = x_err > 10
+            if np.sum(k) > 0:
+                x_err[k] = 10
             x *= cos_c
         return pd.DataFrame({'pmra': x, 'pmdec': y, 'pmra_err': x_err, 'pmdec_err': y_err}, index=self._data.index)
 
@@ -150,14 +156,15 @@ class AstrometryTable(DataTable):
         Return the total proper motion and its errors.
 
         .. math::
-            \mu = \sqrt{\left(\mu_\alpha^*\right)^2+\mu_\delta^2}
+            \mu = \sqrt{\left(\mu_{\\alpha^*}\\right)^2+\mu_\delta^2}
 
         with
-        .. math::
-            \mu_\alpha^* = \mu_\alpha*\cos (\delta)
 
-        :return: pm, pm_err
-        :rtype: numpy.ndarray, numpy.ndarray
+        .. math::
+            \mu_{\\alpha^*} = \mu_{\\alpha}*\cos (\delta)
+
+        :return: The total proper motion and its errors in a DataFrame
+        :rtype: pandas.DataFrame
         """
         temp = self.proper_motion(True)
         pm_ra, pm_dec = temp['pmra'].values, temp['pmdec'].values
@@ -292,3 +299,20 @@ class AstrometryTable(DataTable):
         else:
             m = (pm_d >= minimal) & (pm_d <= maximal)
         self.mask.add_mask(m, f'Proper motion limit in {direction} direction from {minimal} to {maximal}')
+
+    def to_sky_coord(self):
+        """
+        Creates from the Gaia data a astropy.coordinates.SkyCoord object for every source.
+        The SkyCoord contains beside the coordinates, the proper motions (pm ra is corrected)
+        and a distance estimation.
+
+        :return: SkyCoord objects of the detections
+        :rtype: SkyCoord
+        """
+
+        s = SkyCoord(self._data['ra'].values*u.deg,
+                     self._data['dec'].values*u.deg,
+                     pm_ra_cosdec=self._data['pmra'].values*np.cos(np.deg2rad(self._data['dec'].values)),
+                     pm_dec=self._data['pmdec'],
+                     distance=Distance(parallax=self._data['parallax']))
+        return s

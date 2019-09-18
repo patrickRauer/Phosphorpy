@@ -40,6 +40,14 @@ class Flux(Table):
         names = [n for n in self.data.columns if 'e_' in n]
         return self.data[names]
 
+    def get_index(self):
+        """
+        Returns the indices of the fluxes
+
+        :return: The indices
+        """
+        return self.data[[]]
+
     def get_flux(self, index):
         """
         Returns the fluxes of one source without their errors
@@ -61,4 +69,5 @@ class Flux(Table):
         return self.get_errors().iloc[index]
 
     def get_wavelengths(self):
-        print(self.survey)
+        pass
+

@@ -5,12 +5,13 @@ Created on Wed Mar 13 08:43:54 2019
 
 @author: Jean Patrick Rauer
 """
-from Phosphorpy.core.functions import power_2_10, subtract
-from Phosphorpy.core.structure import Table
-from .flux import Flux
-from .color import Color
 import numpy as np
 import pandas as pd
+
+from Phosphorpy.core.functions import power_2_10, subtract
+from Phosphorpy.core.structure import Table
+from .color import Color
+from .flux import Flux
 
 
 class Magnitude(Table):
@@ -95,7 +96,7 @@ class Magnitude(Table):
             except TypeError:
                 cols = [cols]
 
-        colors = Color(None, self.survey_name, mask=self.mask)
+        colors = Color(self.data[[]], self.survey_name, mask=self.mask)
         color_color_cols = []
         for i, c1 in enumerate(cols):
             for j, c2 in enumerate(cols):

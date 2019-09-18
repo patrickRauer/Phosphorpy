@@ -10,7 +10,7 @@ class Mask:
 
     def __init__(self, length, ids=None):
         if ids is None:
-            ids = np.arange(length)
+            ids = np.arange(length)+1
         elif len(ids) != length:
             raise AttributeError('"length" and the length of "ids" must be the same value.')
 
@@ -62,7 +62,7 @@ class Mask:
         Returns the latest mask.
 
         :return: The latest mask
-        :rtype: numpy.ndarray
+        :rtype: pd.Series
         """
         return self.get_mask(-1)
 
@@ -82,7 +82,7 @@ class Mask:
         :param level: The level of the mask.
         :type level: int
         :return: The mask of the data
-        :rtype: numpy.ndarray
+        :rtype: pd.Series
         """
         return self._mask[level]
 

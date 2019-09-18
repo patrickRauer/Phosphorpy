@@ -1,8 +1,9 @@
-from Phosphorpy.external.css import download_light_curves
-from Phosphorpy.data.sub.plots.light_curve import LightCurvePlot
-from astropy.table import Table
 import numpy as np
 import pandas as pd
+from astropy.table import Table
+
+from Phosphorpy.data.sub.plots.light_curve import LightCurvePlot
+from Phosphorpy.external.css import download_light_curves
 
 
 class LightCurves:
@@ -34,6 +35,9 @@ class LightCurves:
         out = out.format(len(np.unique(self._light_curves['InputID'])), len(self._light_curves))
         return out
 
+    def __repr__(self):
+        return self.__str__()
+
     def stats(self):
         """
         Computes the statistics of the light curves
@@ -41,7 +45,6 @@ class LightCurves:
         :return: The statistics of the light curves
         :rtype: pandas.DataFrame
         """
-        print(self.light_curves.columns)
         return self.light_curves[self._stat_columns].groupby('InputID').aggregate(self._stat_operations)
 
     def average(self, dt_max=1, overwrite=False):
@@ -100,9 +103,16 @@ class LightCurves:
         """
         return LightCurves(light_curves=self._light_curves[self._light_curves['InputID'] == index])
 
+    def to_time_series(self, index):
+        raise NotImplementedError()
+
     @property
     def light_curves(self):
         return self._light_curves
+
+    @property
+    def data(self):
+        return self.light_curves
 
     @property
     def stat_columns(self):

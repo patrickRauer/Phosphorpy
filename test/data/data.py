@@ -157,3 +157,16 @@ class TestData(unittest.TestCase):
     # def test_from_vizier(self):
     #     ds = data.DataSet.from_vizier('SDSS',
     #                                   **{'rmag': '<13', 'spCl': 'STAR'})
+
+
+def test_add_magnitudes():
+    coord = pd.DataFrame(
+        {
+            'ra': [18.15629, 166.12397, 260.78809],
+            'dec': [33.49162, 8.6418, 48.31078]
+        }
+    )
+    Table.from_pandas(coord).write('temp_coordinates.fits', overwrite=True)
+    ds = data.DataSet.load_coordinates('temp_coordinates.fits')
+    ds.load_from_vizier('SDSS')
+    os.remove('temp_coordinates.fits')

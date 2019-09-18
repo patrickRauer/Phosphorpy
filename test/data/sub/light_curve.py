@@ -1,6 +1,7 @@
+from astropy.table import Table
 import numpy as np
 import pandas as pd
-
+import os
 import unittest
 
 from Phosphorpy.data.sub import light_curve
@@ -32,3 +33,16 @@ class TestLightCurve(unittest.TestCase):
     def test_get_light_curve(self):
         l = self.lc.get_light_curve(0)
         l.plot.light_curve(0)
+
+
+class TestLightCurveDataSet(unittest.TestCase):
+
+    def setUp(self) -> None:
+        from Phosphorpy import DataSet
+        Table.read('/Users/patrickr/Documents/temp/comb_ra_lte_180.fits')[:10].write('temp.fits', overwrite=True)
+        self.ds = DataSet.load_coordinates('temp.fits', 'fits', 'ra', 'dec')
+        # self.ds.load_from_vizier(['SDSS', '2MASS'])
+        os.remove('temp.fits')
+
+    def test_get_light_curves(self):
+        print(self.ds.light_curves)

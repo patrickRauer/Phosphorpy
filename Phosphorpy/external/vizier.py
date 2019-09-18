@@ -142,12 +142,10 @@ class Vizier:
                 o.rename_column(ra_name, 'ra')
                 o.rename_column(dec_name, 'dec')
                 o = o.to_pandas()
-                # print(o.columns)
                 o = o.groupby('id')
                 o = o.aggregate(np.nanmean)
 
                 out[i] = o
-        # print(out)
         # if only one catalog query is performed
         if len(out) == 1:
             # out = out[0]

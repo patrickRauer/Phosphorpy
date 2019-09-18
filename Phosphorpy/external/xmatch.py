@@ -218,7 +218,6 @@ def xmatch(data, ra_name, dec_name, survey, max_distance=1.*u.arcsec, blank=Fals
         elif 'RAdeg' in rs.columns:
             output_cols[-3] = 'RAdeg'
             output_cols[-2] = 'DEdeg'
-    # print(rs['angDist'].max())
 
     rs = rs[output_cols]
     # group by the row id (unique identifier of the input sources)
@@ -228,6 +227,8 @@ def xmatch(data, ra_name, dec_name, survey, max_distance=1.*u.arcsec, blank=Fals
 
     if type(data) == Table:
         data = data.to_pandas()
+        data = __check_row_id__(data, data.columns)
+        data.set_index('row_id', inplace=True)
     # make sure that the input and the output data have the same length and the same order
     rs = data[[]].join(rs, how='left')
 

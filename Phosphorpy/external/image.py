@@ -42,7 +42,7 @@ def max_count(rgb, center, box_size=2):
     """
     Finds the maximal count in the box for every layer
     :param rgb: The rgb layers
-    :type rgb: numpy.ndarray
+    :type rgb: ndarray
     :param center: The central coordinates (pixel)
     :type center: tuple, list
     :param box_size: The half box size
@@ -55,7 +55,6 @@ def max_count(rgb, center, box_size=2):
         im = rgb[:, :, i].copy()
 
         med = 2 * np.nanmedian(np.nanmean(im, axis=0))
-
         im[im < med] = med
         # im -= med
 
@@ -121,6 +120,20 @@ class Image:
                     raise ValueError('The unit of \'size\' must be equivalent to degrees.')
 
     def get_color_image(self, s, path='', bands=None, size=None):
+        """
+        Interface for the return of a rgb-color image from a survey
+
+        :param s: THe central coordinates of the target
+        :type s: astropy.coordinates.SkyCoord
+        :param path: The path to the storage place.
+        :type path: str
+        :param bands: The used bands, if others than the default are required
+        :type bands: Union
+        :param size: The size of the image, if not the default size should be used.
+        :type size: float
+        :return: The three different color channels
+        :rtype: numpy.ndarray
+        """
         pass
 
 
@@ -263,15 +276,18 @@ class PanstarrsImage(Image):
 
         # create an RGB-array
         rgb = np.zeros((imgs[2][0].shape[0], imgs[2][0].shape[1], 3))
-        rgb[:, :, 2] = imgs[2][0].data
-        rgb[:, :, 1] = imgs[1][0].data
-        rgb[:, :, 0] = imgs[0][0].data
-        rgb = np.log10(rgb)
-
+        for i in range(3):
+            data = imgs[i][0].data
+            # med = np.median(data)/2
+            # data -= med
+            # data[data < 0] = 0
+            rgb[:, :, i] = data
+        # rgb[:, :, 2] = imgs[2][0].data-
+        # rgb[:, :, 1] = imgs[1][0].data
+        # rgb[:, :, 0] = imgs[0][0].data
         # take the center
         center = [rgb.shape[0] // 2, rgb.shape[1] // 2]
 
-        rgb = np.nan_to_num(rgb)
         # make a lower cut to exclude the noise
         center_counts = max_count(rgb, center)
 
@@ -280,8 +296,17 @@ class PanstarrsImage(Image):
 
         # normalize to the center median counts
         for i in range(3):
-            rgb[:, :, i] /= center_counts[i]
-            rgb[:, :, i] = smooth2d(rgb[:, :, i], smooth)
+            img = rgb[:, :, i]
+            img /= center_counts[i]
+            img[img > 100] = 100
+            img -= np.nanmin(img)
+            img = np.log10(smooth2d(img, smooth))
+            img -= np.nanmedian(img)
+            img[img < 0] = 0
+            img /= np.nanmax(img)
+
+            rgb[:, :, i] = img
+
         return rgb, imgs
 
     def get_color_image(self, s, path='', smooth=2, mark_source=False, proper_motion=None, bands=None,

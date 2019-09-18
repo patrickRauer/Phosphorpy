@@ -1,16 +1,18 @@
-from Phosphorpy.data.sub.magnitudes import MagnitudeTable as Magnitude, SurveyData
+from astropy.io import fits
+from astropy.table import Table
+
+from Phosphorpy.data.sub.astrometry import AstrometryTable
 from Phosphorpy.data.sub.colors import Colors
 from Phosphorpy.data.sub.coordinates import CoordinateTable
 from Phosphorpy.data.sub.flux import FluxTable
-from Phosphorpy.external.vizier import query_by_name, constrain_query, query_simbad
+from Phosphorpy.data.sub.light_curve import LightCurves
+from Phosphorpy.data.sub.magnitudes import MagnitudeTable as Magnitude, SurveyData
 from Phosphorpy.data.sub.plots.plot import Plot
 from Phosphorpy.data.sub.table import Mask
-from Phosphorpy.data.sub.light_curve import LightCurves
 from Phosphorpy.external.image import PanstarrsImage, SDSSImage
-from Phosphorpy.data.sub.astrometry import AstrometryTable
+from Phosphorpy.external.vizier import query_by_name, constrain_query, query_simbad
 from Phosphorpy.report.Report import DataSetReport
-from astropy.table import Table
-from astropy.io import fits
+
 try:
     from extinction.extinction import get_extinctions
 except ImportError:
@@ -290,7 +292,6 @@ class DataSet:
 
         elif type(item) == int:
             out = self.coordinates[item]
-            print('coordinate output', out)
             if self._magnitudes.has_data():
                 out = out.concat(self.magnitudes[item], axis=1)
             if self._colors is not None and self._colors.has_data():
@@ -311,7 +312,7 @@ class DataSet:
 
     def __load_from_vizier__(self, name):
         d = query_by_name(name, self.coordinates.to_table())
-        self._magnitudes.add_survey_mags(d, name)
+        self._magnitudes.add_survey_mags(d, name.lower())
 
     def load_from_vizier(self, name):
         """
@@ -365,7 +366,7 @@ class DataSet:
     def get_simbad_data(self):
         return query_simbad(self.coordinates)
 
-    def images(self, survey, source_id, directory='', bands=None, size=None):
+    def images(self, survey, source_id, directory='', bands=None, size=None, smooth=0):
         """
         Download images from SDSS or Pan-STARRS and create a colored image out of them
 
@@ -379,6 +380,8 @@ class DataSet:
         :type bands: None, tuple, list
         :param size: The wanted size of the image
         :type size: float, astropy.units.Quantity
+        :param smooth: Number of smoothings. Default is 0.
+        :type smooth: int
         :return:
         """
         survey = survey.lower()
@@ -401,11 +404,11 @@ class DataSet:
                 directory = directory + '/'
             directory = directory + coord.to_string('hmsdms')+'.png'
         try:
-            s.get_color_image(coord, directory, bands=bands)
+            s.get_color_image(coord, directory, bands=bands, size=size)
         except ValueError:
             warnings.warn("Image is not available", UserWarning)
 
-    def all_images(self, survey, directory='', bands=None, size=None):
+    def all_images(self, survey, directory='', bands=None, size=None, smooth=0):
         """
         Downloads images of all sources and create a colored image for every source.
 
@@ -417,10 +420,12 @@ class DataSet:
         :type bands: None, tuple, list
         :param size: The wanted size of the image
         :type size: float, astropy.units.Quantity
+        :param smooth: Number of smoothings. Default is 0.
+        :type smooth: int
         :return:
         """
         try:
-            m = self._mask.get_latest_mask()
+            m = self._mask.get_latest_mask().values
         except IndexError:
             m = np.ones(len(self.coordinates))
         for i in range(len(self.coordinates)):
@@ -448,11 +453,18 @@ class DataSet:
         """
         if self.magnitudes.data is None:
             raise AttributeError('No magnitudes are set.')
-        extinc = get_extinctions(self.coordinates['ra'],
-                                 self.coordinates['dec'],
-                                 wavelengths=self.magnitudes.survey.get_all_wavelengths(),
-                                 filter_names=self.magnitudes.survey.all_magnitudes())
-        self.magnitudes.apply_extinction_correction(extinc)
+        # todo: test if this works
+        for s in self.magnitudes.survey.get_surveys():
+            extinc = get_extinctions(self.coordinates['ra'],
+                                     self.coordinates['dec'],
+                                     wavelengths=self.magnitudes.survey.get_survey_wavelengths(s),
+                                     filter_names=self.magnitudes.survey.get_survey_magnitude(s))
+            self.magnitudes.apply_extinction_correction_to_survey(extinc, s)
+        # extinc = get_extinctions(self.coordinates['ra'],
+        #                          self.coordinates['dec'],
+        #                          wavelengths=self.magnitudes.survey.get_all_wavelengths(),
+        #                          filter_names=self.magnitudes.survey.all_magnitudes())
+        # self.magnitudes.apply_extinction_correction(extinc)
 
         # recompute flux and colors if they are already computed
         if self._flux is not None:
