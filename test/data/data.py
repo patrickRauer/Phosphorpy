@@ -169,7 +169,4 @@ def test_add_magnitudes():
     Table.from_pandas(coord).write('temp_coordinates.fits', overwrite=True)
     ds = data.DataSet.load_coordinates('temp_coordinates.fits')
     ds.load_from_vizier('SDSS')
-    surveys = ['SDSS', 'Pan-STARRS', 'KiDS', 'GALEX',
-               '2MASS', 'VIKING', 'UKIDSS', 'GAIA', 'WISE']
-    ds.load_from_vizier(surveys)
     os.remove('temp_coordinates.fits')

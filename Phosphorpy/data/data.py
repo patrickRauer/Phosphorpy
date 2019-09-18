@@ -1,16 +1,18 @@
-from Phosphorpy.data.sub.magnitudes import MagnitudeTable as Magnitude, SurveyData
+from astropy.io import fits
+from astropy.table import Table
+
+from Phosphorpy.data.sub.astrometry import AstrometryTable
 from Phosphorpy.data.sub.colors import Colors
 from Phosphorpy.data.sub.coordinates import CoordinateTable
 from Phosphorpy.data.sub.flux import FluxTable
-from Phosphorpy.external.vizier import query_by_name, constrain_query, query_simbad
+from Phosphorpy.data.sub.light_curve import LightCurves
+from Phosphorpy.data.sub.magnitudes import MagnitudeTable as Magnitude, SurveyData
 from Phosphorpy.data.sub.plots.plot import Plot
 from Phosphorpy.data.sub.table import Mask
-from Phosphorpy.data.sub.light_curve import LightCurves
 from Phosphorpy.external.image import PanstarrsImage, SDSSImage
-from Phosphorpy.data.sub.astrometry import AstrometryTable
+from Phosphorpy.external.vizier import query_by_name, constrain_query, query_simbad
 from Phosphorpy.report.Report import DataSetReport
-from astropy.table import Table
-from astropy.io import fits
+
 try:
     from extinction.extinction import get_extinctions
 except ImportError:
@@ -157,6 +159,8 @@ class DataSet:
                 self._index = index
             else:
                 self._index = np.arange(1, len(coordinates), 1)
+        elif coordinates is not None:
+            self._coordinates = CoordinateTable(coordinates, mask=self._mask)
         else:
             raise AttributeError('data or at least coordinates and magnitudes are required!')
 
@@ -175,6 +179,9 @@ class DataSet:
             return attribute[self._mask.mask]
         else:
             return attribute
+
+    def set_astrometry(self, astrometry):
+        self._astrometry = astrometry
 
     @property
     def coordinates(self):
@@ -214,6 +221,10 @@ class DataSet:
         if self._astrometry is None:
             self._astrometry = AstrometryTable.load_astrometry(self._coordinates)
         return self._astrometry
+
+    @property
+    def mask(self):
+        return self._mask
 
     def remove_unmasked_data(self):
         """
@@ -280,8 +291,15 @@ class DataSet:
             return out
 
         elif type(item) == int:
-            # TODO: implement item wise returns
-            pass
+            out = self.coordinates[item]
+            if self._magnitudes.has_data():
+                out = out.concat(self.magnitudes[item], axis=1)
+            if self._colors is not None and self._colors.has_data():
+                out = out.concate(self.colors[item], axis=1)
+
+            if self._flux is not None and self._flux.has_data():
+                out = out.concate(self.flux[item], axis=1)
+            return out
 
     def __getitem__(self, item):
 
@@ -294,7 +312,7 @@ class DataSet:
 
     def __load_from_vizier__(self, name):
         d = query_by_name(name, self.coordinates.to_table())
-        self._magnitudes.add_survey_mags(d, name)
+        self._magnitudes.add_survey_mags(d, name.lower())
 
     def load_from_vizier(self, name):
         """
@@ -348,7 +366,7 @@ class DataSet:
     def get_simbad_data(self):
         return query_simbad(self.coordinates)
 
-    def images(self, survey, source_id, directory='', bands=None, size=None):
+    def images(self, survey, source_id, directory='', bands=None, size=None, smooth=0):
         """
         Download images from SDSS or Pan-STARRS and create a colored image out of them
 
@@ -362,6 +380,8 @@ class DataSet:
         :type bands: None, tuple, list
         :param size: The wanted size of the image
         :type size: float, astropy.units.Quantity
+        :param smooth: Number of smoothings. Default is 0.
+        :type smooth: int
         :return:
         """
         survey = survey.lower()
@@ -374,7 +394,7 @@ class DataSet:
             s = PanstarrsImage()
         else:
             raise ValueError('{} is not allowed. Only SDSS or PANSTARRS as surveys are allowed.')
-        coord = self.coordinates.as_sky_coord(source_id)
+        coord = self.coordinates.to_sky_coord(source_id)
 
         # if the directory string is not empty
         if directory != '':
@@ -384,11 +404,11 @@ class DataSet:
                 directory = directory + '/'
             directory = directory + coord.to_string('hmsdms')+'.png'
         try:
-            s.get_color_image(coord, directory, bands=bands)
+            s.get_color_image(coord, directory, bands=bands, size=size)
         except ValueError:
             warnings.warn("Image is not available", UserWarning)
 
-    def all_images(self, survey, directory='', bands=None, size=None):
+    def all_images(self, survey, directory='', bands=None, size=None, smooth=0):
         """
         Downloads images of all sources and create a colored image for every source.
 
@@ -400,10 +420,12 @@ class DataSet:
         :type bands: None, tuple, list
         :param size: The wanted size of the image
         :type size: float, astropy.units.Quantity
+        :param smooth: Number of smoothings. Default is 0.
+        :type smooth: int
         :return:
         """
         try:
-            m = self._mask.get_latest_mask()
+            m = self._mask.get_latest_mask().values
         except IndexError:
             m = np.ones(len(self.coordinates))
         for i in range(len(self.coordinates)):
@@ -429,11 +451,20 @@ class DataSet:
         again after the correction.
         :return:
         """
-        extinc = get_extinctions(self.coordinates['ra'],
-                                 self.coordinates['dec'],
-                                 wavelengths=self.magnitudes.survey.get_all_wavelengths(),
-                                 filter_names=self.magnitudes.survey.all_magnitudes())
-        self.magnitudes.apply_extinction_correction(extinc)
+        if self.magnitudes.data is None:
+            raise AttributeError('No magnitudes are set.')
+        # todo: test if this works
+        for s in self.magnitudes.survey.get_surveys():
+            extinc = get_extinctions(self.coordinates['ra'],
+                                     self.coordinates['dec'],
+                                     wavelengths=self.magnitudes.survey.get_survey_wavelengths(s),
+                                     filter_names=self.magnitudes.survey.get_survey_magnitude(s))
+            self.magnitudes.apply_extinction_correction_to_survey(extinc, s)
+        # extinc = get_extinctions(self.coordinates['ra'],
+        #                          self.coordinates['dec'],
+        #                          wavelengths=self.magnitudes.survey.get_all_wavelengths(),
+        #                          filter_names=self.magnitudes.survey.all_magnitudes())
+        # self.magnitudes.apply_extinction_correction(extinc)
 
         # recompute flux and colors if they are already computed
         if self._flux is not None:
@@ -445,9 +476,12 @@ class DataSet:
             self.colors
 
     def reset_masks(self):
-        self.magnitudes.set_mask(self._mask)
-        self.flux.set_mask(self._mask)
-        self.colors.set_mask(self._mask)
+        if self._magnitudes is not None:
+            self.magnitudes.set_mask(self._mask)
+        if self._flux is not None:
+            self.flux.set_mask(self._mask)
+        if self._colors is not None:
+            self.colors.set_mask(self._mask)
         self.coordinates.set_mask(self._mask)
 
     def __combine_all__(self):
@@ -457,12 +491,23 @@ class DataSet:
         :return: The combined table
         :rtype: pandas.DataFrame
         """
-        comb = self.coordinates.to_table().join(self.magnitudes, how='outer')
+        comb = self.coordinates.to_table()
+        if self.magnitudes is not None and self.magnitudes.data is not None:
+            comb = comb.join(self.magnitudes.combine(), how='outer')
         if self._flux is not None:
-            comb = comb.join(self._flux, how='outer')
+            fluxes = self.flux.combine()
+            fluxes = fluxes.rename(
+                dict(zip(
+                    fluxes.columns.values,
+                    [f.replace('mag', 'flux') for f in fluxes.columns.values]
+                )),
+                axis='columns'
+            )
+
+            comb = comb.join(fluxes, how='outer')
 
         if self._colors is not None:
-            comb = comb.join(self._colors, how='outer')
+            comb = comb.join(self.colors.combine(), how='outer')
         return comb
 
     def __write_as_zip__(self, path, format):
@@ -493,13 +538,16 @@ class DataSet:
         :param path: The path to the save place
         :type path: str
         """
-        hdu_list = [self.coordinates.to_astropy_table('coordinates'),
-                    self.magnitudes.to_astropy_table('magnitudes')]
+        hdu_list = [fits.PrimaryHDU(),
+                    self.coordinates.to_bin_table_hdu('coordinates')]
+
+        if self.magnitudes is not None and self.magnitudes.data is not None:
+            hdu_list.extend(self.magnitudes.to_bin_table_hdu('magnitudes'))
 
         if self._colors is not None:
-            hdu_list.append(self.colors.to_astropy_table('colors'))
+            hdu_list.extend(self.colors.to_bin_table_hdu('colors'))
         if self._flux is not None:
-            hdu_list.append(self.flux.to_astropy_table('flux'))
+            hdu_list.extend(self.flux.to_bin_table_hdu('flux'))
         hdu_list = fits.HDUList(hdu_list)
         hdu_list.writeto(path, overwrite=True)
 
@@ -539,8 +587,8 @@ class DataSet:
             self.__write_as_fits__(path)
         elif format == 'csv':
             self.__write_as_csv__(path)
-        elif format == 'report':
-            self.__write_as_report__(path)
+        # elif format == 'report':
+        #     self.__write_as_report__(path)
         else:
             raise ValueError(f'Format {format} is not supported.')
 
@@ -583,6 +631,8 @@ class DataSet:
         :return: The DataSet from the data of the file
         :rtype: DataSet
         """
+        if not os.path.exists(name):
+            raise FileNotFoundError(f'FileNotFoundError: [Errno 2] No such file or directory: {name}')
         if format == 'zip':
             d = {}
             head = None
@@ -631,7 +681,7 @@ class DataSet:
                 return DataSet(**d)
 
         elif format == 'csv':
-            raise ValueError('Automatic csv reading not implemented')
+            raise NotImplementedError('Automatic csv reading not implemented')
             # todo: implement csv reading
             pass
         else:
@@ -664,7 +714,7 @@ class DataSet:
             coords = coords[[ra_name, dec_name]]
             coords = coords.to_pandas()
         elif format == 'csv':
-            coords = DataFrame.from_csv(path)
+            coords = pd.read_csv(path)
         else:
             raise ValueError(f'Format \'{format}\' is not supported.')
 

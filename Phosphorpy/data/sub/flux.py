@@ -1,13 +1,15 @@
-from .table import DataTable
-from Phosphorpy.data.sub.plots.flux import FluxPlot
-from Phosphorpy.data.sub.tables.flux import Flux
+import inspect
+
+import numpy as np
 from astropy import units as u
 from astropy.units.quantity import Quantity
 from pandas import DataFrame
-from scipy.optimize import curve_fit
 from scipy.constants import h, k, c
-import numpy as np
-import inspect
+from scipy.optimize import curve_fit
+
+from Phosphorpy.data.sub.plots.flux import FluxPlot
+from Phosphorpy.data.sub.tables.flux import Flux
+from .table import DataTable
 
 
 def get_column_names(length):
@@ -219,6 +221,13 @@ class FluxTable(DataTable):
         self.data.append(fl)
 
     def get_all_fluxes(self):
+        """
+        Returns all fluxes in a numpy.ndarray with the rows as the sources and the columns as the different bands.
+        The order of the bands is the same as the input order.
+
+        :return: The fluxes of all sources
+        :rtype: numpy.ndarray
+        """
         flux = None
         for d in self.data:
             if flux is None:
@@ -228,6 +237,14 @@ class FluxTable(DataTable):
         return flux.values
 
     def get_all_errors(self):
+        """
+        Return all flux uncertainties in a numpy.ndarray with the rows as the sources and the columns as the
+        different bands.
+        The order of the bands is the same as the input order.
+
+        :return: The flux uncertainties of all sources
+        :rtype: numpy.ndarray
+        """
         errs = None
         for d in self.data:
             if errs is None:
@@ -235,6 +252,15 @@ class FluxTable(DataTable):
             else:
                 errs = errs.merge(d.get_errors(), how='outer', right_index=True, left_index=True)
         return errs.values
+
+    def get_index(self):
+        index = None
+        for d in self.data:
+            if index is None:
+                index = d.get_index()
+            else:
+                index = index.merge(d.get_index(), how='outer', right_index=True, left_index=True)
+        return index.index.values
 
     def _get_sed_data(self):
         """
@@ -252,6 +278,14 @@ class FluxTable(DataTable):
         return wavelengths, d, err
 
     def get_sed(self, index):
+        """
+        Returns the SED of the source with the specific index
+
+        :param index: The index of the source
+        :type index: int
+        :return: The flux and the uncertainties of the specific source
+        :rtype: numpy.ndarray, numpy.ndarray
+        """
         fluxes = []
         errs = []
         for d in self.data:
@@ -313,7 +347,8 @@ class FluxTable(DataTable):
             fits = _fitting(wavelengths, d, degree)
 
         self._fits = DataFrame(data=np.array(fits),
-                               columns=get_column_names(degree))
+                               columns=get_column_names(degree),
+                               index=self.get_index())
 
         return self._fits
 
@@ -364,13 +399,23 @@ class FluxTable(DataTable):
         d, err = _normalize(d, err, norm)
 
         colnames = inspect.getfullargspec(func)[0][1:]
+        if len(colnames) == 0:
+            if 'p0' in curve_fit_parameters:
+                # if no names are given, create a list with a, b, c, ... from ascii values
+                colnames = [chr(97+i) for i in range(len(curve_fit_parameters['p0']))]
+            else:
+                raise AttributeError('Unknown number of parameters.\n'
+                                     'Use a, b, c, ... instead *parameters or specify p0.')
 
         if error_weighted:
             fits = []
-            for row in d:
+            for row, row_err in zip(d, err):
                 try:
                     m = (row > -9999)
-                    fit, cov = curve_fit(func, wavelengths, row[m], sigma=err,
+                    if np.sum(m) == 0:
+                        fits.append(len(colnames) * [-99999])
+                        continue
+                    fit, cov = curve_fit(func, wavelengths[m], row[m], sigma=row_err[m],
                                          **curve_fit_parameters)
                     fits.append(fit)
                 except RuntimeError:
@@ -382,7 +427,10 @@ class FluxTable(DataTable):
             for row in d:
                 try:
                     m = (row > -9999)
-                    fit, cov = curve_fit(func, wavelengths, row[m],
+                    if np.sum(m) == 0:
+                        fits.append(len(colnames) * [-99999])
+                        continue
+                    fit, cov = curve_fit(func, wavelengths[m], row[m],
                                          **curve_fit_parameters)
                     fits.append(fit)
                 except RuntimeError:
@@ -391,7 +439,8 @@ class FluxTable(DataTable):
                     fits.append(len(colnames)*[-99999])
 
         self._fits = DataFrame(data=np.array(fits),
-                               columns=colnames)
+                               columns=colnames,
+                               index=self.get_index())
 
         return self._fits
 
@@ -440,7 +489,6 @@ class FluxTable(DataTable):
                                            p0=(5000., 1.))
                     results.append(np.append(popt, np.sqrt(np.diag(pcov))))
                 except TypeError as e:
-                    print(e)
                     results.append([-9999, -9999, -9999, -9999])
         else:
             for sed in d:
@@ -460,3 +508,7 @@ class FluxTable(DataTable):
     @property
     def fit(self):
         return self._fits
+
+    @property
+    def survey_head(self):
+        return self._survey

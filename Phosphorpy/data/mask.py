@@ -40,6 +40,8 @@ class Mask:
 
     @property
     def mask(self):
+        if self._mask is None:
+            raise ValueError('No mask was set.')
         return self._mask
 
     @mask.setter
@@ -54,4 +56,4 @@ class Mask:
         raise KeyError('Key not found!')
 
     def __setitem__(self, key, value):
-        self._mask_log.append(MaskLog(key, value))
+        self._mask_log.append(MaskLog(value, key))

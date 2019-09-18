@@ -1,8 +1,9 @@
-from Phosphorpy.external.css import download_light_curves
-from Phosphorpy.data.sub.plots.light_curve import LightCurvePlot
-from astropy.table import Table
 import numpy as np
 import pandas as pd
+from astropy.table import Table
+
+from Phosphorpy.data.sub.plots.light_curve import LightCurvePlot
+from Phosphorpy.external.css import download_light_curves
 
 
 class LightCurves:
@@ -34,6 +35,9 @@ class LightCurves:
         out = out.format(len(np.unique(self._light_curves['InputID'])), len(self._light_curves))
         return out
 
+    def __repr__(self):
+        return self.__str__()
+
     def stats(self):
         """
         Computes the statistics of the light curves
@@ -43,16 +47,21 @@ class LightCurves:
         """
         return self.light_curves[self._stat_columns].groupby('InputID').aggregate(self._stat_operations)
 
-    def average(self, dt_max=1):
+    def average(self, dt_max=1, overwrite=False):
         """
         Averages the light curve
 
         :param dt_max: The maximal time difference between two data points
         :type dt_max: float
+        :param overwrite: True, if the previous results should be overwritten, else False. Default is False.
+        :type overwrite: bool
         :return: The averaged light curves
         :rtype: LightCurves
         """
-        if self._average is not None:
+        if dt_max < 0:
+            raise ValueError('\'dt_max must be larger than 0')
+
+        if self._average is not None and overwrite:
             return self._average
 
         out = []
@@ -64,6 +73,8 @@ class LightCurves:
             mags = []
             errs = []
             mjds = []
+            ra = []
+            dec = []
             for k in p:
                 l = lc[start: k]
                 err_sq = 1/l['Magerr'].values**2
@@ -73,15 +84,35 @@ class LightCurves:
                 mags.append(m)
                 errs.append(e)
                 mjds.append(np.sum(l['MJD'].values*err_sq)*err_sq_sum)
+                ra.append(np.sum(l['RA'].values*err_sq)*err_sq_sum)
+                dec.append(np.sum(l['Decl'].values*err_sq)*err_sq_sum)
 
-            out.append(pd.DataFrame({'Mag': mags, 'Magerr': errs, 'Mjd': mjds,
-                                     'InputID': len(errs)*[lc['InputID'].values[0]]}))
+            out.append(pd.DataFrame({'Mag': mags, 'Magerr': errs, 'MJD': mjds,
+                                     'InputID': len(errs)*[lc['InputID'].values[0]],
+                                     'RA': ra, 'Decl': dec}))
         self._average = LightCurves(light_curves=pd.concat(out))
         return self._average
+
+    def get_light_curve(self, index):
+        """
+        Returns the data of the light curve with the given index
+
+        :param index: The index of the light curve
+        :rtype index: int
+        :return:
+        """
+        return LightCurves(light_curves=self._light_curves[self._light_curves['InputID'] == index])
+
+    def to_time_series(self, index):
+        raise NotImplementedError()
 
     @property
     def light_curves(self):
         return self._light_curves
+
+    @property
+    def data(self):
+        return self.light_curves
 
     @property
     def stat_columns(self):

@@ -5,12 +5,13 @@ Created on Wed Mar 13 08:43:54 2019
 
 @author: Jean Patrick Rauer
 """
-from Phosphorpy.core.functions import power_2_10, subtract
-from Phosphorpy.core.structure import Table
-from .flux import Flux
-from .color import Color
 import numpy as np
 import pandas as pd
+
+from Phosphorpy.core.functions import power_2_10, subtract
+from Phosphorpy.core.structure import Table
+from .color import Color
+from .flux import Flux
 
 
 class Magnitude(Table):
@@ -23,7 +24,7 @@ class Magnitude(Table):
         self._set_cols(names)
 
     def __str__(self):
-        return 'Magnitude of {} with {} entries\n'.format(self.survey_name, len(self))
+        return f'Magnitude of {self.survey_name} with {len(self)} entries\n'
 
     def set_survey_data(self, survey_data):
         self._survey = survey_data
@@ -47,7 +48,7 @@ class Magnitude(Table):
         :type correction: astropy.table.Table, pandas.DataFrame
         :return:
         """
-        rows = self.index.values-1
+        rows = np.arange(len(self))
         for c in self._mag_cols:
             self[c] -= correction[c][rows]
 
@@ -62,7 +63,7 @@ class Magnitude(Table):
 
         # multiply the flux zero point of all bands of the different surveys
         for m in self._mag_cols:
-            fo = self._survey.flux_zero(self.survey_name, m)
+            fo = self._survey.flux_zero(self.survey_name.lower(), m)
             flux[m] *= fo
 
         # compute the errors of the fluxes
@@ -95,7 +96,7 @@ class Magnitude(Table):
             except TypeError:
                 cols = [cols]
 
-        colors = Color(None, self.survey_name, mask=self.mask)
+        colors = Color(self.data[[]], self.survey_name, mask=self.mask)
         color_color_cols = []
         for i, c1 in enumerate(cols):
             for j, c2 in enumerate(cols):

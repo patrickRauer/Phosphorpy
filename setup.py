@@ -6,7 +6,8 @@ setup(
     packages=['Phosphorpy', 'Phosphorpy.data',
               'Phosphorpy.data.sub', 'Phosphorpy.data.sub.plots',
               'Phosphorpy.config', 'Phosphorpy.report',
-              'Phosphorpy.fitting', 'Phosphorpy.external'],
+              'Phosphorpy.fitting', 'Phosphorpy.external',
+              'Phosphorpy.core', 'Phosphorpy.data.sub.tables'],
     # package_dir={'': 'Phosphorpy'},
     include_package_data=True,
     package_data={
