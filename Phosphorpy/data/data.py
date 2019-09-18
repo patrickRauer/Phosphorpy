@@ -453,12 +453,18 @@ class DataSet:
         """
         if self.magnitudes.data is None:
             raise AttributeError('No magnitudes are set.')
-        # todo: handle same band names
-        extinc = get_extinctions(self.coordinates['ra'],
-                                 self.coordinates['dec'],
-                                 wavelengths=self.magnitudes.survey.get_all_wavelengths(),
-                                 filter_names=self.magnitudes.survey.all_magnitudes())
-        self.magnitudes.apply_extinction_correction(extinc)
+        # todo: test if this works
+        for s in self.magnitudes.survey.get_surveys():
+            extinc = get_extinctions(self.coordinates['ra'],
+                                     self.coordinates['dec'],
+                                     wavelengths=self.magnitudes.survey.get_survey_wavelengths(s),
+                                     filter_names=self.magnitudes.survey.get_survey_magnitude(s))
+            self.magnitudes.apply_extinction_correction_to_survey(extinc, s)
+        # extinc = get_extinctions(self.coordinates['ra'],
+        #                          self.coordinates['dec'],
+        #                          wavelengths=self.magnitudes.survey.get_all_wavelengths(),
+        #                          filter_names=self.magnitudes.survey.all_magnitudes())
+        # self.magnitudes.apply_extinction_correction(extinc)
 
         # recompute flux and colors if they are already computed
         if self._flux is not None:
