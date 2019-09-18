@@ -36,7 +36,10 @@ class Mask:
         :type combine: bool
         :return:
         """
-        if type(mask) != pd.Series:
+        if type(mask) == np.ndarray:
+            mask = pd.Series(mask,
+                             index=self._mask[-1].index)
+        elif type(mask) != pd.Series:
             raise ValueError(f'Mask must be a pandas Series but mask has the type {type(mask)}')
 
         if len(mask) == 0:
