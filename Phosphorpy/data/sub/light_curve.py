@@ -45,6 +45,7 @@ class LightCurves:
         :return: The statistics of the light curves
         :rtype: pandas.DataFrame
         """
+        print(self.light_curves.columns)
         return self.light_curves[self._stat_columns].groupby('InputID').aggregate(self._stat_operations)
 
     def average(self, dt_max=1, overwrite=False):

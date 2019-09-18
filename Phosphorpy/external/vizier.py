@@ -146,6 +146,7 @@ class Vizier:
                 o = o.aggregate(np.nanmean)
 
                 out[i] = o
+        # print(out)
         # if only one catalog query is performed
         if len(out) == 1:
             # out = out[0]

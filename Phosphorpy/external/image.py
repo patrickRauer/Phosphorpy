@@ -123,7 +123,7 @@ class Image:
         """
         Interface for the return of a rgb-color image from a survey
 
-        :param s: THe central coordinates of the target
+        :param s: The central coordinates of the target
         :type s: astropy.coordinates.SkyCoord
         :param path: The path to the storage place.
         :type path: str
@@ -134,7 +134,7 @@ class Image:
         :return: The three different color channels
         :rtype: numpy.ndarray
         """
-        pass
+        raise NotImplementedError()
 
 
 class SDSSImage(Image):
@@ -145,7 +145,7 @@ class SDSSImage(Image):
         self.color_image_bands = ['z', 'r', 'u']
         self.color_image_radius = 2 * u.arcmin
 
-    def get_color_image(self, s, path='', bands=None, size=None):
+    def get_color_image(self, s, path='', bands=None, size=None, smooth=2):
         """
         Download the SDSS images and create an RGB image out of them.
 
@@ -158,6 +158,8 @@ class SDSSImage(Image):
         :type bands: None, tuple, list
         :param size: The wanted size of the image
         :type size: float, astropy.units.Quantity
+        :param smooth: Number of smooths
+        :type smooth: int
         :return:
         """
         if bands is None:
@@ -197,7 +199,7 @@ class SDSSImage(Image):
             else:
                 wcs_o = WCS(hdu[0].header)
 
-            data = smooth2d(hdu[0].data)
+            data = smooth2d(hdu[0].data, smooth)
 
             # make a cut around the target
             if size is not None:
@@ -234,6 +236,9 @@ class SDSSImage(Image):
 class PanstarrsImage(Image):
 
     def __init__(self):
+        """
+        Interface to `Pan-STARRS cutout service <https://ps1images.stsci.edu/cgi-bin/ps1cutouts>`_
+        """
         Image.__init__(self)
         self.last_coordinate = None
         self.color_image_bands = ['z', 'r', 'g']

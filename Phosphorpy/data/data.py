@@ -404,7 +404,7 @@ class DataSet:
                 directory = directory + '/'
             directory = directory + coord.to_string('hmsdms')+'.png'
         try:
-            s.get_color_image(coord, directory, bands=bands, size=size)
+            s.get_color_image(coord, directory, bands=bands, size=size, smooth=smooth)
         except ValueError:
             warnings.warn("Image is not available", UserWarning)
 
@@ -476,6 +476,11 @@ class DataSet:
             self.colors
 
     def reset_masks(self):
+        """
+        Resets the mask
+
+        :return:
+        """
         if self._magnitudes is not None:
             self.magnitudes.set_mask(self._mask)
         if self._flux is not None:
@@ -570,7 +575,13 @@ class DataSet:
 
     def write(self, path, format='zip', in_zip_format='fits'):
         """
-        Writes the current data to a file (-system)
+        Writes the current data to a file (-system).
+
+        For example:
+
+        .. code:: python
+
+            ds.write('my_data.zip')
 
         :param path: The path to the save place
         :type path: str

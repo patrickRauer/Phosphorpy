@@ -143,8 +143,26 @@ def xmatch(data, ra_name, dec_name, survey, max_distance=1.*u.arcsec, blank=Fals
     """
     Interface to the astroquery.xmatch.XMatch module
 
+    This function wraps the xmatch function of the astroquery package to make it easier
+    to use and to include short-cuts of the survey. As the data input it requires
+    a astropy Table or a pandas DataFrame with at least two columns, which are the coordinates.
+    The names must be given with the next two parameters.
+    The last needed parameter is the name of the survey, which must be specified in the configuration file.
+
+    In the case of a direct use:
+
+    .. code:: python
+
+        from astropy.table import Table
+        from Phosphorpy.external.xmatch import xmatch
+
+        sdss_data = xmatch(Table.read('./my_coordinates.fits'), 'ra', 'dec', 'SDSS', blank=True)
+
+    'blank' tell the function to return the complete match data and not the reduced version for the usage
+    in **Phosphorpy**.
+
     :param data: The input data
-    :type data: astropy.table.Table, pandas.DataFrame
+    :type data: Table, DataFrame
     :param ra_name: The name of the ra column
     :type ra_name: str
     :param dec_name: The name of the Dec column
