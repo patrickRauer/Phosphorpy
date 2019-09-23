@@ -18,23 +18,27 @@ class TestLightCurve(unittest.TestCase):
         )
         self.lc = light_curve.LightCurves(self.coord)
 
-    def test_str(self):
-        print(self.lc)
+    # def test_str(self):
+    #     print(self.lc)
+    #
+    # def test_stats(self):
+    #     print(self.lc.stats())
+    #
+    # def test_average(self):
+    #     print(self.lc.average().stats())
+    #
+    #     with self.assertRaises(ValueError):
+    #         self.lc.average(-1)
 
-    def test_stats(self):
+    def test_align(self):
+        self.lc.align_light_curves()
         print(self.lc.stats())
 
-    def test_average(self):
-        print(self.lc.average().stats())
-
-        with self.assertRaises(ValueError):
-            self.lc.average(-1)
-
-    def test_get_light_curve(self):
-        l = self.lc.get_light_curve(0)
-        l.plot.light_curve(0)
-
-        self.lc.plot.light_curve([0, 1])
+    # def test_get_light_curve(self):
+    #     l = self.lc.get_light_curve(0)
+    #     l.plot.light_curve(0)
+    #
+    #     self.lc.plot.light_curve([0, 1])
 
 
 class TestLightCurveDataSet(unittest.TestCase):

@@ -85,7 +85,6 @@ class LightCurves:
         :return: The statistics of the light curves
         :rtype: pandas.DataFrame
         """
-        print(self._stat_columns)
         return self.light_curves[self._stat_columns].groupby(['row_id', 'survey']).aggregate(self._stat_operations)
 
     def average(self, dt_max=1, overwrite=False):
@@ -127,6 +126,43 @@ class LightCurves:
         :return:
         """
         return LightCurves(light_curves=self._light_curves[self._light_curves['row_id'] == index])
+
+    def align_light_curves(self, inplace=True):
+        """
+        Aligns the median of the light curves from the different surveys to median of the CSS light curve
+
+        .. warning::
+
+            Because of the simple median alignment, the aligned light curves can have systematic effects.
+            For example, if a light curve as a general trend over the time of one survey, the correction will
+            fail. This can happen, if light curves of QSO's are used or if a transient is present in one of the
+            light curves without enough coverage before and after it.
+
+        :param inplace: True, if the stored light curve should be overwritten, else False. Default is True.
+        :type inplace: bool
+        :return: The aligned light curves, if inplace is True. Otherwise None.
+        :rtype: LightCurves, None
+        """
+        lc = self._light_curves
+        stats = self.stats()
+        mag0 = 0
+        out = []
+        for index in stats.index.values:
+            mag_med = stats.loc[index][('mag', 'median')]
+            lc_mask = (lc['row_id'] == index[0]) & (lc['survey'] == index[1])
+            if index[1] == 1:
+                mag0 = mag_med
+                out.append(lc[lc_mask])
+            else:
+                lc_s = lc[lc_mask]
+                lc_s['mag'] -= mag_med-mag0
+                out.append(lc_s)
+
+        out = pd.concat(out)
+        if inplace:
+            self._light_curves = out
+        else:
+            return LightCurves(out)
 
     def to_time_series(self, index):
         raise NotImplementedError()
