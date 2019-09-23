@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from astropy.table import Table
 
+from Phosphorpy.external import zwicky
 from Phosphorpy.data.sub.plots.light_curve import LightCurvePlot
 from Phosphorpy.external.css import download_light_curves
 
@@ -17,8 +18,22 @@ class LightCurves:
 
     def __init__(self, coordinates=None, light_curves=None):
         if coordinates is not None:
-            self._light_curves = download_light_curves(coordinates['ra'],
-                                                       coordinates['dec'])
+            css_lc = download_light_curves(coordinates['ra'],
+                                           coordinates['dec'])[['InputID', 'ID', 'Mag', 'Magerr',
+                                                                'RA', 'Decl', 'MJD']]
+            css_lc['survey'] = 1
+            css_lc = css_lc.rename({'InputID': 'row_id', 'ID': 'oid',
+                                'Mag': 'mag', 'Magerr': 'magerr', 'RA': 'ra',
+                                'Decl': 'dec', 'MJD': 'mjd'}, axis='columns')
+
+            ptf_lc = zwicky.download_ptf(coordinates['ra'], coordinates['dec'],
+                                         index=coordinates.index.values)
+            ptf_lc['survey'] = 2
+            print(ptf_lc)
+            zwicky_lc = zwicky.download_light_curve(coordinates['ra'], coordinates['dec'],
+                                                    index=coordinates.index.values)
+            zwicky_lc['survey'] = 3
+            self._light_curves = pd.concat([css_lc, ptf_lc, zwicky_lc])
         elif light_curves is not None:
             self._light_curves = light_curves
         else:
@@ -45,7 +60,6 @@ class LightCurves:
         :return: The statistics of the light curves
         :rtype: pandas.DataFrame
         """
-        print(self.light_curves.columns)
         return self.light_curves[self._stat_columns].groupby('InputID').aggregate(self._stat_operations)
 
     def average(self, dt_max=1, overwrite=False):

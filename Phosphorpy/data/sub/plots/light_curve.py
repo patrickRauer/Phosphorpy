@@ -1,4 +1,24 @@
+import numpy as np
 import pylab as pl
+
+
+def _plot_light_curve(sp, lc, label=None):
+    if label is None:
+        fmt = 'k'
+    else:
+        fmt = ''
+
+    unique_surveys = np.unique(lc['survey'])
+    markers = ['.', '+', 'd', 'x']
+    for s, m in zip(unique_surveys, markers[:len(unique_surveys)]):
+        l = lc[lc['survey'] == s]
+        print(s, l)
+        sp.errorbar(l['mjd'].values,
+                    l['mag'].values,
+                    l['magerr'].values,
+                    fmt=m+fmt, capsize=2, alpha=0.2)
+        sp.scatter(l['mjd'].values, l['mag'].values, marker=m,
+                   label=label)
 
 
 class LightCurvePlot:
@@ -21,20 +41,15 @@ class LightCurvePlot:
         """
         pl.clf()
         sp = pl.subplot()
+        print()
         if type(light_curve_id) is int:
-            lc = self._light_curve.light_curves[self._light_curve.light_curves['InputID'] == light_curve_id]
-            sp.errorbar(lc['MJD'].values,
-                        lc['Mag'].values,
-                        lc['Magerr'].values,
-                        fmt='.k', capsize=2)
+            lc = self._light_curve.light_curves[self._light_curve.light_curves['row_id'] == light_curve_id]
+            _plot_light_curve(sp, lc)
 
         elif type(light_curve_id) is tuple or type(light_curve_id) is list:
             for lci in light_curve_id:
-                lc = self._light_curve.light_curves[self._light_curve.light_curves['InputID'] == lci]
-                sp.errorbar(lc['MJD'].values,
-                            lc['Mag'].values,
-                            lc['Magerr'].values,
-                            fmt='.', capsize=2, label=str(lci))
+                lc = self._light_curve.light_curves[self._light_curve.light_curves['row_id'] == lci]
+                _plot_light_curve(sp, lc, str(lci))
             pl.legend(loc='best')
 
         sp.invert_yaxis()
