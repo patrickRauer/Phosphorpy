@@ -58,6 +58,15 @@ class TestLightCurve(unittest.TestCase):
 
         self.lc.plot.light_curve([0, 1])
 
+    def test_plot_light_curve(self):
+        self.lc.plot.light_curve(0)
+
+        self.lc.plot.light_curve(0, min_mjd=58000, max_mjd=58500)
+
+        self.lc.plot.light_curve([0, 1])
+
+        self.lc.plot.light_curve([0, 1], min_mjd=58000, max_mjd=58500)
+
 
 class TestLightCurveDataSet(unittest.TestCase):
 
