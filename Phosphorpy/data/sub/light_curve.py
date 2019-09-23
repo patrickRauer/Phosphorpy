@@ -8,6 +8,16 @@ from Phosphorpy.external.css import download_light_curves
 
 
 def _average_light_curve(lc, dt_max):
+    """
+    Averages the given light curve
+
+    :param lc: The input light curve
+    :type lc: DataFrame
+    :param dt_max: The box size of the average
+    :type dt_max: float
+    :return: The averaged light curve
+    :rtype: DataFrame
+    """
     dt = lc['mjd'][1:].values - lc['mjd'][:-1].values
     p = np.where(dt > dt_max)[0]+1
     start = 0
