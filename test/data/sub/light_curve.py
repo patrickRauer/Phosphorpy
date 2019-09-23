@@ -34,6 +34,8 @@ class TestLightCurve(unittest.TestCase):
         l = self.lc.get_light_curve(0)
         l.plot.light_curve(0)
 
+        self.lc.plot.light_curve([0, 1])
+
 
 class TestLightCurveDataSet(unittest.TestCase):
 

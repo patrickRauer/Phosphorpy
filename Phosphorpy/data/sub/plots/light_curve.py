@@ -1,24 +1,39 @@
+from matplotlib.cm import get_cmap
 import numpy as np
 import pylab as pl
 
+SURVEY = ('CSS', 'PTF', 'ZTF')
 
-def _plot_light_curve(sp, lc, label=None):
+
+def _plot_light_curve(sp, lc, label=None, color=None):
+    """
+    Plots the light curve of a specific target with different markers for every survey
+
+    :param sp: The plotting environment
+    :param lc: The light curve data
+    :type lc: DataFrame
+    :param label: The name of the target
+    :type label: str
+    :param color: The color of the light curve in the figure
+    :return:
+    """
+    if color is None:
+        color = 'k'
+
     if label is None:
-        fmt = 'k'
-    else:
-        fmt = ''
+        label = ''
 
     unique_surveys = np.unique(lc['survey'])
-    markers = ['.', '+', 'd', 'x']
-    for s, m in zip(unique_surveys, markers[:len(unique_surveys)]):
+    markers = ['.', 'd', '+', 'x']
+    for s in unique_surveys:
+        m = markers[s-1]
         l = lc[lc['survey'] == s]
-        print(s, l)
         sp.errorbar(l['mjd'].values,
                     l['mag'].values,
                     l['magerr'].values,
-                    fmt=m+fmt, capsize=2, alpha=0.2)
+                    fmt=m, capsize=2, alpha=0.2, color=color)
         sp.scatter(l['mjd'].values, l['mag'].values, marker=m,
-                   label=label)
+                   label=f'{label} {SURVEY[s-1]}', color=color)
 
 
 class LightCurvePlot:
@@ -41,16 +56,17 @@ class LightCurvePlot:
         """
         pl.clf()
         sp = pl.subplot()
-        print()
         if type(light_curve_id) is int:
             lc = self._light_curve.light_curves[self._light_curve.light_curves['row_id'] == light_curve_id]
             _plot_light_curve(sp, lc)
 
         elif type(light_curve_id) is tuple or type(light_curve_id) is list:
-            for lci in light_curve_id:
+            colors = get_cmap('Set1').colors
+            for i, lci in enumerate(light_curve_id):
                 lc = self._light_curve.light_curves[self._light_curve.light_curves['row_id'] == lci]
-                _plot_light_curve(sp, lc, str(lci))
-            pl.legend(loc='best')
+                _plot_light_curve(sp, lc, str(lci),
+                                  colors[i % len(colors)])
+            print(pl.legend(loc='best'))
 
         sp.invert_yaxis()
 
