@@ -55,6 +55,7 @@ class LightCurves:
             ptf_lc = zwicky.download_ptf(coordinates['ra'], coordinates['dec'],
                                          index=coordinates.index.values)
             ptf_lc['survey'] = 2
+
             zwicky_lc = zwicky.download_light_curve(coordinates['ra'], coordinates['dec'],
                                                     index=coordinates.index.values)
             zwicky_lc['survey'] = 3
@@ -143,7 +144,7 @@ class LightCurves:
         :return: The aligned light curves, if inplace is True. Otherwise None.
         :rtype: LightCurves, None
         """
-        lc = self._light_curves
+        lc = self._light_curves.copy()
         stats = self.stats()
         mag0 = 0
         out = []
@@ -155,14 +156,14 @@ class LightCurves:
                 out.append(lc[lc_mask])
             else:
                 lc_s = lc[lc_mask]
-                lc_s['mag'] -= mag_med-mag0
+                lc_s.loc[:, 'mag'] -= mag_med-mag0
                 out.append(lc_s)
-
         out = pd.concat(out)
+
         if inplace:
             self._light_curves = out
         else:
-            return LightCurves(out)
+            return LightCurves(light_curves=out)
 
     def to_time_series(self, index):
         raise NotImplementedError()
