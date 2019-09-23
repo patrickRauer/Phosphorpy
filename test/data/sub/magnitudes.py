@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import os
 import unittest
+import warnings
+from urllib.error import URLError
 
 from Phosphorpy.data.sub import magnitudes
 
@@ -17,21 +19,27 @@ class TestMagnitudes(unittest.TestCase):
 class TestSurveyData(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.survey = magnitudes.SurveyData('2mass',
-                                            ['J', 'H', 'K'])
+        try:
+            self.survey = magnitudes.SurveyData('2mass',
+                                                ['J', 'H', 'K'])
+        except URLError:
+            self.skipTest('Could not test survey properties because the SVO web-service is down.')
 
     def test__add_survey_properties__(self):
-        self.survey.__add_survey_properties__(
-            'SDSS', ['u', 'g']
-        )
-        with self.assertRaises(ValueError):
+        try:
             self.survey.__add_survey_properties__(
-                'SDSS', ['u', 'v']
+                'SDSS', ['u', 'g']
             )
-        with self.assertRaises(KeyError):
-            self.survey.__add_survey_properties__(
-                'HST', ['u', 'v']
-            )
+            with self.assertRaises(ValueError):
+                self.survey.__add_survey_properties__(
+                    'SDSS', ['u', 'v']
+                )
+            with self.assertRaises(KeyError):
+                self.survey.__add_survey_properties__(
+                    'HST', ['u', 'v']
+                )
+        except URLError:
+            warnings.warn('Could not test survey properties because the SVO web-service is down.')
 
     def test_getitem(self):
         self.assertEqual(

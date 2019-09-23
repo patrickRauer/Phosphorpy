@@ -45,8 +45,4 @@ class TestLightCurveDataSet(unittest.TestCase):
         os.remove('temp.fits')
 
     def test_get_light_curves(self):
-<<<<<<< HEAD
         print(self.ds.light_curves)
-=======
-        print(self.ds.light_curves)
->>>>>>> master
