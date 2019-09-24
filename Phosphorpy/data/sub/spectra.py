@@ -6,9 +6,21 @@ from Phosphorpy.data.sub.plots.spectra import SpectraPlot
 
 class Spectra:
     NORMALIZE_MEAN = np.mean
+    """
+    Static variable for the normalization with the mean value
+    """
     NORMALIZE_MEDIAN = np.median
+    """
+    Static variable for the normalization with the median value
+    """
     NORMALIZE_MAX = np.max
+    """
+    Static variable for the normalization with the max value
+    """
     NORMALIZE_SUM = np.sum
+    """
+    Static variable for the normalization with the sum
+    """
 
     _wavelength = None
     _flux = None
@@ -92,22 +104,43 @@ class Spectra:
 
     @property
     def wavelength(self):
-        return self._wavelength
+        """
+        The wavelengths of spectra
+        :return:
+        """
+        return self._wavelength.copy()
 
     @property
     def wavelength_unit(self):
+        """
+        The wavelength unit
+        :return:
+        """
         return self._wavelength_unit
 
     @wavelength_unit.setter
     def wavelength_unit(self, unit):
+        """
+        Sets a new wavelength unit
+        :param unit: The unit of the dimension length
+        :type unit: Unit
+        :return:
+        """
+        # if no unit is given, assume angstrom
         if unit is None:
-            self._wavelength_unit = u.angstrom
+            # if no previous unit was set
+            if self._wavelength_unit is None:
+                self._wavelength_unit = u.angstrom
+            # if wavelength has a unit, recursive call to change the unit to angstrom
+            else:
+                self.wavelength_unit = u.angstrom
         elif type(unit) != u.Unit:
             raise ValueError('The new unit must be a astropy unit.')
         elif self._wavelength_unit is None:
             self._wavelength_unit = unit
         else:
             try:
+                # estimate the conversion factor and apply it to the wavelengths
                 factor = (self._wavelength_unit.to(unit))
                 self._wavelength *= factor
                 self._wavelength_unit = unit
@@ -116,14 +149,28 @@ class Spectra:
 
     @property
     def flux(self):
+        """
+        The flux values
+        :return:
+        """
         return self._flux
 
     @property
     def flux_unit(self):
+        """
+        The flux unit
+        :return:
+        """
         return self._flux_unit
 
     @flux_unit.setter
     def flux_unit(self, unit):
+        """
+        Sets a new flux unit
+        :param unit: The unit of the dimension of a flux
+        :type unit: Unit
+        :return:
+        """
         if unit is None:
             self._flux_unit = u.erg
         elif type(unit) != u.Unit:
@@ -140,4 +187,8 @@ class Spectra:
 
     @property
     def plot(self):
+        """
+        The plotting environment
+        :return:
+        """
         return self._plot
