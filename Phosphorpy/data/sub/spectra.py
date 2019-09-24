@@ -154,7 +154,6 @@ class Spectra:
         else:
             raise ValueError('inplace must be a bool.')
 
-
     @property
     def wavelength(self):
         """
