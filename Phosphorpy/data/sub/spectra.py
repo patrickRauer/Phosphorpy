@@ -66,6 +66,7 @@ class Spectra:
         if type(inplace) == bool:
             if inplace:
                 self._flux = fl
+                self._flux_unit /= self._flux_unit
             else:
                 return Spectra(wavelength=self.wavelength.copy(),
                                flux=fl)
