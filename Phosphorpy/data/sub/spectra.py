@@ -1,6 +1,8 @@
 from astropy import units as u
 import numpy as np
 
+from Phosphorpy.data.sub.plots.spectra import SpectraPlot
+
 
 class Spectra:
     NORMALIZE_MEAN = np.mean
@@ -16,12 +18,16 @@ class Spectra:
 
     _lines = None
 
+    _plot = None
+
     def __init__(self, wavelength=None, flux=None, wavelength_unit=None, flux_unit=None):
         self._wavelength = wavelength
         self._flux = flux
 
         self.wavelength_unit = wavelength_unit
         self.flux_unit = flux_unit
+
+        self._plot = SpectraPlot(self)
 
     def normalize(self, kind, inplace=True):
         """
@@ -113,3 +119,7 @@ class Spectra:
                 self._flux_unit = unit
             except u.UnitConversionError:
                 raise ValueError('Unit must be equivalent to a flux.')
+
+    @property
+    def plot(self):
+        return self._plot
