@@ -21,6 +21,23 @@ class Spectra:
     _plot = None
 
     def __init__(self, wavelength=None, flux=None, wavelength_unit=None, flux_unit=None):
+        """
+        Spectra is the basic class to handle different kinds of spectra on a basic level
+        without any specific functionality related to any certain spectra
+
+        :param wavelength: The wavelength values of the spectra or None.
+        :param wavelength: Union
+        :param flux: The flux values of the spectra or None.
+        :type flux: Union
+        :param wavelength_unit:
+            The units of the wavelengths, if the wavelengths are given. If no unit is given, angstrom are
+            assumed to be the wavelength unit.
+        :type wavelength_unit: Unit
+        :param flux_unit:
+            The units of the flux, if the flux is given. If no unit is given, ergs are assumed to be
+            the flux unit.
+        :type flux_unit: Unit
+        """
         self._wavelength = wavelength
         self._flux = flux
 
