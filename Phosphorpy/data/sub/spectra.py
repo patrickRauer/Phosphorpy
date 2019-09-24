@@ -12,7 +12,8 @@ class Spectra:
     _lines = None
 
     def __init__(self):
-        pass
+        self._wavelength_unit = u.angstrom
+        self._flux = u.erg
 
     @property
     def wavelength(self):
@@ -26,6 +27,8 @@ class Spectra:
     def wavelength_unit(self, unit):
         if type(unit) != u.Unit:
             raise ValueError('The new unit must be a astropy unit.')
+        elif self._wavelength_unit is None:
+            self._wavelength_unit = unit
         else:
             try:
                 factor = (self._wavelength_unit.to(unit))
@@ -46,6 +49,8 @@ class Spectra:
     def flux_unit(self, unit):
         if type(unit) != u.Unit:
             raise ValueError('The new unit must be a astropy unit.')
+        elif self._flux_unit is None:
+            self._flux_unit = unit
         else:
             try:
                 factor = (self._flux_unit.to(unit))
