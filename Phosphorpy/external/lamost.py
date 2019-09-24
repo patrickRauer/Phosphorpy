@@ -9,7 +9,7 @@ import urllib
 import numbers
 import os
 
-from Phosphorpy.data.sub.spectra.spectra import Spectra
+from Phosphorpy.data.sub.spectra import Spectra
 
 
 class LamostSpectraList:
@@ -75,8 +75,8 @@ class LamostSpectraList:
 
 class LamostSpectra(Spectra):
     obs_id = None
-    wavelength = None
-    flux = None
+    _wavelength = None
+    _flux = None
     header = None
     _lines = None
     estimations = None
@@ -91,8 +91,8 @@ class LamostSpectra(Spectra):
         Spectra.__init__(self)
         self.obs_id = obsid
         data, header = download_spectra(obsid)
-        self.wavelength = data[2]
-        self.flux = data[0]
+        self._wavelength = data[2]
+        self._flux = data[0]
         self.header = header
 
     @property
