@@ -11,7 +11,7 @@ class Spectra:
 
     _lines = None
 
-    def __init__(self, wavelength, flux, wavelength_unit=None, flux_unit=None):
+    def __init__(self, wavelength=None, flux=None, wavelength_unit=None, flux_unit=None):
         self._wavelength = wavelength
         self._flux = flux
 
