@@ -102,6 +102,59 @@ class Spectra:
         else:
             raise TypeError('Inplace must be a bool-type.')
 
+    def cut(self, min_wavelength=None, max_wavelength=None, inplace=True):
+        """
+        Make a cutout of the spectra between the minimal and maximal wavelengths.
+
+        :param min_wavelength:
+            The minimal wavelength as a float, then the we assume the same units as the wavelength,
+            a Quantity with the dimension length or None.
+        :type min_wavelength: float, Quantity, None
+        :param max_wavelength:
+            The maximal wavelength as a float, then the we assume the same units as the wavelength,
+            a Quantity with the dimension length or None.
+        :type max_wavelength: float, Quantity, None
+        :param inplace:
+            True, if the current spectra should be overwritten with the cutout, else False to get
+            a new Spectra object. Default is True.
+        :type inplace: bool
+        :return:
+        """
+        # if both are None, raise an error because it does not make any sense
+        if min_wavelength is max_wavelength:
+            raise ValueError('At least one of minimal wavelength or maximal wavelength must be given.')
+
+        wave = self.wavelength.copy()
+        flux = self.flux
+
+        if min_wavelength is not None:
+            # if the minimal wavelength is a astropy Quantity, align the units and apply the limit then
+            if type(min_wavelength) == u.Quantity:
+                min_wavelength = min_wavelength.to(self.wavelength_unit).value
+            m = wave >= min_wavelength
+            flux = flux[m]
+            wave = wave[m]
+
+        if max_wavelength is not None:
+            # if the maximal wavelength is a astropy Quantity, align the units and apply the limit then
+            if type(max_wavelength) == u.Quantity:
+                max_wavelength = max_wavelength.to(self.wavelength_unit).value
+            m = wave <= max_wavelength
+            flux = flux[m]
+            wave = wave[m]
+
+        if type(inplace) == bool:
+            if inplace:
+                self._wavelength = wave
+                self._flux = flux
+            else:
+                return Spectra(wavelength=wave, flux=flux,
+                               wavelength_unit=self.wavelength_unit,
+                               flux_unit=self.flux_unit)
+        else:
+            raise ValueError('inplace must be a bool.')
+
+
     @property
     def wavelength(self):
         """
@@ -179,6 +232,7 @@ class Spectra:
             self._flux_unit = unit
         else:
             try:
+                # estimate the conversion factor and apply it to the fluxes
                 factor = (self._flux_unit.to(unit))
                 self._flux *= factor
                 self._flux_unit = unit
