@@ -1,5 +1,4 @@
 import pylab as pl
-import numpy as np
 
 
 class SpectraPlot:
@@ -7,8 +6,9 @@ class SpectraPlot:
 
     def __init__(self, spectra):
         """
+        SpectraPlot os the plotting environment of the :class:`Phosphorpy.data.sub.spectra.Spectra` class.
 
-        :param spectra:
+        :param spectra: The spectra
         :type spectra: Phosphorpy.data.sub.spectra.Spectra
         """
         self._spectra = spectra
