@@ -45,8 +45,10 @@ class SpectraPlot:
 
         sp.step(wave, flux, '-k')
 
-        sp.set_xlabel(f'wavelength [${self._spectra.wavelength_unit.to_string("latex")}$]')
-        sp.set_ylabel(f'flux [${self._spectra.flux_unit.to_string("latex")}$]')
+        sp.set_xlabel(f'wavelength [{self._spectra.wavelength_unit.to_string("latex")}]')
+        sp.set_ylabel(f'flux [{self._spectra.flux_unit.to_string("latex")}]')
+
+        sp.set_xlim(wave.min(), wave.max())
 
         if path == '':
             pl.show()
