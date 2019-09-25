@@ -1,7 +1,84 @@
+from astropy.table import vstack
 from astropy import units as u
 import numpy as np
 
 from Phosphorpy.data.sub.plots.spectra import SpectraPlot
+
+
+class SpectraList:
+
+    _spectra = None
+    _ids = None
+
+    def __init__(self, spectra=None):
+        if spectra is None:
+            self._spectra = []
+            self._ids = []
+        elif type(spectra) == list or type(spectra) == tuple:
+            self._spectra = list(spectra)
+        else:
+            self._spectra = [spectra]
+            self._ids = [0]
+
+    def append(self, spectra, spec_id=-1):
+        """
+        Appends a new spectra to the spectra list.
+
+        :param spectra: The new spectra
+        :type spectra: LamostSpectra
+        :param spec_id: The ID of the spectra
+        :type spec_id: int
+        :return:
+        """
+        self._spectra.append(spectra)
+        if spec_id > -1:
+            self._ids.append(spec_id)
+        else:
+            self._ids.append(len(self._ids))
+
+    def estimate_line_properties(self, as_velocity=False, redo=False):
+        """
+        Estimates the line properties of all spectra in the list
+
+        :param as_velocity:
+            True, if the line shift should be returned as a radial velocity in km/s, else False to
+            get 1-lambda/lambda0.
+            Default is False.
+        :type as_velocity: bool
+        :param redo:
+            True, if old results should be ignored, else False.
+            Default is False.
+        :type redo: bool
+        :return: The line properties of all spectra
+        :rtype: dict
+        """
+        out = {}
+        for s in self._spectra:
+            out[s.obs_id] = s.estimate_line_properties(as_velocity=as_velocity,
+                                                       redo=redo)
+        return out
+
+    def as_dataframe(self, as_velocity=False, redo=False):
+        """
+        Returns the main information of the stored spectra as a pandas DataFrame
+
+        :param as_velocity:
+        :param redo:
+        :return: The main information as a dataframe
+        :rtype: DataFrame
+        """
+        out = []
+        for s, d_id in zip(self._spectra, self._ids):
+            properties = s.estimate_line_properties(as_velocity=as_velocity,
+                                                    redo=redo)
+            properties['obsID'] = s.obs_id
+            properties['ID'] = d_id
+            out.append(properties)
+        out = vstack(out).to_pandas()
+        return out.set_index('ID')
+
+    def __len__(self):
+        return len(self._spectra)
 
 
 class Spectra:
