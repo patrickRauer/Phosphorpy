@@ -9,7 +9,7 @@ class TestSpectra(unittest.TestCase):
 
     def setUp(self) -> None:
         self.wavelength = np.float64(np.linspace(360, 900, 900-360))
-        self.flux = np.exp(-np.square(self.wavelength-360))
+        self.flux = np.exp(-np.square(self.wavelength-360)/9000)
         self.spectra = Spectra(
             wavelength=self.wavelength,
             flux=self.flux
@@ -122,3 +122,12 @@ class TestSpectra(unittest.TestCase):
                         self.spectra.flux/func(self.spectra.flux)
                     )
                 )
+
+    def test_plotting(self):
+        self.spectra.plot.spectra()
+
+        self.spectra.plot.spectra(min_wavelength=400)
+
+        self.spectra.plot.spectra(max_wavelength=700)
+
+        self.spectra.plot.spectra(min_wavelength=400, max_wavelength=700)
