@@ -106,6 +106,8 @@ class Spectra:
     _wavelength_unit = None
     _flux_unit = None
 
+    _fits = None
+
     _lines = None
 
     _plot = None
@@ -147,6 +149,7 @@ class Spectra:
         self.flux_unit = flux_unit
 
         self._plot = SpectraPlot(self)
+        self._fits = []
 
     def normalize(self, kind, inplace=True):
         """
@@ -260,6 +263,7 @@ class Spectra:
 
         fitter = fitting.SLSQPLSQFitter()
         fit_rs = fitter(model, self.wavelength, self.flux)
+        self._fits.append(fit_rs)
         return fit_rs
 
     def fit_gauss(self, guesses):
@@ -377,3 +381,7 @@ class Spectra:
     @property
     def max_flux(self):
         return self.flux.max()
+
+    @property
+    def fit(self):
+        return self._fits
