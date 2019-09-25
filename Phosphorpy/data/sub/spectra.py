@@ -171,15 +171,20 @@ class Spectra:
             kind = kind.lower()
         fl = self.flux.copy()
         if kind == self.NORMALIZE_MAX or kind == 'max':
-            fl /= np.max(fl)
+            norm = np.max(fl)
         elif kind == self.NORMALIZE_MEAN or kind == 'mean':
-            fl /= np.mean(fl)
+            norm = np.mean(fl)
         elif kind == self.NORMALIZE_MEDIAN or kind == 'median':
-            fl /= np.median(fl)
+            norm = np.median(fl)
         elif kind == self.NORMALIZE_SUM or kind == 'sum':
-            fl /= np.sum(fl)
+            norm = np.sum(fl)
         else:
             raise ValueError('Kind of normalization is not allowed.')
+
+        if norm == 0:
+            raise ValueError('Normalization not possible. Norm is 0.')
+
+        fl /= norm
 
         if type(inplace) == bool:
             if inplace:
