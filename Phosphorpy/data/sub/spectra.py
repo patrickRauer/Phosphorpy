@@ -214,7 +214,7 @@ class Spectra:
             raise ValueError('At least one of minimal wavelength or maximal wavelength must be given.')
 
         wave = self.wavelength.copy()
-        flux = self.flux
+        flux = self.flux.copy()
 
         if min_wavelength is not None:
             # if the minimal wavelength is a astropy Quantity, align the units and apply the limit then
