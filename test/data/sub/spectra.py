@@ -9,7 +9,8 @@ class TestSpectra(unittest.TestCase):
 
     def setUp(self) -> None:
         self.wavelength = np.float64(np.linspace(360, 900, 900-360))
-        self.flux = np.exp(-np.square(self.wavelength-360)/9000)
+        self.flux = np.exp(-np.square(self.wavelength-360)/9000)+0.2*np.exp(-np.square(self.wavelength-600)/500)
+        self.flux += 0.01*np.random.randn(len(self.flux))
         self.spectra = Spectra(
             wavelength=self.wavelength,
             flux=self.flux
@@ -131,3 +132,13 @@ class TestSpectra(unittest.TestCase):
         self.spectra.plot.spectra(max_wavelength=700)
 
         self.spectra.plot.spectra(min_wavelength=400, max_wavelength=700)
+
+    def test_fit(self):
+        print(self.spectra.fit_line())
+
+    def test_fit_gaus(self):
+        print(self.spectra.fit_gauss({'mean': 360, 'stddev': 100}))
+
+    def test_fit_dgaus(self):
+        print(self.spectra.fit_double_gauss({'mean': 360, 'stddev': 100},
+                                            {'mean': 600, 'stddev': 10}))

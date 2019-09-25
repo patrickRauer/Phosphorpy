@@ -1,4 +1,5 @@
 from astropy.table import vstack
+from astropy.modeling import models, fitting, Fittable1DModel
 from astropy import units as u
 import numpy as np
 
@@ -247,6 +248,27 @@ class Spectra:
                                flux_unit=self.flux_unit)
         else:
             raise ValueError('inplace must be a bool.')
+
+    def fit_line(self, model=None):
+        if model is None:
+            model = models.Gaussian1D(stddev=10)
+        else:
+            try:
+                model.fittable
+            except AttributeError:
+                raise ValueError(f'Model must be an instance of astropy\'s Fittable1DModel and not {type(model)}')
+
+        fitter = fitting.SLSQPLSQFitter()
+        fit_rs = fitter(model, self.wavelength, self.flux)
+        return fit_rs
+
+    def fit_gauss(self, guesses):
+        gauss = models.Gaussian1D(**guesses)
+        return self.fit_line(model=gauss)
+
+    def fit_double_gauss(self, guesses, guesses2):
+        dgauss = models.Gaussian1D(**guesses)+models.Gaussian1D(**guesses2)
+        return self.fit_line(model=dgauss)
 
     @property
     def wavelength(self):
