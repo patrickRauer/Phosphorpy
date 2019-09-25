@@ -334,3 +334,19 @@ class Spectra:
         :return:
         """
         return self._plot
+
+    @property
+    def min_wavelength(self):
+        return self.wavelength.min()
+
+    @property
+    def max_wavelength(self):
+        return self.wavelength.max()
+
+    @property
+    def min_flux(self):
+        return self.flux.min()
+
+    @property
+    def max_flux(self):
+        return self.flux.max()
