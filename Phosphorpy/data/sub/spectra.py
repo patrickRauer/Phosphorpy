@@ -275,7 +275,7 @@ class Spectra:
             # if wavelength has a unit, recursive call to change the unit to angstrom
             else:
                 self.wavelength_unit = u.angstrom
-        elif type(unit) != u.Unit:
+        elif not isinstance(unit, u.Unit):
             raise ValueError('The new unit must be a astropy unit.')
         elif self._wavelength_unit is None:
             self._wavelength_unit = unit
@@ -314,7 +314,7 @@ class Spectra:
         """
         if unit is None:
             self._flux_unit = u.erg
-        elif type(unit) != u.Unit:
+        elif not isinstance(unit, u.Unit):
             raise ValueError('The new unit must be a astropy unit.')
         elif self._flux_unit is None:
             self._flux_unit = unit
