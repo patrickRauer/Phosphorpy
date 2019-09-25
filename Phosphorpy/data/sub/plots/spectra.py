@@ -45,6 +45,10 @@ class SpectraPlot:
 
         sp.step(wave, flux, '-k')
 
+        if len(self._spectra.fit) > 0:
+            for fit in self._spectra.fit:
+                sp.plot(wave, fit(wave), '--')
+
         sp.set_xlabel(f'wavelength [{self._spectra.wavelength_unit.to_string("latex")}]')
         sp.set_ylabel(f'flux [{self._spectra.flux_unit.to_string("latex")}]')
 

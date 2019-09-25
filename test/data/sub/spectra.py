@@ -138,7 +138,11 @@ class TestSpectra(unittest.TestCase):
 
     def test_fit_gaus(self):
         print(self.spectra.fit_gauss({'mean': 360, 'stddev': 100}))
+        self.spectra.plot.spectra()
 
     def test_fit_dgaus(self):
         print(self.spectra.fit_double_gauss({'mean': 360, 'stddev': 100},
                                             {'mean': 600, 'stddev': 10}))
+        print(self.spectra.fit_gauss({'mean': 360, 'stddev': 100}))
+        print(self.spectra.fit_gauss({'mean': 600, 'stddev': 10}))
+        self.spectra.plot.spectra()
