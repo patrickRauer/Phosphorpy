@@ -114,10 +114,14 @@ class Spectra:
         Spectra is the basic class to handle different kinds of spectra on a basic level
         without any specific functionality related to any certain spectra
 
-        :param wavelength: The wavelength values of the spectra or None.
-        :param wavelength: Union
-        :param flux: The flux values of the spectra or None.
-        :type flux: Union
+        :param wavelength:
+            The wavelength values of the spectra or None.
+            As wavelength values a Union (tuple, list, array) is allowed or a Quantity.
+        :type wavelength: Union, Quantity
+        :param flux:
+            The flux values of the spectra or None.
+            As flux values a Union (tuple, list, array) is allowed or a Quantity.
+        :type flux: Union, Quantity
         :param wavelength_unit:
             The units of the wavelengths, if the wavelengths are given. If no unit is given, angstrom are
             assumed to be the wavelength unit.
@@ -127,6 +131,14 @@ class Spectra:
             the flux unit.
         :type flux_unit: Unit
         """
+        if type(wavelength) == u.Quantity:
+            wavelength_unit = wavelength.unit
+            wavelength = wavelength.value
+
+        if type(flux) == u.Quantity:
+            flux_unit = flux.unit
+            flux = flux.value
+
         self._wavelength = wavelength
         self._flux = flux
 
