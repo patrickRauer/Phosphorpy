@@ -54,7 +54,41 @@ def _check_ids(ids, coord):
 
 
 def get_lamost_spectra(coord, ids=None):
-    download = 'http://dr4.lamost.org/./spectrum/fits/{}?token='
+    coord = _check_coordinates(coord)
+
+    ids = _check_ids(ids, coord)
+
+    spec_list = SpectraList()
+
+    lamost_download_url = 'http://dr4.lamost.org/./spectrum/fits/{}?token='
+    lamost = Vizier(
+        columns=['_q', 'RAJ2000', 'DEJ2000', 'ObsID', 'snru', 'snrg', 'snrr', 'snri', 'snrz', 'z', 'SubClass'])
+    lamost.ROW_LIMIT = -1
+    rs = lamost.query_region(coord, 1 * u.arcsec, catalog='V/153/dr4')[0]
+
+    if len(rs) == 0:
+        return spec_list
+    
+    lamost_coord = SkyCoord(rs['ra']*u.deg,
+                            rs['dec']*u.deg)
+    sort = lamost_coord.match_to_catalog_sky(coord)[0]
+    ids = ids[sort]
+
+    # create a temporary path with a random number at the end to avoid potential overwriting
+    temp_path = f'temp_lamost_spec_{np.random.randint(0, 10000)}.fits'
+
+    for obs_id, index in zip(rs['ObsID'], ids):
+        urllib.request.urlretrieve(lamost_download_url.format(obs_id), temp_path)
+        with fits.open(temp_path) as fi:
+            d = fi[0].data
+            wave = d[2]
+            fl = d[0]
+
+            spec = Spectra(wavelength=wave,
+                           flux=fl,
+                           wavelength_unit=u.angstrom)
+            spec_list.append(spec, index)
+    return spec_list
 
 
 def get_sdss_spectra(coord, ids=None):
