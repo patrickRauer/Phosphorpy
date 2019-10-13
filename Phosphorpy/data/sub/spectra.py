@@ -27,6 +27,9 @@ class SpectraList:
     def __str__(self):
         return f'SpectraList with {len(self)} spectra.'
 
+    def __getitem__(self, item):
+        return self._spectra[item], self._ids[item]
+
     def append(self, spectra, spec_id=-1):
         """
         Appends a new spectra to the spectra list.
