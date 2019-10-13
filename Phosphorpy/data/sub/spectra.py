@@ -21,6 +21,12 @@ class SpectraList:
             self._spectra = [spectra]
             self._ids = [0]
 
+    def __len__(self):
+        return len(self._spectra)
+
+    def __str__(self):
+        return f'SpectraList with {len(self)} spectra.'
+
     def append(self, spectra, spec_id=-1):
         """
         Appends a new spectra to the spectra list.
@@ -77,9 +83,6 @@ class SpectraList:
             out.append(properties)
         out = vstack(out).to_pandas()
         return out.set_index('ID')
-
-    def __len__(self):
-        return len(self._spectra)
 
 
 class Spectra:
