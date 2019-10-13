@@ -9,15 +9,14 @@ from astroquery.vizier import Vizier
 import numpy as np
 import urllib
 import os
-import shutil
 
-from Phosphorpy.external.xmatch import xmatch
 from Phosphorpy.data.sub.spectra import Spectra, SpectraList
 
 
 SDSS = 'sdss'
 LAMOST = 'lamost'
 GAMA = 'gama'
+DFGRS = '2fDGR'
 
 
 def _check_coordinates(coord):
@@ -95,11 +94,12 @@ def get_lamost_spectra(coord, ids=None):
 
             spec = Spectra(wavelength=wave,
                            flux=fl,
-                           wavelength_unit=u.angstrom)
+                           wavelength_unit=u.angstrom,
+                           survey=LAMOST)
             spec_list.append(spec, index)
 
     os.remove(temp_path)
-    
+
     return spec_list
 
 
@@ -146,7 +146,8 @@ def get_sdss_spectra(coord, ids=None):
         # Use angstrom as default wavelength units
         spec = Spectra(wavelength=spec['wavelength'],
                        flux=spec['flux'],
-                       wavelength_unit=u.angstrom)
+                       wavelength_unit=u.angstrom,
+                       survey=SDSS)
         spec_list.append(spec, index)
 
     return spec_list
@@ -187,7 +188,8 @@ def get_gama_spectra(coord, ids=None):
                 data = fi[0].data
                 wavelength = header['CDELT1']*(np.arange(header['NAXIS1'])-header['CRPIX1'])+header['CRVAL1']
                 spec = Spectra(wavelength=wavelength,
-                               flux=data[0], wavelength_unit=u.angstrom)
+                               flux=data[0], wavelength_unit=u.angstrom,
+                               survey=DFGRS)
                 spec_list_2dfgrs.append(spec, index)
             else:
                 wcs = WCS(fi[0].header)
@@ -195,7 +197,8 @@ def get_gama_spectra(coord, ids=None):
                 waves = np.power(10., waves)
                 spec = Spectra(wavelength=waves,
                                flux=fi[0].data[0],
-                               wavelength_unit=u.angstrom)
+                               wavelength_unit=u.angstrom,
+                               survey=GAMA)
                 spec_list_gama.append(spec, index)
     # remove the temporary file
     os.remove(temp_path)
