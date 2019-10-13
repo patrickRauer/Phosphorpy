@@ -1,8 +1,15 @@
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
+from astropy.io import fits
+from astropy.wcs import WCS
 from astropy import units as u
 from astroquery.sdss import SDSS as sdss
+from astroquery.gama import GAMA as GAMA_INTERFACE
+from astroquery.vizier import Vizier
 import numpy as np
+import urllib
+import os
+import shutil
 
 from Phosphorpy.external.xmatch import xmatch
 from Phosphorpy.data.sub.spectra import Spectra, SpectraList
@@ -141,7 +148,53 @@ def get_sdss_spectra(coord, ids=None):
 
 
 def get_gama_spectra(coord, ids=None):
-    pass
+    spec_list_gama = SpectraList()
+    spec_list_2dfgrs = SpectraList()
+    coord = _check_coordinates(coord)
+
+    ids = _check_ids(ids, coord)
+
+    radius = 2./3600
+    sql = 'SELECT RA, DEC, URL FROM SpecAll WHERE '
+    sql += ' OR '.join(
+        [
+            f'(RA BETWEEN {ra-radius} AND {ra+radius} AND DEC BETWEEN {dec-radius} AND {dec+radius})'
+            for ra, dec in zip(coord.ra.degree, coord.dec.degree)
+        ]
+    )
+    try:
+        rs = GAMA_INTERFACE.query_sql(sql)
+    except ValueError:
+        return spec_list_gama, spec_list_2dfgrs
+
+    gama_coord = SkyCoord(rs['RA']*u.deg, rs['DEC']*u.deg)
+    sort = gama_coord.match_to_catalog_sky(coord)[0]
+    ids = ids[sort]
+
+    # create a temporary path with a random number at the end to avoid potential overwriting
+    temp_path = f'temp_gama_spec_{np.random.randint(0, 10000)}.fits'
+    for r, index in zip(rs, ids):
+        urllib.request.urlretrieve(r['URL'], temp_path)
+        with fits.open(temp_path) as fi:
+            # if it is only a PrimaryHDU, then it is 2dFGRS spectra
+            if len(fi) == 1:
+                header = fi[0].header
+                data = fi[0].data
+                wavelength = header['CDELT1']*(np.arange(header['NAXIS1'])-header['CRPIX1'])+header['CRVAL1']
+                spec = Spectra(wavelength=wavelength,
+                               flux=data[0], wavelength_unit=u.angstrom)
+                spec_list_2dfgrs.append(spec, index)
+            else:
+                wcs = WCS(fi[0].header)
+                waves = wcs.all_pix2world(np.arange(len(fi[0].data[0])), 0, 0)[0]
+                waves = np.power(10., waves)
+                spec = Spectra(wavelength=waves,
+                               flux=fi[0].data[0],
+                               wavelength_unit=u.angstrom)
+                spec_list_gama.append(spec, index)
+    # remove the temporary file
+    os.remove(temp_path)
+    return spec_list_gama, spec_list_2dfgrs
 
 
 def get_spectra(coord, ids=None, source='SDSS'):
