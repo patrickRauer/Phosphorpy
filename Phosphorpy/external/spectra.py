@@ -75,7 +75,7 @@ def get_lamost_spectra(coord, ids=None):
 
     if len(rs) == 0:
         return spec_list
-    
+
     rs = rs[0]
 
     lamost_coord = SkyCoord(rs['RAJ2000'],
@@ -97,6 +97,9 @@ def get_lamost_spectra(coord, ids=None):
                            flux=fl,
                            wavelength_unit=u.angstrom)
             spec_list.append(spec, index)
+
+    os.remove(temp_path)
+    
     return spec_list
 
 
