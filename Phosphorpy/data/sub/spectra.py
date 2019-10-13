@@ -154,6 +154,10 @@ class Spectra:
         self._plot = SpectraPlot(self)
         self._fits = []
 
+    def __str__(self):
+        return f'Spectra with wavelength between {self.min_wavelength} and {self.max_wavelength} with a' \
+               f' wavelength resolution of {round(self.resolution_wavelength)}.'
+
     def normalize(self, kind, inplace=True):
         """
         Normalize the spectra with a certain function.
@@ -270,10 +274,26 @@ class Spectra:
         return fit_rs
 
     def fit_gauss(self, guesses):
+        """
+        Fit's the current spectra/line with a 1D gaussian
+
+        :param guesses: Initial guesses for the gaussian
+        :type guesses: dict
+        :return: The resulting fit
+        """
         gauss = models.Gaussian1D(**guesses)
         return self.fit_line(model=gauss)
 
     def fit_double_gauss(self, guesses, guesses2):
+        """
+        Fit's the current spectra/line(s) with two 1D gaussian's
+
+        :param guesses: Initial guesses for the first gaussian
+        :type guesses: dict
+        :param guesses2: Initial guesses for the second gaussian
+        :type guesses2: dict
+        :return: The resulting fit
+        """
         dgauss = models.Gaussian1D(**guesses)+models.Gaussian1D(**guesses2)
         return self.fit_line(model=dgauss)
 
