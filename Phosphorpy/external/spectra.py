@@ -13,7 +13,47 @@ LAMOST = 'lamost'
 GAMA = 'gama'
 
 
-def get_lamost_spectra(coord):
+def _check_coordinates(coord):
+    """
+    Checks if the coordinates are scalar and if this is true, convert them to non scalar
+    :param coord: The coordinates
+    :type coord: SkyCoord
+    :return: The input coordinates as non scalar
+    :rtype: SkyCoord
+    """
+    if coord.isscalar:
+        coord = SkyCoord(
+            np.array([coord.ra.degree])*coord.ra.unit,
+            np.array([coord.dec.degree])*coord.dec.unit
+        )
+    return coord
+
+
+def _check_ids(ids, coord):
+    """
+    Checks, if the ids are None and if this is true, create a default ID list.
+    Checks also, if the length of the ids is the same as the length coordinates.
+
+    :param ids:
+        ID's of the spectra. If no ID's are given, the ID's are set to [0, len(coord)-1].
+        Default is None.
+    :type ids: Union
+    :param coord: The coordinates of the objects for which spectra are wanted
+    :type coord: SkyCoord
+    :return: The list of ID's
+    :rtype: ndarray
+    """
+    if ids is None:
+        ids = np.arange(len(coord))
+    else:
+        if len(ids) != len(coord):
+            raise ValueError('If ID\'s are given, they must have the same length as the given coordinates')
+        elif type(ids) != np.ndarray:
+            ids = np.array(ids)
+    return ids
+
+
+def get_lamost_spectra(coord, ids=None):
     download = 'http://dr4.lamost.org/./spectrum/fits/{}?token='
 
 
@@ -30,17 +70,9 @@ def get_sdss_spectra(coord, ids=None):
     :return: SpectraList with the found spectra or an empty SpectraList, if no spectra was found.
     :rtype: SpectraList
     """
-    if coord.isscalar:
-        coord = SkyCoord(
-            np.array([coord.ra.degree])*coord.ra.unit,
-            np.array([coord.dec.degree])*coord.dec.unit
-        )
+    coord = _check_coordinates(coord)
 
-    if ids is None:
-        ids = np.arange(len(coord))
-    else:
-        if len(ids) != len(coord):
-            raise ValueError('If ID\'s are given, they must have the same length as the given coordinates')
+    ids = _check_ids(ids, coord)
 
     spec_list = SpectraList()
     rs = sdss.query_region(coord, spectro=True)
@@ -74,33 +106,34 @@ def get_sdss_spectra(coord, ids=None):
     return spec_list
 
 
-def get_gama_spectra(coord):
+def get_gama_spectra(coord, ids=None):
     pass
 
 
-def get_spectra(coord, source='SDSS'):
+def get_spectra(coord, ids=None, source='SDSS'):
     """
     Search for spectra of sources at the coordinate(s) in the specific survey
 
     :param coord: The coordinate(s) of the required sources
     :type coord: SkyCoord
+    :param ids:
+        ID's of the spectra. If no ID's are given, the ID's are set to [0, len(coord)-1].
+        Default is None.
+    :type ids: Union
     :param source: The source of the spectra
     :type source: str
     :return: The spectra, if any spectra was found.
     """
     source = source.lower()
 
-    if coord.isscalar:
-        coord = SkyCoord(
-            np.array([coord.ra.degree])*coord.ra.unit,
-            np.array([coord.dec.degree])*coord.dec.unit
-        )
+    coord = _check_coordinates(coord)
+    ids = _check_ids(ids, coord)
 
     if source == SDSS:
-        return get_sdss_spectra(coord)
+        return get_sdss_spectra(coord, ids=ids)
     elif source == LAMOST:
-        return get_lamost_spectra(coord)
+        return get_lamost_spectra(coord, ids=ids)
     elif source == GAMA:
-        return get_gama_spectra(coord)
+        return get_gama_spectra(coord, ids=ids)
     else:
         raise ValueError(f'{source} is unknown for spectra.')
