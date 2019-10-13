@@ -1,5 +1,5 @@
 from astropy.table import vstack
-from astropy.modeling import models, fitting, Fittable1DModel
+from astropy.modeling import models, fitting
 from astropy import units as u
 import numpy as np
 
@@ -260,6 +260,14 @@ class Spectra:
             raise ValueError('inplace must be a bool.')
 
     def fit_line(self, model=None):
+        """
+        Fit's the spectra/line with the model. The model must be a fittable object from
+        the astropy.modeling.model classes.
+        If no model is given, a 1D gaussian is used.
+
+        :param model: The fittable model or None. Default is None, which means that a 1D gaussian is used.
+        :return: The resulting fit
+        """
         if model is None:
             model = models.Gaussian1D(stddev=10)
         else:
@@ -396,6 +404,10 @@ class Spectra:
     @property
     def max_wavelength(self):
         return self.wavelength.max()
+
+    @property
+    def resolution_wavelength(self):
+        return np.mean(self._wavelength[1:]-self._wavelength[:-1])
 
     @property
     def min_flux(self):
