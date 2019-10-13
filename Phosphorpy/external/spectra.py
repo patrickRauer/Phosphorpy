@@ -71,13 +71,15 @@ def get_lamost_spectra(coord, ids=None):
     lamost = Vizier(
         columns=['_q', 'RAJ2000', 'DEJ2000', 'ObsID', 'snru', 'snrg', 'snrr', 'snri', 'snrz', 'z', 'SubClass'])
     lamost.ROW_LIMIT = -1
-    rs = lamost.query_region(coord, 1 * u.arcsec, catalog='V/153/dr4')[0]
+    rs = lamost.query_region(coord, 1 * u.arcsec, catalog='V/153/dr4')
 
     if len(rs) == 0:
         return spec_list
     
-    lamost_coord = SkyCoord(rs['ra']*u.deg,
-                            rs['dec']*u.deg)
+    rs = rs[0]
+
+    lamost_coord = SkyCoord(rs['RAJ2000'],
+                            rs['DEJ2000'])
     sort = lamost_coord.match_to_catalog_sky(coord)[0]
     ids = ids[sort]
 
