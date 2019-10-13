@@ -46,13 +46,27 @@ class SpectraList:
         else:
             self._ids.append(len(self._ids))
 
+    def merge(self, second):
+        """
+        Merges a second SpectraList into this one
+
+        :param second: The other SpectraList
+        :type second: SpectraList
+        :return:
+        """
+        if type(second) != SpectraList:
+            raise ValueError('second must be of the type \'SpectraList\'')
+
+        for i in range(len(second)):
+            self.append(*(second[i]))
+
     def estimate_line_properties(self, as_velocity=False, redo=False):
         """
         Estimates the line properties of all spectra in the list
 
         :param as_velocity:
             True, if the line shift should be returned as a radial velocity in km/s, else False to
-            get 1-lambda/lambda0.
+            get lambda/lambda0-1.
             Default is False.
         :type as_velocity: bool
         :param redo:
