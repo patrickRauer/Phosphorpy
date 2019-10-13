@@ -126,13 +126,15 @@ class Spectra:
     _wavelength_unit = None
     _flux_unit = None
 
+    _survey = None
+
     _fits = None
 
     _lines = None
 
     _plot = None
 
-    def __init__(self, wavelength=None, flux=None, wavelength_unit=None, flux_unit=None):
+    def __init__(self, wavelength=None, flux=None, wavelength_unit=None, flux_unit=None, survey=None):
         """
         Spectra is the basic class to handle different kinds of spectra on a basic level
         without any specific functionality related to any certain spectra
@@ -153,6 +155,8 @@ class Spectra:
             The units of the flux, if the flux is given. If no unit is given, ergs are assumed to be
             the flux unit.
         :type flux_unit: Unit
+        :param survey: Name of the survey. Default is None.
+        :type survey: str, None
         """
         if type(wavelength) == u.Quantity:
             wavelength_unit = wavelength.unit
@@ -167,6 +171,8 @@ class Spectra:
 
         self.wavelength_unit = wavelength_unit
         self.flux_unit = flux_unit
+
+        self._survey = None
 
         self._plot = SpectraPlot(self)
         self._fits = []
@@ -437,3 +443,7 @@ class Spectra:
     @property
     def fit(self):
         return self._fits
+
+    @property
+    def survey(self):
+        return self._survey
