@@ -20,7 +20,21 @@ class TestGetSDSSSpectra(unittest.TestCase):
         sp = spectra.get_sdss_spectra(self.coord)
         print(sp)
 
+    def test_single_coords_with_ids(self):
+        sp = spectra.get_sdss_spectra(self.coord, np.arange(1))
+
     def test_multiple_coords(self):
         print('multiple coordinate')
         sp = spectra.get_sdss_spectra(self.coords)
         print(sp)
+
+    def test_multiple_coords_with_ids(self):
+        sp = spectra.get_sdss_spectra(self.coords, np.arange(len(self.coords)))
+
+        with self.assertRaises(ValueError):
+            sp = spectra.get_sdss_spectra(self.coords, np.arange(len(self.coords)-1))
+
+        with self.assertRaises(ValueError):
+            sp = spectra.get_sdss_spectra(self.coords, np.arange(len(self.coords)+1))
+
+        sp = spectra.get_sdss_spectra(self.coords, list(np.arange(len(self.coords))))
