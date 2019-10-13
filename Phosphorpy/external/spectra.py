@@ -3,7 +3,6 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 from astroquery.sdss import SDSS as sdss
 import numpy as np
-import math
 
 from Phosphorpy.external.xmatch import xmatch
 from Phosphorpy.data.sub.spectra import Spectra, SpectraList
@@ -19,7 +18,18 @@ def get_lamost_spectra(coord):
 
 
 def get_sdss_spectra(coord, ids=None):
+    """
+    Downloads SDSS spectra for objects at the given coordinates, if spectra are available.
 
+    :param coord: The coordinates of the objects for which spectra are wanted
+    :type coord: SkyCoord
+    :param ids:
+        ID's of the spectra. If no ID's are given, the ID's are set to [0, len(coord)-1].
+        Default is None.
+    :type ids: Union
+    :return: SpectraList with the found spectra or an empty SpectraList, if no spectra was found.
+    :rtype: SpectraList
+    """
     if coord.isscalar:
         coord = SkyCoord(
             np.array([coord.ra.degree])*coord.ra.unit,
@@ -28,6 +38,9 @@ def get_sdss_spectra(coord, ids=None):
 
     if ids is None:
         ids = np.arange(len(coord))
+    else:
+        if len(ids) != len(coord):
+            raise ValueError('If ID\'s are given, they must have the same length as the given coordinates')
 
     spec_list = SpectraList()
     rs = sdss.query_region(coord, spectro=True)
@@ -36,23 +49,27 @@ def get_sdss_spectra(coord, ids=None):
     if rs is None:
         return spec_list
 
+    # convert the output coordinates to SkyCoord and get the order of the input coordinate in
+    # respect to tine output coordinates
     sdss_coord = SkyCoord(rs['ra']*u.deg,
                           rs['dec']*u.deg)
-    print(sdss_coord.match_to_catalog_sky(coord))
+    sort = sdss_coord.match_to_catalog_sky(coord)[0]
+    ids = ids[sort]
+
+    # download the SDSS spectra
     sp = sdss.get_spectra(matches=rs)
 
-    spec_count = 0
-    for c, index in zip(coord, ids):
-        distance = math.hypot(c.ra.degree - rs['ra'][spec_count],
-                              c.dec.degree - rs['dec'][spec_count])*3600
-        print(distance)
-        if distance < 2.5:
-            spec = Table(sp[spec_count][1].data)
-            spec['wavelength'] = np.power(10, spec['loglam'])
-            spec = Spectra(wavelength=spec['wavelength'],
-                           flux=spec['flux'])
-            spec_list.append(spec, index)
-            spec_count += 1
+    # read the spectra and convert the wavelength to a linear scale
+    # add the resulting Spectra object to the SpectraList
+    for spec, index in zip(sp, ids):
+        spec = Table(spec[1].data)
+        spec['wavelength'] = np.power(10., spec['loglam'])
+        # create a new Spectra object for the spectra with the wavelength and the flux.
+        # Use angstrom as default wavelength units
+        spec = Spectra(wavelength=spec['wavelength'],
+                       flux=spec['flux'],
+                       wavelength_unit=u.angstrom)
+        spec_list.append(spec, index)
 
     return spec_list
 
@@ -78,7 +95,6 @@ def get_spectra(coord, source='SDSS'):
             np.array([coord.ra.degree])*coord.ra.unit,
             np.array([coord.dec.degree])*coord.dec.unit
         )
-        print(coord.isscalar)
 
     if source == SDSS:
         return get_sdss_spectra(coord)
