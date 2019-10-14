@@ -47,7 +47,35 @@ class SpectraList:
         return f'SpectraList with {len(self)} spectra.'
 
     def __getitem__(self, item):
+        """
+
+        :param item:
+        :return:
+        :rtype: Spectra, int
+        """
         return self._spectra[item], self._ids[item]
+
+    def write(self, path, format='fits', overwrite=True):
+        """
+        Writes the spectra of this SpectraList to files
+
+        :param path: The path to the directory, where the files should be placed.
+        :type path: str
+        :param format: The format of the spectra files
+        :type format: str
+        :param overwrite: True, if an existing file should be overwritten, else False. Default is True
+        :type overwrite: bool
+        :return:
+        """
+        for spec, index in zip(self._spectra, self._ids):
+            spec.write(
+                f'{path}{spec.survey}_{index}.{format}',
+                format=format, overwrite=overwrite
+            )
+
+    @staticmethod
+    def read(path, format='fits'):
+        pass
 
     def get_by_id(self, index):
         """
@@ -219,7 +247,7 @@ class Spectra:
 
     def __str__(self):
         return f'Spectra with wavelength between {self.min_wavelength} and {self.max_wavelength} with a' \
-               f' wavelength resolution of {round(self.resolution_wavelength)}.'
+               f' wavelength resolution of {np.round(self.resolution_wavelength, 2)}.'
 
     def write(self, path, format='fits', overwrite=True):
         """
@@ -246,7 +274,7 @@ class Spectra:
         elif format == 'csv':
             format = 'ascii.csv'
         else:
-            raise ValueError(f'Format: {format} is not supported.\nChoose \'fits\' or \'csv\'')
+            raise ValueError(f'Format: {format} is not supported.\nChoose \'fits\' or \'csv\'.')
 
         tab.write(path, format=format, overwrite=overwrite)
 
