@@ -230,6 +230,39 @@ class Spectra:
 
         tab.write(path, format=format, overwrite=overwrite)
 
+    @staticmethod
+    def read(path, format='fits', wavelength_name='wavelength', flux_name='flux', survey_key='survey'):
+        """
+        Reads a spectra from a file
+
+        :param path: Path to the file.
+        :type path: str
+        :param format: Format of the file. Current supported formats are fits and csv
+        :type format: str
+        :param wavelength_name: The name of the wavelength column
+        :type wavelength_name: str
+        :param flux_name: The name of the flux column
+        :type flux_name: str
+        :param survey_key: The name of the header entry with the name of the survey/origin
+        :type survey_key: str
+        :return: The Spectra-object with the data from the file
+        :rtype: Spectra
+        """
+        if format == 'fits':
+            tab = Table.read(path, format='fits')
+        elif format == 'csv':
+            tab = Table.read(path, format='ascii.csv')
+        else:
+            raise ValueError(f'Format: {format} is not supported.\nChoose \'fits\' or \'csv\'')
+
+        return Spectra(
+            wavelength=tab[wavelength_name],
+            flux=tab[flux_name],
+            wavelength_unit=tab[wavelength_name].unit,
+            flux_unit=tab[flux_name].unit,
+            survey=tab.meta[survey_key]
+        )
+
     def copy(self):
         """
         Make a copy of the Spectra class
