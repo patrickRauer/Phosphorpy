@@ -11,15 +11,34 @@ class SpectraList:
     _spectra = None
     _ids = None
 
-    def __init__(self, spectra=None):
+    def __init__(self, spectra=None, ids=None):
+        """
+        SpectraList provides the handling of multiple spectra
+
+        :param spectra: Optional: A spectra or a list of spectra
+        :type spectra: None, Spectra, list
+        :param ids:
+            Optional: ID's of the spectra. If they are given, they must have the same length as the given spectra.
+        :type ids: int, list
+        """
         if spectra is None:
             self._spectra = []
             self._ids = []
         elif type(spectra) == list or type(spectra) == tuple:
             self._spectra = list(spectra)
+            if ids is None:
+                self._ids = list(np.arange(len(spectra)))
+            else:
+                if len(spectra) == len(ids):
+                    self._ids = list(ids)
+                else:
+                    raise ValueError('If spectra and ids are given, they must have the same length.')
         else:
             self._spectra = [spectra]
-            self._ids = [0]
+            if ids is not None:
+                self._ids = [ids]
+            else:
+                self._ids = [0]
 
     def __len__(self):
         return len(self._spectra)
