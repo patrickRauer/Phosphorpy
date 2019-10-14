@@ -195,6 +195,7 @@ class Spectra:
     _flux_unit = None
 
     _survey = None
+    _index = -1
 
     _fits = None
 
@@ -202,7 +203,7 @@ class Spectra:
 
     _plot = None
 
-    def __init__(self, wavelength=None, flux=None, wavelength_unit=None, flux_unit=None, survey=None):
+    def __init__(self, wavelength=None, flux=None, wavelength_unit=None, flux_unit=None, survey=None, index=-1):
         """
         Spectra is the basic class to handle different kinds of spectra on a basic level
         without any specific functionality related to any certain spectra
@@ -225,6 +226,8 @@ class Spectra:
         :type flux_unit: Unit
         :param survey: Name of the survey. Default is None.
         :type survey: str, None
+        :param index: Index of the spectra. Default is -1.
+        :type index: int
         """
         if type(wavelength) == u.Quantity:
             wavelength_unit = wavelength.unit
@@ -241,6 +244,7 @@ class Spectra:
         self.flux_unit = flux_unit
 
         self._survey = survey
+        self._index = index
 
         self._plot = SpectraPlot(self)
         self._fits = []
@@ -268,6 +272,7 @@ class Spectra:
         tab['flux'] = self.flux
         tab['flux'].unit = self.flux_unit
         tab.meta['survey'] = self.survey
+        tab.meta['index'] = self._index
 
         if format == 'fits':
             format = 'fits'
@@ -303,12 +308,21 @@ class Spectra:
         else:
             raise ValueError(f'Format: {format} is not supported.\nChoose \'fits\' or \'csv\'')
 
+        try:
+            survey = tab.meta[survey_key]
+        except KeyError:
+            survey = None
+
+        try:
+            index = tab.meta['index']
+        except KeyError:
+            index = -1
         return Spectra(
             wavelength=tab[wavelength_name],
             flux=tab[flux_name],
             wavelength_unit=tab[wavelength_name].unit,
             flux_unit=tab[flux_name].unit,
-            survey=tab.meta[survey_key]
+            survey=survey, index=index
         )
 
     def copy(self):
@@ -592,3 +606,11 @@ class Spectra:
     @property
     def survey(self):
         return self._survey
+
+    @property
+    def index(self):
+        return self._index
+
+    @index.setter
+    def index(self, value):
+        self._index = value
