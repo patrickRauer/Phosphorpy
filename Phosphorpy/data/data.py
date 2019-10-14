@@ -7,6 +7,7 @@ from Phosphorpy.data.sub.plots.plot import Plot
 from Phosphorpy.data.sub.table import Mask
 from Phosphorpy.data.sub.light_curve import LightCurves
 from Phosphorpy.external.image import PanstarrsImage, SDSSImage
+from Phosphorpy.external.spectra import get_spectra
 from Phosphorpy.data.sub.astrometry import AstrometryTable
 from Phosphorpy.report.Report import DataSetReport
 from astropy.table import Table
@@ -84,7 +85,9 @@ class DataSet:
     _colors = None
     _flux = None
     _astrometry = None
+
     _light_curves = None
+    _spectra = None
     _plot = None
 
     def __init__(self, data=None, index=None, coordinates=None, magnitudes=None, colors=None, flux=None):
@@ -215,6 +218,10 @@ class DataSet:
             self._astrometry = AstrometryTable.load_astrometry(self._coordinates)
         return self._astrometry
 
+    @property
+    def spectra(self):
+        return self._spectra
+
     def remove_unmasked_data(self):
         """
         Removes all unmasked items from the dataset and sets the mask back to None.
@@ -318,6 +325,24 @@ class DataSet:
         elif type(name) == list or type(name) == tuple:
             for n in name:
                 self.load_from_vizier(n)
+
+    def load_spectra(self, survey):
+        """
+        Loads all available spectra for the set coordinates
+
+        :param survey:
+            The name of the survey from which the spectra should be taken.
+            Currently, available surveys are 'SDSS', 'LAMOST' and 'GAMA'
+        :return:
+        """
+        specs = get_spectra(self.coordinates.as_sky_coord(), survey)
+
+        if self._spectra is None:
+            self._spectra = specs
+        else:
+            self._spectra.merge(specs)
+
+        return self._spectra
 
     def add_magnitudes(self, data, survey_info, ra_name='ra', dec_name='dec'):
         """
