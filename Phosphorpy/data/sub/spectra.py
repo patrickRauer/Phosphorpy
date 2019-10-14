@@ -54,7 +54,16 @@ class SpectraList:
         :return:
         :rtype: Spectra, int
         """
-        return self._spectra[item], self._ids[item]
+        if type(item) == int:
+            return self._spectra[item], self._ids[item]
+        elif type(item) == list or type(item) == tuple:
+            spec_out = [
+                self._spectra[i] for i in item
+            ]
+            ids_out = [
+                self._ids[i] for i in item
+            ]
+            return spec_out, ids_out
 
     def write(self, path, format='fits', overwrite=True):
         """
