@@ -78,7 +78,8 @@ class SpectraList:
             raise ValueError('second must be of the type \'SpectraList\'')
 
         for i in range(len(second)):
-            self.append(*(second[i]))
+            temp = second[i]
+            self.append(temp[0].copy(), temp[1])
 
     def estimate_line_properties(self, as_velocity=False, redo=False):
         """
