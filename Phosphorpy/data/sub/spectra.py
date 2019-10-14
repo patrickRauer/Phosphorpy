@@ -65,14 +65,14 @@ class SpectraList:
             ]
             return spec_out, ids_out
 
-    def write(self, path, format='fits', overwrite=True):
+    def write(self, path, data_format='fits', overwrite=True):
         """
         Writes the spectra of this SpectraList to files
 
         :param path: The path to the directory, where the files should be placed.
         :type path: str
-        :param format: The format of the spectra files
-        :type format: str
+        :param data_format: The format of the spectra files
+        :type data_format: str
         :param overwrite: True, if an existing file should be overwritten, else False. Default is True
         :type overwrite: bool
         :return:
@@ -80,7 +80,7 @@ class SpectraList:
         for spec, index in zip(self._spectra, self._ids):
             spec.write(
                 f'{path}{spec.survey}_{index}.{format}',
-                format=format, overwrite=overwrite
+                data_format=data_format, overwrite=overwrite
             )
 
     @staticmethod
@@ -288,14 +288,14 @@ class Spectra:
         return f'Spectra with wavelength between {self.min_wavelength} and {self.max_wavelength} with a' \
                f' wavelength resolution of {np.round(self.resolution_wavelength, 2)}.'
 
-    def write(self, path, format='fits', overwrite=True):
+    def write(self, path, data_format='fits', overwrite=True):
         """
         Writes the spectral data to a file
 
         :param path: The path to the file.
         :type path: str
-        :param format: The format of the output file. Current supported formats are fits and csv.
-        :type format: str
+        :param data_format: The format of the output file. Current supported formats are fits and csv.
+        :type data_format: str
         :param overwrite:
             True if an existing file should be overwritten, else False.
             Default is False.
@@ -309,14 +309,14 @@ class Spectra:
         tab.meta['survey'] = self.survey
         tab.meta['index'] = self._index
 
-        if format == 'fits':
-            format = 'fits'
-        elif format == 'csv':
-            format = 'ascii.csv'
+        if data_format == 'fits':
+            data_format = 'fits'
+        elif data_format == 'csv':
+            data_format = 'ascii.csv'
         else:
             raise ValueError(f'Format: {format} is not supported.\nChoose \'fits\' or \'csv\'.')
 
-        tab.write(path, format=format, overwrite=overwrite)
+        tab.write(path, format=data_format, overwrite=overwrite)
 
     @staticmethod
     def read(path, format='fits', wavelength_name='wavelength', flux_name='flux', survey_key='survey'):
