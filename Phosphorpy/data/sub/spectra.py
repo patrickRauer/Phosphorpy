@@ -30,6 +30,26 @@ class SpectraList:
     def __getitem__(self, item):
         return self._spectra[item], self._ids[item]
 
+    def get_by_id(self, index):
+        """
+        Returns the spectra with the required index
+
+        :param index: The index of the required spectra
+        :type index: int
+        :return:
+            SpectraList with the required spectra. The list can contain more than one spectra, if multiple spectra
+            with the required ID are found.
+            If no spectra is found with the required ID, the method will return None.
+        :rtype: SpectraList, None
+        """
+        if index in self._ids:
+            p = np.where(np.array(self._ids) == index)[0]
+            spec_list = SpectraList()
+            for i in p:
+                spec_list.append(*(self[i]))
+            return spec_list
+        return None
+
     def append(self, spectra, spec_id=-1):
         """
         Appends a new spectra to the spectra list.
@@ -172,7 +192,7 @@ class Spectra:
         self.wavelength_unit = wavelength_unit
         self.flux_unit = flux_unit
 
-        self._survey = None
+        self._survey = survey
 
         self._plot = SpectraPlot(self)
         self._fits = []
