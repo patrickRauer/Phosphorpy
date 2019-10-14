@@ -2,6 +2,7 @@ from astropy.table import Table, vstack
 from astropy.modeling import models, fitting
 from astropy import units as u
 import numpy as np
+import glob
 
 from Phosphorpy.data.sub.plots.spectra import SpectraPlot
 
@@ -74,7 +75,29 @@ class SpectraList:
             )
 
     @staticmethod
-    def read(path, format='fits'):
+    def read(path, format='fits', wavelength_name='wavelength', flux_name='flux', survey_key='survey'):
+        """
+        Reads all spectra from the directory
+
+        :param path: Path to the directory with the spectra
+        :type path: str
+        :param format: The format of the files of the spectra.
+        :type format: str
+        :param wavelength_name: The name of the wavelength column
+        :type wavelength_name: str
+        :param flux_name: The name of the flux column
+        :type flux_name: str
+        :param survey_key: The key of the survey information
+        :type survey_key: str
+        :return: The SpectraList with all the red spectra
+        :rtype: SpectraList
+        """
+        spec_list = SpectraList()
+        for f in glob.glob(f'{path}*.{format}'):
+            spec = Spectra.read(f, format=format,
+                                wavelength_name=wavelength_name, flux_name=flux_name,
+                                survey_key=survey_key)
+            spec_list.append(spec)
         pass
 
     def get_by_id(self, index):
