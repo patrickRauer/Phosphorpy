@@ -113,6 +113,9 @@ class SpectraList:
         else:
             self._ids.append(len(self._ids))
 
+        if spectra.index == -1:
+            spectra.index = self._ids[-1]
+
     def merge(self, second):
         """
         Merges a second SpectraList into this one
@@ -337,7 +340,7 @@ class Spectra:
             flux=self.flux.copy(),
             wavelength_unit=self.wavelength_unit,
             flux_unit=self.flux_unit,
-            survey=self.survey
+            survey=self.survey, index=self.index
         )
 
     def normalize(self, kind, inplace=True):
