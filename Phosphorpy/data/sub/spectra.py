@@ -77,11 +77,13 @@ class SpectraList:
         :type overwrite: bool
         :return:
         """
+        paths = []
         for spec, index in zip(self._spectra, self._ids):
-            spec.write(
+            paths.append(spec.write(
                 f'{path}{spec.survey}_{index}.{format}',
                 data_format=data_format, overwrite=overwrite
-            )
+            ))
+        return paths
 
     @staticmethod
     def read(path, format='fits', wavelength_name='wavelength', flux_name='flux', survey_key='survey'):
@@ -317,6 +319,7 @@ class Spectra:
             raise ValueError(f'Format: {format} is not supported.\nChoose \'fits\' or \'csv\'.')
 
         tab.write(path, format=data_format, overwrite=overwrite)
+        return path
 
     @staticmethod
     def read(path, format='fits', wavelength_name='wavelength', flux_name='flux', survey_key='survey'):
