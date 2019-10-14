@@ -1,4 +1,4 @@
-from astropy.table import vstack
+from astropy.table import Table, vstack
 from astropy.modeling import models, fitting
 from astropy import units as u
 import numpy as np
@@ -180,6 +180,50 @@ class Spectra:
     def __str__(self):
         return f'Spectra with wavelength between {self.min_wavelength} and {self.max_wavelength} with a' \
                f' wavelength resolution of {round(self.resolution_wavelength)}.'
+
+    def write(self, path, format='fits', overwrite=True):
+        """
+        Writes the spectral data to a file
+
+        :param path: The path to the file.
+        :type path: str
+        :param format: The format of the output file. Current supported formats are fits and csv.
+        :type format: str
+        :param overwrite:
+            True if an existing file should be overwritten, else False.
+            Default is False.
+        :return:
+        """
+        tab = Table()
+        tab['wavelength'] = self.wavelength
+        tab['wavelength'].unit = self.wavelength_unit
+        tab['flux'] = self.flux
+        tab['flux'].unit = self.flux_unit
+        tab.meta['survey'] = self.survey
+
+        if format == 'fits':
+            format = 'fits'
+        elif format == 'csv':
+            format = 'ascii.csv'
+        else:
+            raise ValueError(f'Format: {format} is not supported.\nChoose \'fits\' or \'csv\'')
+
+        tab.write(path, format=format, overwrite=overwrite)
+
+    def copy(self):
+        """
+        Make a copy of the Spectra class
+
+        :return: A copy of the current Spectra-object
+        :rtype: Spectra
+        """
+        return Spectra(
+            wavelength=self.wavelength.copy(),
+            flux=self.flux.copy(),
+            wavelength_unit=self.wavelength_unit,
+            flux_unit=self.flux_unit,
+            survey=self.survey
+        )
 
     def normalize(self, kind, inplace=True):
         """
