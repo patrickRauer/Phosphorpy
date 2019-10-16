@@ -10,7 +10,8 @@ from Phosphorpy.data.sub.magnitudes import MagnitudeTable as Magnitude, SurveyDa
 from Phosphorpy.data.sub.plots.plot import Plot
 from Phosphorpy.data.sub.table import Mask
 from Phosphorpy.external.image import PanstarrsImage, SDSSImage
-from Phosphorpy.external.vizier import query_by_name, constrain_query, query_simbad
+from Phosphorpy.external.spectra import get_spectra
+from Phosphorpy.data.sub.astrometry import AstrometryTable
 from Phosphorpy.report.Report import DataSetReport
 
 try:
@@ -86,7 +87,9 @@ class DataSet:
     _colors = None
     _flux = None
     _astrometry = None
+
     _light_curves = None
+    _spectra = None
     _plot = None
 
     def __init__(self, data=None, index=None, coordinates=None, magnitudes=None, colors=None, flux=None):
@@ -223,8 +226,8 @@ class DataSet:
         return self._astrometry
 
     @property
-    def mask(self):
-        return self._mask
+    def spectra(self):
+        return self._spectra
 
     def remove_unmasked_data(self):
         """
@@ -279,7 +282,6 @@ class DataSet:
         :return:
         """
         if type(item) == slice:
-            # todo: switch to DataTable representation
             out = self.coordinates.data[item].merge(self.magnitudes.data[item],
                                                     left_index=True,
                                                     right_index=True)
@@ -336,6 +338,24 @@ class DataSet:
         elif type(name) == list or type(name) == tuple:
             for n in name:
                 self.load_from_vizier(n)
+
+    def load_spectra(self, survey):
+        """
+        Loads all available spectra for the set coordinates
+
+        :param survey:
+            The name of the survey from which the spectra should be taken.
+            Currently, available surveys are 'SDSS', 'LAMOST' and 'GAMA'
+        :return:
+        """
+        specs = get_spectra(self.coordinates.as_sky_coord(), survey)
+
+        if self._spectra is None:
+            self._spectra = specs
+        else:
+            self._spectra.merge(specs)
+
+        return self._spectra
 
     def add_magnitudes(self, data, survey_info, ra_name='ra', dec_name='dec'):
         """
@@ -530,11 +550,18 @@ class DataSet:
             if self._magnitudes.data is not None:
                 add_to_zip(zi, self.magnitudes, f'magnitudes.{format}', format=format)
                 add_to_zip(zi, self.magnitudes.survey, 'survey.ini', format='init')
+
             if self._colors is not None:
                 add_to_zip(zi, self.colors, f'colors.{format}', format=format)
+
             if self._flux is not None:
                 add_to_zip(zi, self.flux, f'flux.{format}', format=format)
-                # todo: add plots to the zip file if some of them were made.
+
+            if self._light_curves is not None:
+                pass
+
+            if self._spectra is not None:
+                add_to_zip(zi, self.spectra, f'spectra/', format=format)
 
     def __write_as_fits__(self, path):
         """
@@ -550,9 +577,18 @@ class DataSet:
             hdu_list.extend(self.magnitudes.to_bin_table_hdu('magnitudes'))
 
         if self._colors is not None:
-            hdu_list.extend(self.colors.to_bin_table_hdu('colors'))
+            hdu_list.append(self.colors.to_astropy_table('colors'))
+
         if self._flux is not None:
-            hdu_list.extend(self.flux.to_bin_table_hdu('flux'))
+            hdu_list.append(self.flux.to_astropy_table('flux'))
+
+        if self._light_curves is not None:
+            # todo: write light curves
+            pass
+
+        if self._spectra is not None:
+            self._spectra.write(f'{os.path.dirname(path)}/spectra/')
+
         hdu_list = fits.HDUList(hdu_list)
         hdu_list.writeto(path, overwrite=True)
 
@@ -565,6 +601,9 @@ class DataSet:
         """
         combined = self.__combine_all__()
         combined.to_csv(path)
+
+        if self._spectra is not None:
+            self._spectra.write(f'{os.path.dirname(path)}/spectra/')
 
     def __write_as_report__(self, path):
         # todo: implement report writing
