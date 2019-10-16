@@ -1,8 +1,36 @@
-from Phosphorpy.external.css import download_light_curves
-from Phosphorpy.data.sub.plots.light_curve import LightCurvePlot
-from astropy.table import Table
 import numpy as np
 import pandas as pd
+from astropy.table import Table
+
+from Phosphorpy.external import zwicky
+from Phosphorpy.data.sub.plots.light_curve import LightCurvePlot
+from Phosphorpy.external.css import download_light_curves
+
+
+def _average_light_curve(lc, dt_max):
+    dt = lc['mjd'][1:].values - lc['mjd'][:-1].values
+    p = np.where(dt > dt_max)[0]+1
+    start = 0
+    mags = []
+    errs = []
+    mjds = []
+    ra = []
+    dec = []
+    for k in p:
+        l = lc[start: k]
+        err_sq = 1/l['magerr'].values**2
+        err_sq_sum = 1./np.sum(err_sq)
+        m = np.sum(l['mag'].values*err_sq)*err_sq_sum
+        e = np.sum(err_sq*l['magerr'].values)*err_sq_sum
+        mags.append(m)
+        errs.append(e)
+        mjds.append(np.sum(l['mjd'].values*err_sq)*err_sq_sum)
+        ra.append(np.sum(l['ra'].values*err_sq)*err_sq_sum)
+        dec.append(np.sum(l['dec'].values*err_sq)*err_sq_sum)
+    s = lc['survey'].values[0]
+    return pd.DataFrame({'mag': mags, 'magerr': errs, 'mjd': mjds,
+                         'row_id': len(errs)*[lc['row_id'].values[0]],
+                         'ra': ra, 'dec': dec, 'survey': np.linspace(s, s, len(errs))})
 
 
 class LightCurves:
@@ -16,14 +44,27 @@ class LightCurves:
 
     def __init__(self, coordinates=None, light_curves=None):
         if coordinates is not None:
-            self._light_curves = download_light_curves(coordinates['ra'],
-                                                       coordinates['dec'])
+            css_lc = download_light_curves(coordinates['ra'],
+                                           coordinates['dec'])[['InputID', 'ID', 'Mag', 'Magerr',
+                                                                'RA', 'Decl', 'MJD']]
+            css_lc['survey'] = 1
+            css_lc = css_lc.rename({'InputID': 'row_id', 'ID': 'oid',
+                                    'Mag': 'mag', 'Magerr': 'magerr', 'RA': 'ra',
+                                    'Decl': 'dec', 'MJD': 'mjd'}, axis='columns')
+
+            ptf_lc = zwicky.download_ptf(coordinates['ra'], coordinates['dec'],
+                                         index=coordinates.index.values)
+            ptf_lc['survey'] = 2
+            zwicky_lc = zwicky.download_light_curve(coordinates['ra'], coordinates['dec'],
+                                                    index=coordinates.index.values)
+            zwicky_lc['survey'] = 3
+            self._light_curves = pd.concat([css_lc, ptf_lc, zwicky_lc])
         elif light_curves is not None:
             self._light_curves = light_curves
         else:
             raise ValueError('coordinates or light curves must be given.')
 
-        self._stat_columns = ['InputID', 'Mag', 'Magerr', 'RA', 'Decl', 'MJD']
+        self._stat_columns = ['row_id', 'survey', 'mag', 'magerr', 'ra', 'dec', 'mjd']
         self._stat_operations = [np.mean, np.median, np.std, np.min, np.max, 'count']
 
         self._plot = LightCurvePlot(self)
@@ -31,8 +72,11 @@ class LightCurves:
     def __str__(self):
         out = ''.join(['Number of light curves: {}\n',
                        'with {} entries.'])
-        out = out.format(len(np.unique(self._light_curves['InputID'])), len(self._light_curves))
+        out = out.format(len(np.unique(self._light_curves['row_id'])), len(self._light_curves))
         return out
+
+    def __repr__(self):
+        return self.__str__()
 
     def stats(self):
         """
@@ -41,47 +85,95 @@ class LightCurves:
         :return: The statistics of the light curves
         :rtype: pandas.DataFrame
         """
-        return self.light_curves[self._stat_columns].groupby('InputID').aggregate(self._stat_operations)
+        return self.light_curves[self._stat_columns].groupby(['row_id', 'survey']).aggregate(self._stat_operations)
 
-    def average(self, dt_max=1):
+    def average(self, dt_max=1, overwrite=False):
         """
         Averages the light curve
 
         :param dt_max: The maximal time difference between two data points
         :type dt_max: float
+        :param overwrite: True, if the previous results should be overwritten, else False. Default is False.
+        :type overwrite: bool
         :return: The averaged light curves
         :rtype: LightCurves
         """
-        if self._average is not None:
+        dt_min = np.min(self._light_curves['mjd'].values[1:]-self._light_curves['mjd'].values[:-1])
+        if dt_max < 0:
+            raise ValueError('dt_max must be larger than 0')
+        elif dt_max < dt_min:
+            raise ValueError(f'dt_max must be larger than the minimal difference between two data-points'
+                             f'({dt_min})')
+
+        if self._average is not None and overwrite:
             return self._average
 
         out = []
-        for lc_id in np.unique(self._light_curves['InputID']):
-            lc = self._light_curves[self._light_curves['InputID'] == lc_id]
-            dt = lc['MJD'][1:].values - lc['MJD'][:-1].values
-            p = np.where(dt > dt_max)[0]+1
-            start = 0
-            mags = []
-            errs = []
-            mjds = []
-            for k in p:
-                l = lc[start: k]
-                err_sq = 1/l['Magerr'].values**2
-                err_sq_sum = 1./np.sum(err_sq)
-                m = np.sum(l['Mag'].values*err_sq)*err_sq_sum
-                e = np.sum(err_sq*l['Magerr'].values)*err_sq_sum
-                mags.append(m)
-                errs.append(e)
-                mjds.append(np.sum(l['MJD'].values*err_sq)*err_sq_sum)
+        for lc_id in np.unique(self._light_curves['row_id']):
+            lc = self._light_curves[self._light_curves['row_id'] == lc_id]
+            for s in np.unique(lc['survey']):
 
-            out.append(pd.DataFrame({'Mag': mags, 'Magerr': errs, 'Mjd': mjds,
-                                     'InputID': len(errs)*[lc['InputID'].values[0]]}))
+                out.append(_average_light_curve(lc[lc['survey'] == s], dt_max))
         self._average = LightCurves(light_curves=pd.concat(out))
         return self._average
+
+    def get_light_curve(self, index):
+        """
+        Returns the data of the light curve with the given index
+
+        :param index: The index of the light curve
+        :rtype index: int
+        :return:
+        """
+        return LightCurves(light_curves=self._light_curves[self._light_curves['row_id'] == index])
+
+    def align_light_curves(self, inplace=True):
+        """
+        Aligns the median of the light curves from the different surveys to median of the CSS light curve
+
+        .. warning::
+
+            Because of the simple median alignment, the aligned light curves can have systematic effects.
+            For example, if a light curve as a general trend over the time of one survey, the correction will
+            fail. This can happen, if light curves of QSO's are used or if a transient is present in one of the
+            light curves without enough coverage before and after it.
+
+        :param inplace: True, if the stored light curve should be overwritten, else False. Default is True.
+        :type inplace: bool
+        :return: The aligned light curves, if inplace is True. Otherwise None.
+        :rtype: LightCurves, None
+        """
+        lc = self._light_curves
+        stats = self.stats()
+        mag0 = 0
+        out = []
+        for index in stats.index.values:
+            mag_med = stats.loc[index][('mag', 'median')]
+            lc_mask = (lc['row_id'] == index[0]) & (lc['survey'] == index[1])
+            if index[1] == 1:
+                mag0 = mag_med
+                out.append(lc[lc_mask])
+            else:
+                lc_s = lc[lc_mask]
+                lc_s['mag'] -= mag_med-mag0
+                out.append(lc_s)
+
+        out = pd.concat(out)
+        if inplace:
+            self._light_curves = out
+        else:
+            return LightCurves(out)
+
+    def to_time_series(self, index):
+        raise NotImplementedError()
 
     @property
     def light_curves(self):
         return self._light_curves
+
+    @property
+    def data(self):
+        return self.light_curves
 
     @property
     def stat_columns(self):

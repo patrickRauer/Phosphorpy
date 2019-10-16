@@ -79,7 +79,7 @@ class Color:
             d['selection'] = '          '
             hue = 'selection'
             for i in range(1, self._color.mask.get_mask_count()):
-                d.loc[self._color.mask.get_mask(i), 'selection'] = self._color.mask.get_description(i)
+                d.loc[self._color.mask.get_mask(i)]['selection'] = self._color.mask.get_description(i)
         d = d[m]
         pp = seaborn.PairGrid(d, hue=hue)
         pp.map_diag(pl.hist)
@@ -170,9 +170,9 @@ class Color:
         # todo: if a survey and cols are set, check if the cols are in the survey colors and then use this colors only
         if cols is None:
             if survey is None:
-                cols = self._color.data.columns
+                cols = self._color.data.columns.values
             else:
-                cols = self._color.survey_colors[survey]
+                cols = self._color.survey_colors[survey].values
         else:
             use_cols = []
             if type(cols) is list:
@@ -180,7 +180,7 @@ class Color:
                     use_cols.append(create_color_name(c))
             elif type(cols) == dict:
                 # todo: implement a col selection with a dict (maybe a list of dicts?)
-                pass
+                raise NotImplementedError()
             else:
                 raise ValueError(f'{type(cols)} is not supported format for color names.')
             cols = use_cols
@@ -188,8 +188,6 @@ class Color:
         pl.clf()
         if len(cols) > 2:
             self.__color_color_multi__(cols, labels, legend=legend)
-            # todo: implement color color plot (grid if there are more than two colors)
-            pass
         else:
             self.__color_color_single__(cols, labels, legend=legend)
         if path != '':

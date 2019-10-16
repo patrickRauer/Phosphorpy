@@ -1,5 +1,3 @@
-from scipy.optimize import curve_fit
-import numpy as np
 import pylab as pl
 
 
@@ -41,11 +39,11 @@ class FluxPlot:
 
         # iterate over all surveys
         for s in self._data.data:
-            sp.errorbar(s.get_wavelengths(),
+            sp.errorbar(self._data.survey_head.get_survey_wavelengths(s.survey_name),
                         s.get_flux(index),
                         s.get_error(index),
                         fmt='.', capsize=2,
-                        label=s)
+                        label=s.survey_name)
 
         # data_loc = data_loc[self._data._survey.all_magnitudes()].values
         # mask = data_loc > 0

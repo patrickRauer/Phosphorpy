@@ -6,6 +6,7 @@ from astropy.coordinates import SkyCoord
 from astropy.table import Table, vstack
 from astroquery.vizier import Vizier as Viz
 from astroquery.simbad import Simbad
+from pandas import DataFrame
 from ..config.survey_data import SURVEY_DATA
 from ..config import names
 from .xmatch import xmatch
@@ -74,6 +75,15 @@ class Vizier:
             cols.extend(selected_survey['columns'])
         self.columns = cols
 
+    def __adjust_coordinate_names__(self):
+        """
+        Reformat the coordinate labeling to avoid troubles with similar names
+        :return:
+        """
+        if self.name != '' and self.name not in self.ra_name:
+            self.ra_name = f'{self.name}_{self.ra_name}'
+            self.dec_name = f'{self.name}_{self.dec_name}'
+
     def __query__(self, coordinates):
         """
         Perform the query with a split of the coordinates in 200 item
@@ -84,12 +94,10 @@ class Vizier:
         :return: A array or a list of arrays with the results of the queries
         :rtype: list, numpy.ndarray
         """
-        if self.name != '' and self.name not in self.ra_name:
-            self.ra_name = '{}_{}'.format(self.name, self.ra_name)
-            self.dec_name = '{}_{}'.format(self.name, self.dec_name)
+
+        self.__adjust_coordinate_names__()
         # set how many coordinates should be queried at the same time
         steps = 200
-        i = 0
         out = []
 
         if type(self.catalog) == list:
@@ -98,9 +106,16 @@ class Vizier:
         else:
             out = [[]]
 
+        if coordinates.isscalar:
+            coordinates = SkyCoord([coordinates.ra.degree],
+                                   [coordinates.dec.degree],
+                                   unit=(u.deg, u.deg))
+        length_coordinates = len(coordinates)
+
         # perform the query with maximal 200 targets at the same time
         # this is necessary because otherwise it happens from time to time that a timeout appears
-        while i*steps < len(coordinates):
+        i = 0
+        while i*steps < length_coordinates:
             coords = coordinates[i*steps: (i+1)*steps]
             rs = self.vizier.query_region(coords, self.radius,
                                           catalog=self.catalog)
@@ -109,9 +124,9 @@ class Vizier:
             i += 1
 
         # stack the results
-        for i in range(len(out)):
-            if len(out[i]) != 0:
-                o = vstack(out[i])
+        for i, out_sec in enumerate(out):
+            if len(out_sec) != 0:
+                o = vstack(out_sec)
 
                 if self.name == 'GAIA':
                     ra_name = 'RA_ICRS'
@@ -127,14 +142,14 @@ class Vizier:
                 o.rename_column(ra_name, 'ra')
                 o.rename_column(dec_name, 'dec')
                 o = o.to_pandas()
-                # print(o.columns)
                 o = o.groupby('id')
                 o = o.aggregate(np.nanmean)
 
                 out[i] = o
+        # print(out)
         # if only one catalog query is performed
         if len(out) == 1:
-
+            # out = out[0]
             self.cache = out
             return out
         else:
@@ -177,6 +192,12 @@ class Vizier:
                 raise ValueError('If the coordinate are a tuple or list, ' +
                                  f'it must have 2 elements, not {len(coord)}!')
             coord = SkyCoord(ra*u.deg, dec*u.deg)
+        elif type(coord) != SkyCoord:
+            raise ValueError('"coord" must be a list or a tuple of two elements or a SkyCoord object, '
+                             f'not a {type(coord)}')
+        elif not coord.isscalar:
+            raise ValueError('Only one coordinate set is allowed.')
+
         return self.__query_single__(coord)[0]
 
     def query(self, data, ra_name='ra', dec_name='dec', use_xmatch=False, blank=False):
@@ -196,6 +217,10 @@ class Vizier:
         :return: A list of tables with the query results
         :rtype: astropy.table.Table
         """
+        if type(data) == DataFrame:
+            data = Table.from_pandas(data)
+        elif type(data) != Table:
+            raise ValueError('Input must be a astropy Table or a pandas DataFrame.')
         # If there are more than 100 entries, use the xmatch interface to get the data
         # this will be faster
         try:
@@ -204,6 +229,8 @@ class Vizier:
 
                 return out
         except ConnectionError:
+            if use_xmatch:
+                raise ConnectionError('XMatch service does not respond.')
             print('No connection to XMatch, fall back to Vizier.')
 
         if type(data) == Table:
@@ -566,7 +593,7 @@ def query_simbad(coordinates):
     :type coordinates: Phosphorpy.data.sub.coordinates.CoordinateTable
     :return:
     """
-    sc = coordinates.as_sky_coord()
+    sc = coordinates.to_sky_coord()
     rs = Simbad.query_region(sc, radius=2*u.arcsec)
     if rs is None:
         return rs

@@ -23,7 +23,7 @@ def __check_row_id__(data, colnames):
     :rtype: astropy.table.Table, pandas.DataFrame
     """
     if 'row_id' not in colnames:
-        data['row_id'] = np.linspace(1, len(data), len(data), dtype=np.int32)
+        data['row_id'] = np.arange(len(data))+1
     return data
 
 
@@ -48,11 +48,11 @@ def __write_temp_file__(data, ra_name, dec_name):
                                 dec_name: '{}_input'.format(dec_name)},
                                axis='columns')
         cols = list(data.columns)
-        cols.append(data.index.name)
         data = __check_row_id__(data, cols)
         data.to_csv('temp.csv')
     # if the input data are an astropy.table.Table
     elif type(data) == Table:
+        data = data.copy()
         if 'input' not in ra_name:
             data.rename_column(ra_name, '{}_input'.format(ra_name))
             data.rename_column(dec_name, '{}_input'.format(dec_name))
@@ -94,6 +94,14 @@ def __output_columns__(survey):
 
 
 def find_suffix(cols):
+    """
+    Finds the suffix in the case of non-default labeling
+
+    :param cols: The column labels
+    :type cols: Union
+    :return: The suffix of the magnitude labels
+    :rtype: str
+    """
     for c in cols:
         if 'mag' in c:
             pre = c.split('mag')[0]
@@ -107,6 +115,15 @@ def find_suffix(cols):
 
 
 def _compute_gaia_mags(rs):
+    """
+    Computes the Gaia magnitudes from the flux errors and rename
+    the columns to the Vizier labeling
+
+    :param rs: The gaia data with the flux errors (default gaia DR2 labeling)
+    :type rs: pd.DataFrame
+    :return: The input DataFrame with the errors and the new column labels
+    :rtype: pd.DataFrame
+    """
     conv = {'phot_g_mean_mag': "Gmag",
             'phot_bp_mean_mag': 'BPmag',
             'phot_rp_mean_mag': 'RPmag',
@@ -126,8 +143,26 @@ def xmatch(data, ra_name, dec_name, survey, max_distance=1.*u.arcsec, blank=Fals
     """
     Interface to the astroquery.xmatch.XMatch module
 
+    This function wraps the xmatch function of the astroquery package to make it easier
+    to use and to include short-cuts of the survey. As the data input it requires
+    a astropy Table or a pandas DataFrame with at least two columns, which are the coordinates.
+    The names must be given with the next two parameters.
+    The last needed parameter is the name of the survey, which must be specified in the configuration file.
+
+    In the case of a direct use:
+
+    .. code:: python
+
+        from astropy.table import Table
+        from Phosphorpy.external.xmatch import xmatch
+
+        sdss_data = xmatch(Table.read('./my_coordinates.fits'), 'ra', 'dec', 'SDSS', blank=True)
+
+    'blank' tell the function to return the complete match data and not the reduced version for the usage
+    in **Phosphorpy**.
+
     :param data: The input data
-    :type data: astropy.table.Table, pandas.DataFrame
+    :type data: Table, DataFrame
     :param ra_name: The name of the ra column
     :type ra_name: str
     :param dec_name: The name of the Dec column
@@ -153,8 +188,10 @@ def xmatch(data, ra_name, dec_name, survey, max_distance=1.*u.arcsec, blank=Fals
 
     # remove the temp file
     os.remove('temp.csv')
+
+    # if blank is true, return the results without formatting
     if blank:
-        return rs
+        return rs.to_pandas()
 
     # reduce the number of columns to the required ones
     output_cols, coord_cols = __output_columns__(survey)
@@ -199,7 +236,6 @@ def xmatch(data, ra_name, dec_name, survey, max_distance=1.*u.arcsec, blank=Fals
         elif 'RAdeg' in rs.columns:
             output_cols[-3] = 'RAdeg'
             output_cols[-2] = 'DEdeg'
-    # print(rs['angDist'].max())
 
     rs = rs[output_cols]
     # group by the row id (unique identifier of the input sources)
@@ -207,6 +243,10 @@ def xmatch(data, ra_name, dec_name, survey, max_distance=1.*u.arcsec, blank=Fals
     rs = rs.groupby('row_id')
     rs = rs.aggregate(np.nanmean)
 
+    if type(data) == Table:
+        data = data.to_pandas()
+        data = __check_row_id__(data, data.columns)
+        data.set_index('row_id', inplace=True)
     # make sure that the input and the output data have the same length and the same order
     rs = data[[]].join(rs, how='left')
 

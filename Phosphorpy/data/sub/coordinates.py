@@ -1,14 +1,14 @@
-from astropy.coordinates import SkyCoord
-from astropy.units.quantity import Quantity
-from astropy import units as u
-from astropy.table import Table
-from sklearn.neighbors import NearestNeighbors
-from pandas import DataFrame
-import numpy as np
 import numba as nb
+import numpy as np
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+from astropy.table import Table
+from astropy.units.quantity import Quantity
+from pandas import DataFrame
+from sklearn.neighbors import NearestNeighbors
 
-from .table import DataTable
 from .plots.coordinates import CoordinatePlot
+from .table import DataTable
 
 RA_NAMES = ['ra', 'Ra', 'RA', 'RAJ2000', 'RA_ICRS', '_RAJ2000']
 DEC_NAMES = ['dec', 'Dec', 'DEC', 'DEJ2000', 'DECJ2000', 'DE_ICRS', '_DEJ2000']
@@ -36,6 +36,15 @@ class CoordinateTable(DataTable):
             dec = np.array(data.dec.degree)
             lon = np.array(data.galactic.l)
             b = np.array(data.galactic.b)
+        elif type(data) == DataFrame:
+            s = SkyCoord(
+                data['ra'].values*u.deg,
+                data['dec'].values*u.deg
+            )
+            ra = s.ra.degree
+            dec = s.dec.degree
+            lon = s.galactic.l.degree
+            b = s.galactic.b.degree
         else:
             if type(data) != np.ndarray or len(data.shape) == 1:
                 columns = get_column_names(data)
@@ -53,7 +62,8 @@ class CoordinateTable(DataTable):
         d[:, 1] = dec
         d[:, 2] = lon
         d[:, 3] = b
-        self._data = DataFrame(data=d, columns=['ra', 'dec', 'l', 'b'])
+        self._data = DataFrame(data=d, columns=['ra', 'dec', 'l', 'b'],
+                               index=np.arange(len(ra))+1)
         self._data['row_id'] = np.arange(len(self._data))
         self._data = self._data.set_index('row_id')
 
@@ -70,6 +80,8 @@ class CoordinateTable(DataTable):
                 return self._data['b'].values
             else:
                 raise KeyError('Key {} not known! Choose one of the default ones.'.format(item))
+        elif type(item) == int:
+            return self._data.loc[item]
 
     def __eq__(self, other):
         if type(other) == SkyCoord or type(other) == np.ndarray or type(other) == CoordinateTable:
@@ -103,12 +115,12 @@ class CoordinateTable(DataTable):
         else:
             return self.data[['ra', 'dec']]
 
-    def as_sky_coord(self, source_id=-1):
+    def to_sky_coord(self, source_id=-1):
         """
         Return the coordinate(s) back as a SkyCoord object
 
         :param source_id:
-            The id of the source. Default is -1 which means that all coordinates are converted to SkyCoord.
+            The id of the source. Default is -1, which means that all coordinates are converted to SkyCoord.
         :type source_id: int, list, tuple
         :return: The SkyCoord object of the source(s)
         :rtype: astropy.coordinates.SkyCoord
@@ -119,6 +131,9 @@ class CoordinateTable(DataTable):
             s = SkyCoord(self.data['ra'].values[source_id] * u.deg,
                          self.data['dec'].values[source_id] * u.deg)
         return s
+    
+    def to_astropy_table(self, category='coordinates', **kwargs):
+        return super(CoordinateTable, self).to_astropy_table(category, **kwargs)
 
     def _combine_coordinates(self, other):
 
@@ -146,27 +161,31 @@ class CoordinateTable(DataTable):
         to find the next neighbor.
         The distance is computed with the approximation of small angles
 
-        .. math:
+        .. math::
 
-            d = \sqrt{\left(\Delta\alpha \cdot \cos\left(\delta\right)\right)^2 + \left(\Delta \delta\right)^2}
+            d = \sqrt{\left(\Delta\\alpha \cdot \cos\left(\delta\\right)\\right)^2 + \left(\Delta \delta\\right)^2}
 
         as an additional approximation because performance reasons, in this algorithm its assumed that
 
-        .. math:
+        .. math::
 
-            \cos \delta_1 \approx \cos \delta_2
+            \cos \delta_1 \\approx \cos \delta_2
 
         and therefore we can use
 
-        .. math:
+        .. math::
 
-            \Delta \alpha \cdot \cos \delta = \alpha_1 \cdot \cos \delta - \alpha_2 \cdot \cos \delta
-            \approx \alpha_1 \cos\delta_1 - \alpha_2 \cos \delta_2
+            \Delta \\alpha \cdot \cos \delta = \\alpha_1 \cdot \cos \delta - \\alpha_2 \cdot \cos \delta \\\\
+            \\approx \\alpha_1 \cos\delta_1 - \\alpha_2 \cos \delta_2
 
         :param other: The second coordinate set to match with it
         :type other: numpy.ndarray, astropy.coordinates.SkyCoord, Phosphorpy.data.sub.coordinates.CoordinateTable
         :param radius: The cross-match radius as float or astropy.unit. If it is a float, it will be taken as degree.
         :type radius: float, astropy.units
+        :param ra_name: Name of the RA column. Default is 'ra'.
+        :type ra_name: str
+        :param dec_name: Name of the Dec column. Default is 'dec'.
+        :type dec_name: str
         :returns: An array with the indices of the match sources. Sources without a match will have -1.
         :rtype: pandas.DataFrame
         """
@@ -180,6 +199,8 @@ class CoordinateTable(DataTable):
                 other = other.to_pandas()
             elif type(other) == np.array:
                 other = DataFrame(other)
+            elif type(other) == CoordinateTable:
+                other = other.data
             else:
                 raise ValueError('Unsupported input type ({})'.format(str(type(other))))
 
@@ -263,9 +284,9 @@ def spherical_distance(x1, x2):
     """
     Computes the spherical distance in the approximation of small distances
 
-    .. math:
+    .. math::
 
-        d = \sqrt{x1\cdot \cos\left(x2\right) + x2}
+        d = \sqrt{x1\cdot \cos\left(x2\\right) + x2}
 
     :param x1: The first vector
     :type x1: Union
