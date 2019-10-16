@@ -275,7 +275,6 @@ class DataSet:
         :return:
         """
         if type(item) == slice:
-            # todo: switch to DataTable representation
             out = self.coordinates.data[item].merge(self.magnitudes.data[item],
                                                     left_index=True,
                                                     right_index=True)
@@ -505,11 +504,18 @@ class DataSet:
             if self._magnitudes.data is not None:
                 add_to_zip(zi, self.magnitudes, f'magnitudes.{format}', format=format)
                 add_to_zip(zi, self.magnitudes.survey, 'survey.ini', format='init')
+
             if self._colors is not None:
                 add_to_zip(zi, self.colors, f'colors.{format}', format=format)
+
             if self._flux is not None:
                 add_to_zip(zi, self.flux, f'flux.{format}', format=format)
-                # todo: add plots to the zip file if some of them were made.
+
+            if self._light_curves is not None:
+                pass
+
+            if self._spectra is not None:
+                add_to_zip(zi, self.spectra, f'spectra/', format=format)
 
     def __write_as_fits__(self, path):
         """
@@ -523,8 +529,17 @@ class DataSet:
 
         if self._colors is not None:
             hdu_list.append(self.colors.to_astropy_table('colors'))
+
         if self._flux is not None:
             hdu_list.append(self.flux.to_astropy_table('flux'))
+
+        if self._light_curves is not None:
+            # todo: write light curves
+            pass
+
+        if self._spectra is not None:
+            self._spectra.write(f'{os.path.dirname(path)}/spectra/')
+
         hdu_list = fits.HDUList(hdu_list)
         hdu_list.writeto(path, overwrite=True)
 
@@ -537,6 +552,9 @@ class DataSet:
         """
         combined = self.__combine_all__()
         combined.to_csv(path)
+
+        if self._spectra is not None:
+            self._spectra.write(f'{os.path.dirname(path)}/spectra/')
 
     def __write_as_report__(self, path):
         # todo: implement report writing
