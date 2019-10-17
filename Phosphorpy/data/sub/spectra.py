@@ -178,46 +178,46 @@ class SpectraList:
             temp = second[i]
             self.append(temp[0].copy(), temp[1])
 
-    def estimate_line_properties(self, as_velocity=False, redo=False):
-        """
-        Estimates the line properties of all spectra in the list
-
-        :param as_velocity:
-            True, if the line shift should be returned as a radial velocity in km/s, else False to
-            get lambda/lambda0-1.
-            Default is False.
-        :type as_velocity: bool
-        :param redo:
-            True, if old results should be ignored, else False.
-            Default is False.
-        :type redo: bool
-        :return: The line properties of all spectra
-        :rtype: dict
-        """
-        out = {}
-        for s in self._spectra:
-            out[s.obs_id] = s.estimate_line_properties(as_velocity=as_velocity,
-                                                       redo=redo)
-        return out
-
-    def as_dataframe(self, as_velocity=False, redo=False):
-        """
-        Returns the main information of the stored spectra as a pandas DataFrame
-
-        :param as_velocity:
-        :param redo:
-        :return: The main information as a dataframe
-        :rtype: DataFrame
-        """
-        out = []
-        for s, d_id in zip(self._spectra, self._ids):
-            properties = s.estimate_line_properties(as_velocity=as_velocity,
-                                                    redo=redo)
-            properties['obsID'] = s.obs_id
-            properties['ID'] = d_id
-            out.append(properties)
-        out = vstack(out).to_pandas()
-        return out.set_index('ID')
+    # def estimate_line_properties(self, as_velocity=False, redo=False):
+    #     """
+    #     Estimates the line properties of all spectra in the list
+    #
+    #     :param as_velocity:
+    #         True, if the line shift should be returned as a radial velocity in km/s, else False to
+    #         get lambda/lambda0-1.
+    #         Default is False.
+    #     :type as_velocity: bool
+    #     :param redo:
+    #         True, if old results should be ignored, else False.
+    #         Default is False.
+    #     :type redo: bool
+    #     :return: The line properties of all spectra
+    #     :rtype: dict
+    #     """
+    #     out = {}
+    #     for s in self._spectra:
+    #         out[s.obs_id] = s.estimate_line_properties(as_velocity=as_velocity,
+    #                                                    redo=redo)
+    #     return out
+    #
+    # def as_dataframe(self, as_velocity=False, redo=False):
+    #     """
+    #     Returns the main information of the stored spectra as a pandas DataFrame
+    #
+    #     :param as_velocity:
+    #     :param redo:
+    #     :return: The main information as a dataframe
+    #     :rtype: DataFrame
+    #     """
+    #     out = []
+    #     for s, d_id in zip(self._spectra, self._ids):
+    #         properties = s.estimate_line_properties(as_velocity=as_velocity,
+    #                                                 redo=redo)
+    #         properties['obsID'] = s.obs_id
+    #         properties['ID'] = d_id
+    #         out.append(properties)
+    #     out = vstack(out).to_pandas()
+    #     return out.set_index('ID')
 
 
 class Spectra:
@@ -537,6 +537,9 @@ class Spectra:
         """
         dgauss = models.Gaussian1D(**guesses)+models.Gaussian1D(**guesses2)
         return self.fit_line(model=dgauss)
+
+    def estimate_line_properties(self):
+        pass
 
     @property
     def wavelength(self):
