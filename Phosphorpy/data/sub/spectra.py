@@ -3,6 +3,8 @@ from astropy.modeling import models, fitting
 from astropy import units as u
 import numpy as np
 import glob
+import os
+import numbers
 
 from Phosphorpy.data.sub.plots.spectra import SpectraPlot
 
@@ -54,9 +56,9 @@ class SpectraList:
         :return:
         :rtype: Spectra, int
         """
-        if type(item) == int:
+        if isinstance(item, numbers.Integral):
             return self._spectra[item], self._ids[item]
-        elif type(item) == list or type(item) == tuple:
+        elif type(item) == list or type(item) == tuple or type(item) == np.ndarray:
             spec_out = [
                 self._spectra[i] for i in item
             ]
@@ -77,10 +79,15 @@ class SpectraList:
         :type overwrite: bool
         :return:
         """
+        if not os.path.exists(path):
+            os.makedirs(path)
+        elif not os.path.isdir(path):
+            raise ValueError('path must be a directory and not a file.')
+
         paths = []
         for spec, index in zip(self._spectra, self._ids):
             paths.append(spec.write(
-                f'{path}{spec.survey}_{index}.{format}',
+                f'{path}{spec.survey}_{index}.{data_format}',
                 data_format=data_format, overwrite=overwrite
             ))
         return paths
@@ -109,7 +116,7 @@ class SpectraList:
                                 wavelength_name=wavelength_name, flux_name=flux_name,
                                 survey_key=survey_key)
             spec_list.append(spec)
-        pass
+        return spec_list
 
     def get_by_id(self, index):
         """
@@ -123,13 +130,19 @@ class SpectraList:
             If no spectra is found with the required ID, the method will return None.
         :rtype: SpectraList, None
         """
-        if index in self._ids:
+        if isinstance(index, numbers.Integral):
+            con = index in self._ids
+        else:
+            con = np.isin(index, np.array(self._ids)).any()
+
+        if con:
             p = np.where(np.array(self._ids) == index)[0]
+            print(p)
             spec_list = SpectraList()
             for i in p:
+                print(i, self[i], type(i))
                 spec_list.append(*(self[i]))
             return spec_list
-        return None
 
     def append(self, spectra, spec_id=-1):
         """

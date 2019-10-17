@@ -1,7 +1,6 @@
 from astropy.io import fits
 from astropy.table import Table
 
-from Phosphorpy.data.sub.astrometry import AstrometryTable
 from Phosphorpy.data.sub.colors import Colors
 from Phosphorpy.data.sub.coordinates import CoordinateTable
 from Phosphorpy.data.sub.flux import FluxTable
