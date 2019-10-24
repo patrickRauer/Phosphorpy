@@ -35,6 +35,9 @@ class TestColors(unittest.TestCase):
     def test_set_limit(self):
         self.colors.set_limit('g-r', 0, 2)
 
+        with self.assertRaises(ValueError):
+            self.colors.set_limit('g-r', 2, 0)
+
     def test_get_columns(self):
         cols = self.colors.get_columns('g-r')
         self.assertTrue(
@@ -53,3 +56,13 @@ class TestColors(unittest.TestCase):
 
     def test_outlier_detection(self):
         self.colors.outlier_detection('sdss')
+
+    def test_str(self):
+        print(self.colors)
+
+    def test_survey_colors(self):
+        print(self.colors.survey_colors)
+
+
+if __name__ == '__main__':
+    unittest.main()

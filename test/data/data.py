@@ -170,3 +170,8 @@ def test_add_magnitudes():
     ds = data.DataSet.load_coordinates('temp_coordinates.fits')
     ds.load_from_vizier('SDSS')
     os.remove('temp_coordinates.fits')
+
+
+def test_load_coordinates():
+    data.DataSet.load_coordinates('/Users/patrickr/Documents/test_dash.fits',
+                                  'fits', 'RAJ2000', 'DECJ2000')

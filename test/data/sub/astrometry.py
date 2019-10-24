@@ -161,6 +161,9 @@ class TestAstrometryTable(unittest.TestCase):
 
         self.astro.set_proper_motion_limit('dec', -10, 10)
 
+    def test_to_sky_coord(self):
+        print(self.astro.to_sky_coord())
+
 
 if __name__ == '__main__':
     unittest.main()

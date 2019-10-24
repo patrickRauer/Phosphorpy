@@ -1,7 +1,9 @@
 from astropy.table import Table
+from astropy.coordinates import SkyCoord
+from astropy import units as u
 import numpy as np
 import pandas as pd
-
+import os
 import unittest
 
 from Phosphorpy.data.sub.coordinates import CoordinateTable
@@ -15,7 +17,13 @@ class TestCoordinateTable(unittest.TestCase):
             'dec': 180*np.random.random(10)-90
         })
         self.data = data
+        self.sk = SkyCoord(data['ra'].values*u.deg, data['dec'].values*u.deg)
         self.coord = CoordinateTable(data.copy())
+
+    def test_initialization(self):
+        coord = CoordinateTable(self.sk)
+        coord = CoordinateTable(self.data.values)
+        coord = CoordinateTable(Table.from_pandas(self.data))
 
     def test_to_table(self):
         self.assertTrue(
@@ -55,4 +63,54 @@ class TestCoordinateTable(unittest.TestCase):
         )
 
     def test_write(self):
-        raise NotImplementedError()
+        self.coord.write('./temp.fits', data_format='fits')
+        self.coord.write('./temp.csv', data_format='csv')
+
+        os.remove('./temp.fits')
+        os.remove('./temp.csv')
+
+    def test_get_item(self):
+        for c in ['ra', 'dec']:
+            self.assertTrue((self.coord[c] == self.data[c]).all())
+        self.coord['l']
+        self.coord['b']
+
+        self.coord[1]
+
+        with self.assertRaises(KeyError):
+            self.coord['g']
+
+    def test_len(self):
+        self.assertEqual(
+            len(self.coord), len(self.data)
+        )
+
+    def test_eq(self):
+        with self.assertRaises(ValueError):
+            self.coord == self.data
+
+        self.assertTrue(
+            self.coord == self.sk
+        )
+        self.assertFalse(
+            self.coord == self.sk[1:]
+        )
+
+    def test_match(self):
+        self.coord.match(self.data)
+
+        self.coord.match(Table.from_pandas(self.data))
+
+        self.coord.match(self.data.values)
+
+    def test_combine_coordinates(self):
+        self.coord._combine_coordinates(self.data)
+        self.coord._combine_coordinates(self.data.values)
+        self.coord._combine_coordinates(self.sk)
+
+        with self.assertRaises(ValueError):
+            self.coord._combine_coordinates(1)
+
+
+if __name__ == '__main__':
+    unittest.main()
