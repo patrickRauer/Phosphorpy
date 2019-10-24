@@ -221,3 +221,7 @@ class TestMagnitudeTable(unittest.TestCase):
 
         with self.assertRaises(AttributeError):
             self.mags.get_columns(1)
+
+
+if __name__ == '__main__':
+    unittest.main()

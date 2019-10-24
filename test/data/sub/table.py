@@ -80,8 +80,9 @@ class TestMask(unittest.TestCase):
 class TestDataTable(unittest.TestCase):
 
     def setUp(self) -> None:
-        self.data = Table({'a': [1, 2, 3, 4],
-                           'b': [12., 23., -23, -0.1]}).to_pandas()
+        self.data = pd.DataFrame({'a': [1, 2, 3, 4],
+                                  'b': [12., 23., -23, -0.1]},
+                                 index=np.arange(4)+1)
         self.table = table.DataTable(self.data.copy())
         # self.table._data = self.data.copy()
 
@@ -122,10 +123,16 @@ class TestDataTable(unittest.TestCase):
         )
 
     def test_remove_unmask_data(self):
-
-        self.table.mask.add_mask(self.data['a'] < 3, 'test_mask')
+        print()
+        mask = self.data['a'] < 3
+        print('original mask\n', mask)
+        print('default mask\n', self.table.mask.get_latest_mask())
+        self.table.mask.add_mask(mask, 'test_mask')
+        print('stored mask\n', self.table.mask.get_latest_mask())
         self.table.remove_unmasked_data()
-        self.assertEqual(len(self.table), 2)
+        print(self.table.data)
+        print(len(self.table), len(self.table.data), np.sum(self.data['a'].values < 3))
+        self.assertEqual(len(self.table), np.sum(self.data['a'] < 3))
 
     def test_select_nan(self):
         self.table.select_nan('a')
@@ -194,3 +201,7 @@ class TestDataTable(unittest.TestCase):
         self.assertTrue(
             (self.table['a'] == self.data['a']).all()
         )
+
+
+if __name__ == '__main__':
+    unittest.main()

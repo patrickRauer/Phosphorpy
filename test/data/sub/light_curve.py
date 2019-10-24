@@ -79,3 +79,7 @@ class TestLightCurveDataSet(unittest.TestCase):
 
     def test_get_light_curves(self):
         print(self.ds.light_curves)
+
+
+if __name__ == '__main__':
+    unittest.main()
