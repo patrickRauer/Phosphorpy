@@ -147,6 +147,15 @@ class SpectraList:
                 spec_list.append(*(self[i]))
             return spec_list
 
+    def get_ids(self):
+        """
+        Returns all IDs of the downloaded spectra. Every ID is returned only once but multiple spectra could
+        be available.
+        :return: The IDs of the spectra
+        :rtype: ndarray
+        """
+        return np.unique(self._ids)
+
     def append(self, spectra, spec_id=-1):
         """
         Appends a new spectra to the spectra list.
