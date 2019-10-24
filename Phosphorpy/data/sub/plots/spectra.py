@@ -73,7 +73,7 @@ class SpectraListPlot:
         """
         self._spectra_list = spectra_list
 
-    def spectra(self, path, index, min_wavelength=None, max_wavelength=None):
+    def spectra(self, index, path='', min_wavelength=None, max_wavelength=None):
         if type(index) == int:
             self._spectra_list.get_by_id(index).plot.spectra(path, min_wavelength, max_wavelength)
         elif type(index) == list:
