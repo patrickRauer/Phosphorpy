@@ -222,6 +222,10 @@ class SpectraList:
     #     out = vstack(out).to_pandas()
     #     return out.set_index('ID')
 
+    @property
+    def plot(self):
+        return self._plot
+
 
 class Spectra:
     NORMALIZE_MEAN = np.mean
