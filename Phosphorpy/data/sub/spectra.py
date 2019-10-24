@@ -6,7 +6,7 @@ import glob
 import os
 import numbers
 
-from Phosphorpy.data.sub.plots.spectra import SpectraPlot
+from Phosphorpy.data.sub.plots.spectra import SpectraPlot, SpectraListPlot
 
 
 class SpectraList:
@@ -44,6 +44,8 @@ class SpectraList:
             else:
                 self._ids = [0]
 
+        self._plot = SpectraListPlot(self)
+
     def __len__(self):
         return len(self._spectra)
 
@@ -66,7 +68,7 @@ class SpectraList:
             ids_out = [
                 self._ids[i] for i in item
             ]
-            return spec_out, ids_out
+            return SpectraList(spec_out, ids_out)
 
     def write(self, path, data_format='fits', overwrite=True):
         """
