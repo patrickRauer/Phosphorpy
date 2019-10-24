@@ -13,6 +13,7 @@ class SpectraList:
 
     _spectra = None
     _ids = None
+    _plot = None
 
     def __init__(self, spectra=None, ids=None):
         """
