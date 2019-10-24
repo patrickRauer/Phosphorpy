@@ -80,19 +80,21 @@ class SpectraListPlot:
             pl.clf()
             sp = pl.subplot()
             for i in index:
-                spec = self._spectra_list.get_by_id(i)
-                wave = spec.wavelength
-                flux = spec.flux
-                if min_wavelength is not None:
-                    m = wave >= min_wavelength
-                    wave = wave[m]
-                    flux = flux[m]
+                specs = self._spectra_list.get_by_id(i)
+                for spec_id in range(len(specs)):
+                    spec = specs[spec_id]
+                    wave = spec.wavelength
+                    flux = spec.flux
+                    if min_wavelength is not None:
+                        m = wave >= min_wavelength
+                        wave = wave[m]
+                        flux = flux[m]
 
-                if max_wavelength is not None:
-                    m = wave <= max_wavelength
-                    wave = wave[m]
-                    flux = flux[m]
-                sp.step(wave, flux, label=f'{i}')
+                    if max_wavelength is not None:
+                        m = wave <= max_wavelength
+                        wave = wave[m]
+                        flux = flux[m]
+                    sp.step(wave, flux, label=f'{i}')
 
             sp.set_xlabel('wavelength')
             sp.set_ylabel('flux')
