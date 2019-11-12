@@ -80,7 +80,10 @@ class DataTable:
         :return:
         """
         if self._data is not None:
-            self._data = self._data[self._mask.get_latest_mask()]
+            latest_mask = self._mask.get_latest_mask()
+            latest_mask = latest_mask.align(self._data, fill_value=False)[0]
+
+            self._data = self._data[latest_mask]
 
     def select_nan(self, column):
         """
@@ -260,6 +263,8 @@ class DataTable:
         return str(self._data)
 
     def __getitem__(self, item):
+        if type(item) == str:
+            return self._data[item]
         return self._data.loc[item]
 
     def __len__(self):

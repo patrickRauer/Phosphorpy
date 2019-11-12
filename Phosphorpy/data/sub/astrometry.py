@@ -312,7 +312,7 @@ class AstrometryTable(DataTable):
 
         s = SkyCoord(self._data['ra'].values*u.deg,
                      self._data['dec'].values*u.deg,
-                     pm_ra_cosdec=self._data['pmra'].values*np.cos(np.deg2rad(self._data['dec'].values)),
-                     pm_dec=self._data['pmdec'],
-                     distance=Distance(parallax=self._data['parallax']))
+                     pm_ra_cosdec=self._data['pmra'].values*np.cos(np.deg2rad(self._data['dec'].values))*u.mas/u.yr,
+                     pm_dec=self._data['pmdec'].values*u.mas/u.yr,
+                     distance=Distance(parallax=self._data['parallax'].values*u.mas))
         return s

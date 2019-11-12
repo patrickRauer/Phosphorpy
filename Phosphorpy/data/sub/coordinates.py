@@ -151,7 +151,7 @@ class CoordinateTable(DataTable):
         else:
             raise ValueError()
 
-        x = np.concatenate((self._data[:, :2].values, d), axis=0)
+        x = np.concatenate((self._data[['ra', 'dec']].values, d), axis=0)
         return x
 
     def match(self, other, radius=2 * u.arcsec,
@@ -192,15 +192,19 @@ class CoordinateTable(DataTable):
         x = self._data[['ra', 'dec']].values
         # convert the radius to degree and to a float
         if type(radius) == Quantity:
-            radius = radius.to(u.deg).value
+            radius = radius.to(u.deg)
 
         if type(other) != DataFrame:
             if type(other) == Table:
                 other = other.to_pandas()
-            elif type(other) == np.array:
-                other = DataFrame(other)
+            elif type(other) == np.ndarray:
+                other = DataFrame(other, columns=['ra', 'dec'])
             elif type(other) == CoordinateTable:
                 other = other.data
+            elif type(other) == SkyCoord:
+                sk = self.to_sky_coord()
+                index, dis2d, dis3d = sk.match_to_catalog_sky(other)
+                return other[index[dis2d < radius]]
             else:
                 raise ValueError('Unsupported input type ({})'.format(str(type(other))))
 
@@ -211,7 +215,7 @@ class CoordinateTable(DataTable):
         y = other[[ra_name, dec_name]].values
         y[:, 0] *= np.cos(np.deg2rad(y[:, 1]))
         distances, indices = nn.kneighbors(y)
-        m = distances[:, 0] <= radius
+        m = distances[:, 0] <= radius.value
 
         new_indices = self.data.index.values[indices[:, 0][m]]
 

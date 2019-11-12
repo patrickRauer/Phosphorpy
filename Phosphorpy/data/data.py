@@ -9,6 +9,7 @@ from Phosphorpy.data.sub.magnitudes import MagnitudeTable as Magnitude, SurveyDa
 from Phosphorpy.data.sub.plots.plot import Plot
 from Phosphorpy.data.sub.table import Mask
 from Phosphorpy.external.image import PanstarrsImage, SDSSImage
+from Phosphorpy.external.vizier import query_by_name, query_simbad, constrain_query
 from Phosphorpy.external.spectra import get_spectra
 from Phosphorpy.external.vizier import query_by_name, query_simbad, constrain_query
 from Phosphorpy.data.sub.astrometry import AstrometryTable
@@ -787,6 +788,7 @@ class DataSet:
             coords = Table.read(path)
             coords = coords[[ra_name, dec_name]]
             coords = coords.to_pandas()
+            coords = coords.rename({ra_name: 'ra', dec_name: 'dec'}, axis='columns')
         elif format == 'csv':
             coords = pd.read_csv(path)
         else:

@@ -8,6 +8,16 @@ from Phosphorpy.external.css import download_light_curves
 
 
 def _average_light_curve(lc, dt_max):
+    """
+    Averages the given light curve
+
+    :param lc: The input light curve
+    :type lc: DataFrame
+    :param dt_max: The box size of the average
+    :type dt_max: float
+    :return: The averaged light curve
+    :rtype: DataFrame
+    """
     dt = lc['mjd'][1:].values - lc['mjd'][:-1].values
     p = np.where(dt > dt_max)[0]+1
     start = 0
@@ -42,23 +52,42 @@ class LightCurves:
 
     _plot = None
 
-    def __init__(self, coordinates=None, light_curves=None):
+    def __init__(self, coordinates=None, light_curves=None, surveys=None):
         if coordinates is not None:
-            css_lc = download_light_curves(coordinates['ra'],
-                                           coordinates['dec'])[['InputID', 'ID', 'Mag', 'Magerr',
-                                                                'RA', 'Decl', 'MJD']]
-            css_lc['survey'] = 1
-            css_lc = css_lc.rename({'InputID': 'row_id', 'ID': 'oid',
-                                    'Mag': 'mag', 'Magerr': 'magerr', 'RA': 'ra',
-                                    'Decl': 'dec', 'MJD': 'mjd'}, axis='columns')
+            if surveys is None:
+                surveys = ['css', 'ptf', 'ztf']
+            else:
+                if type(surveys) == str:
+                    surveys = [surveys]
+                surveys = [s.lower() for s in surveys]
 
-            ptf_lc = zwicky.download_ptf(coordinates['ra'], coordinates['dec'],
-                                         index=coordinates.index.values)
-            ptf_lc['survey'] = 2
-            zwicky_lc = zwicky.download_light_curve(coordinates['ra'], coordinates['dec'],
-                                                    index=coordinates.index.values)
-            zwicky_lc['survey'] = 3
-            self._light_curves = pd.concat([css_lc, ptf_lc, zwicky_lc])
+            out = []
+            if 'css' in surveys:
+                css_lc = download_light_curves(coordinates['ra'],
+                                               coordinates['dec'])[['InputID', 'ID', 'Mag', 'Magerr',
+                                                                    'RA', 'Decl', 'MJD']]
+                css_lc['survey'] = 1
+                css_lc = css_lc.rename({'InputID': 'row_id', 'ID': 'oid',
+                                        'Mag': 'mag', 'Magerr': 'magerr', 'RA': 'ra',
+                                        'Decl': 'dec', 'MJD': 'mjd'}, axis='columns')
+                out.append(css_lc)
+
+            if 'ptf' in surveys:
+                ptf_lc = zwicky.download_ptf(coordinates['ra'], coordinates['dec'],
+                                             index=coordinates.index.values)
+                ptf_lc['survey'] = 2
+                out.append(ptf_lc)
+
+            if 'ztf' in surveys:
+                zwicky_lc = zwicky.download_light_curve(coordinates['ra'], coordinates['dec'],
+                                                        index=coordinates.index.values)
+                zwicky_lc['survey'] = 3
+                out.append(zwicky_lc)
+
+            if len(out) == 0:
+                raise ValueError('No light curves found for the coordinate and survey combination.')
+
+            self._light_curves = pd.concat(out)
         elif light_curves is not None:
             self._light_curves = light_curves
         else:
@@ -143,7 +172,7 @@ class LightCurves:
         :return: The aligned light curves, if inplace is True. Otherwise None.
         :rtype: LightCurves, None
         """
-        lc = self._light_curves
+        lc = self._light_curves.copy()
         stats = self.stats()
         mag0 = 0
         out = []
@@ -155,14 +184,14 @@ class LightCurves:
                 out.append(lc[lc_mask])
             else:
                 lc_s = lc[lc_mask]
-                lc_s['mag'] -= mag_med-mag0
+                lc_s.loc[:, 'mag'] -= mag_med-mag0
                 out.append(lc_s)
-
         out = pd.concat(out)
+
         if inplace:
             self._light_curves = out
         else:
-            return LightCurves(out)
+            return LightCurves(light_curves=out)
 
     def to_time_series(self, index):
         raise NotImplementedError()
