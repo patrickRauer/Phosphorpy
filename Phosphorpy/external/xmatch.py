@@ -2,7 +2,7 @@
 This script wraps the astroquery.xmatch.XMatch class to create an interface which is more usable in this program.
 """
 from astroquery.xmatch import XMatch
-from astropy.table import Table
+from astropy.table import Table, vstack
 from astropy import units as u
 
 from ..config.survey_data import SURVEY_DATA
@@ -11,7 +11,7 @@ import pandas
 import os
 
 
-def __check_row_id__(data, colnames):
+def __check_row_id__(data, colnames=None):
     """
     Checks if the input data has a column 'row_id'. If not it will add such a column with unique integer id's
 
@@ -22,6 +22,11 @@ def __check_row_id__(data, colnames):
     :return: The input data with an additional column 'row_id' if there wasn't such a column before.
     :rtype: astropy.table.Table, pandas.DataFrame
     """
+    if colnames is None:
+        if type(data) == pandas.DataFrame:
+            colnames = data.columns
+        else:
+            colnames = data.colnames
     if 'row_id' not in colnames:
         data['row_id'] = np.arange(len(data))+1
     return data
@@ -139,7 +144,23 @@ def _compute_gaia_mags(rs):
     return rs
 
 
-def xmatch(data, ra_name, dec_name, survey, max_distance=1.*u.arcsec, blank=False):
+def _xmatch(data, ra_name, dec_name, survey, max_distance):
+    # write the temp file
+    __write_temp_file__(data, ra_name, dec_name)
+
+    # use XMatch to download the data
+    rs = XMatch.query(cat1=open('temp.csv'),
+                      cat2='vizier:{}'.format(SURVEY_DATA[survey]['vizier']),
+                      colRA1='{}_input'.format(ra_name),
+                      colDec1='{}_input'.format(dec_name),
+                      max_distance=max_distance)
+
+    # remove the temp file
+    os.remove('temp.csv')
+    return rs
+
+
+def xmatch(data, ra_name, dec_name, survey, max_distance=1.*u.arcsec, blank=False, max_rows=20000):
     """
     Interface to the astroquery.xmatch.XMatch module
 
@@ -173,26 +194,34 @@ def xmatch(data, ra_name, dec_name, survey, max_distance=1.*u.arcsec, blank=Fals
     :type max_distance: ﻿astropy.units.quantity.Quantity
     :param blank: True if all columns should return, else False for survey specific columns.
     :type blank: bool
+    :param max_rows:
+        The number of rows for one query. If more rows than max_rows are in the data, then multiple queries
+        are performed with sub-samples of the size <= max_rows.
+        Default is 20000, which mostly works. In the case of a slow internet connection and timeout errors,
+        a reduction of max_rows can help.
+    :type max_rows: int
     :return: The results of the catalog query
     :rtype: pandas.DataFrame
     """
-    # write the temp file
-    __write_temp_file__(data, ra_name, dec_name)
+    # if the amount of data is too large for one single query
+    if len(data) > max_rows:
+        data = __check_row_id__(data)
 
-    # use XMatch to download the data
-    rs = XMatch.query(cat1=open('temp.csv'),
-                      cat2='vizier:{}'.format(SURVEY_DATA[survey]['vizier']),
-                      colRA1='{}_input'.format(ra_name),
-                      colDec1='{}_input'.format(dec_name),
-                      max_distance=max_distance)
+        rs = []
+        steps = len(data)//max_rows
+        for i in range(steps):
+            rs.append(
+                _xmatch(
+                    data[i*max_rows: (i+1)*max_rows],
+                    ra_name, dec_name, survey, max_distance
+                )
+            )
+        rs = vstack(rs)
+    else:
+        rs = _xmatch(data, ra_name, dec_name, survey, max_distance)
 
-    # remove the temp file
-    os.remove('temp.csv')
-
-    # if blank is true, return the results without formatting
     if blank:
         return rs.to_pandas()
-
     # reduce the number of columns to the required ones
     output_cols, coord_cols = __output_columns__(survey)
     # rs = rs[output_cols]

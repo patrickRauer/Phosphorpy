@@ -3,14 +3,17 @@ from astropy.modeling import models, fitting
 from astropy import units as u
 import numpy as np
 import glob
+import os
+import numbers
 
-from Phosphorpy.data.sub.plots.spectra import SpectraPlot
+from Phosphorpy.data.sub.plots.spectra import SpectraPlot, SpectraListPlot
 
 
 class SpectraList:
 
     _spectra = None
     _ids = None
+    _plot = None
 
     def __init__(self, spectra=None, ids=None):
         """
@@ -41,6 +44,8 @@ class SpectraList:
             else:
                 self._ids = [0]
 
+        self._plot = SpectraListPlot(self)
+
     def __len__(self):
         return len(self._spectra)
 
@@ -54,16 +59,16 @@ class SpectraList:
         :return:
         :rtype: Spectra, int
         """
-        if type(item) == int:
+        if isinstance(item, numbers.Integral):
             return self._spectra[item], self._ids[item]
-        elif type(item) == list or type(item) == tuple:
+        elif type(item) == list or type(item) == tuple or type(item) == np.ndarray:
             spec_out = [
                 self._spectra[i] for i in item
             ]
             ids_out = [
                 self._ids[i] for i in item
             ]
-            return spec_out, ids_out
+            return SpectraList(spec_out, ids_out)
 
     def write(self, path, data_format='fits', overwrite=True):
         """
@@ -77,10 +82,15 @@ class SpectraList:
         :type overwrite: bool
         :return:
         """
+        if not os.path.exists(path):
+            os.makedirs(path)
+        elif not os.path.isdir(path):
+            raise ValueError('path must be a directory and not a file.')
+
         paths = []
         for spec, index in zip(self._spectra, self._ids):
             paths.append(spec.write(
-                f'{path}{spec.survey}_{index}.{format}',
+                f'{path}{spec.survey}_{index}.{data_format}',
                 data_format=data_format, overwrite=overwrite
             ))
         return paths
@@ -109,7 +119,7 @@ class SpectraList:
                                 wavelength_name=wavelength_name, flux_name=flux_name,
                                 survey_key=survey_key)
             spec_list.append(spec)
-        pass
+        return spec_list
 
     def get_by_id(self, index):
         """
@@ -123,13 +133,28 @@ class SpectraList:
             If no spectra is found with the required ID, the method will return None.
         :rtype: SpectraList, None
         """
-        if index in self._ids:
+        if isinstance(index, numbers.Integral):
+            con = index in self._ids
+        else:
+            con = np.isin(index, np.array(self._ids)).any()
+
+        if con:
             p = np.where(np.array(self._ids) == index)[0]
+            print(p)
             spec_list = SpectraList()
             for i in p:
+                print(i, self[i], type(i))
                 spec_list.append(*(self[i]))
             return spec_list
-        return None
+
+    def get_ids(self):
+        """
+        Returns all IDs of the downloaded spectra. Every ID is returned only once but multiple spectra could
+        be available.
+        :return: The IDs of the spectra
+        :rtype: ndarray
+        """
+        return np.unique(self._ids)
 
     def append(self, spectra, spec_id=-1):
         """
@@ -165,46 +190,50 @@ class SpectraList:
             temp = second[i]
             self.append(temp[0].copy(), temp[1])
 
-    def estimate_line_properties(self, as_velocity=False, redo=False):
-        """
-        Estimates the line properties of all spectra in the list
+    # def estimate_line_properties(self, as_velocity=False, redo=False):
+    #     """
+    #     Estimates the line properties of all spectra in the list
+    #
+    #     :param as_velocity:
+    #         True, if the line shift should be returned as a radial velocity in km/s, else False to
+    #         get lambda/lambda0-1.
+    #         Default is False.
+    #     :type as_velocity: bool
+    #     :param redo:
+    #         True, if old results should be ignored, else False.
+    #         Default is False.
+    #     :type redo: bool
+    #     :return: The line properties of all spectra
+    #     :rtype: dict
+    #     """
+    #     out = {}
+    #     for s in self._spectra:
+    #         out[s.obs_id] = s.estimate_line_properties(as_velocity=as_velocity,
+    #                                                    redo=redo)
+    #     return out
+    #
+    # def as_dataframe(self, as_velocity=False, redo=False):
+    #     """
+    #     Returns the main information of the stored spectra as a pandas DataFrame
+    #
+    #     :param as_velocity:
+    #     :param redo:
+    #     :return: The main information as a dataframe
+    #     :rtype: DataFrame
+    #     """
+    #     out = []
+    #     for s, d_id in zip(self._spectra, self._ids):
+    #         properties = s.estimate_line_properties(as_velocity=as_velocity,
+    #                                                 redo=redo)
+    #         properties['obsID'] = s.obs_id
+    #         properties['ID'] = d_id
+    #         out.append(properties)
+    #     out = vstack(out).to_pandas()
+    #     return out.set_index('ID')
 
-        :param as_velocity:
-            True, if the line shift should be returned as a radial velocity in km/s, else False to
-            get lambda/lambda0-1.
-            Default is False.
-        :type as_velocity: bool
-        :param redo:
-            True, if old results should be ignored, else False.
-            Default is False.
-        :type redo: bool
-        :return: The line properties of all spectra
-        :rtype: dict
-        """
-        out = {}
-        for s in self._spectra:
-            out[s.obs_id] = s.estimate_line_properties(as_velocity=as_velocity,
-                                                       redo=redo)
-        return out
-
-    def as_dataframe(self, as_velocity=False, redo=False):
-        """
-        Returns the main information of the stored spectra as a pandas DataFrame
-
-        :param as_velocity:
-        :param redo:
-        :return: The main information as a dataframe
-        :rtype: DataFrame
-        """
-        out = []
-        for s, d_id in zip(self._spectra, self._ids):
-            properties = s.estimate_line_properties(as_velocity=as_velocity,
-                                                    redo=redo)
-            properties['obsID'] = s.obs_id
-            properties['ID'] = d_id
-            out.append(properties)
-        out = vstack(out).to_pandas()
-        return out.set_index('ID')
+    @property
+    def plot(self):
+        return self._plot
 
 
 class Spectra:
@@ -524,6 +553,9 @@ class Spectra:
         """
         dgauss = models.Gaussian1D(**guesses)+models.Gaussian1D(**guesses2)
         return self.fit_line(model=dgauss)
+
+    def estimate_line_properties(self):
+        pass
 
     @property
     def wavelength(self):

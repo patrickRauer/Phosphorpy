@@ -1,7 +1,6 @@
 from astropy.io import fits
 from astropy.table import Table
 
-from Phosphorpy.data.sub.astrometry import AstrometryTable
 from Phosphorpy.data.sub.colors import Colors
 from Phosphorpy.data.sub.coordinates import CoordinateTable
 from Phosphorpy.data.sub.flux import FluxTable
@@ -11,6 +10,7 @@ from Phosphorpy.data.sub.plots.plot import Plot
 from Phosphorpy.data.sub.table import Mask
 from Phosphorpy.external.image import PanstarrsImage, SDSSImage
 from Phosphorpy.external.spectra import get_spectra
+from Phosphorpy.external.vizier import query_by_name, query_simbad, constrain_query
 from Phosphorpy.data.sub.astrometry import AstrometryTable
 from Phosphorpy.report.Report import DataSetReport
 
@@ -229,6 +229,38 @@ class DataSet:
     def spectra(self):
         return self._spectra
 
+    def get_spectra(self, coordinate=None, ra=None, dec=None):
+        """
+        Returns the spectra close to the given coordinates.
+
+        :param coordinate: Coordinates (or close to) of the required ID.
+        :type coordinate: SkyCoord
+        :param ra: The RA component of the coordinates
+        :type ra: float
+        :param dec: The Dec component of the coordinates
+        :type dec: float
+        :return: The closest spectra
+        :rtype: SpectraList
+        """
+        min_id, distance = self.coordinates.get_closest_source_id(coordinate, ra, dec)
+        return self.light_curves.get_light_curve(min_id)
+
+    def get_light_curve(self, coordinate=None, ra=None, dec=None):
+        """
+        Returns the light curve close to the given coordinates.
+
+        :param coordinate: Coordinates (or close to) of the required ID.
+        :type coordinate: SkyCoord
+        :param ra: The RA component of the coordinates
+        :type ra: float
+        :param dec: The Dec component of the coordinates
+        :type dec: float
+        :return: The closest light curve
+        :rtype: LightCurves
+        """
+        min_id, distance = self.coordinates.get_closest_source_id(coordinate, ra, dec)
+        return self.spectra.get_by_id(min_id)
+
     def remove_unmasked_data(self):
         """
         Removes all unmasked items from the dataset and sets the mask back to None.
@@ -348,7 +380,7 @@ class DataSet:
             Currently, available surveys are 'SDSS', 'LAMOST' and 'GAMA'
         :return:
         """
-        specs = get_spectra(self.coordinates.as_sky_coord(), survey)
+        specs = get_spectra(self.coordinates.to_sky_coord(), survey)
 
         if self._spectra is None:
             self._spectra = specs
@@ -583,8 +615,7 @@ class DataSet:
             hdu_list.append(self.flux.to_astropy_table('flux'))
 
         if self._light_curves is not None:
-            # todo: write light curves
-            pass
+            hdu_list.append(self.light_curves.to_astropy_table())
 
         if self._spectra is not None:
             self._spectra.write(f'{os.path.dirname(path)}/spectra/')
@@ -604,13 +635,6 @@ class DataSet:
 
         if self._spectra is not None:
             self._spectra.write(f'{os.path.dirname(path)}/spectra/')
-
-    def __write_as_report__(self, path):
-        # todo: implement report writing
-        a = self.plot
-        report = DataSetReport(self)
-        report.html(path)
-        # raise AttributeError('Report is not implemented yet')
 
     def write(self, path, format='zip', in_zip_format='fits'):
         """

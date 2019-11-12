@@ -221,6 +221,30 @@ class CoordinateTable(DataTable):
         other = other.set_index('row_id')
         return other
 
+    def get_closest_source_id(self, coordinate=None, ra=None, dec=None):
+        """
+        Returns the ID of the closest sources and the distance to source.
+
+        coordinate or ra and dec has to be given. If all three are given,
+        the coordinate object is taken.
+
+        :param coordinate: Coordinates (or close to) of the required ID.
+        :type coordinate: SkyCoord
+        :param ra: The RA component of the coordinates
+        :type ra: float
+        :param dec: The Dec component of the coordinates
+        :type dec: float
+        :return: The closest ID and the distance to the corresponding source
+        :rtype: int, u.Quantity
+        """
+        if coordinate is None:
+            if ra is None or dec is None:
+                raise ValueError('If no coordinates are given, RA and Dec must be given.')
+            coordinate = SkyCoord(ra*u.deg, dec*u.deg)
+        distances = coordinate.separation(self.to_sky_coord())
+        min_id = np.argmin(distances)
+        return min_id, distances[min_id]
+
     def write(self, path, data_format='parquet'):
         data = self.to_table()
         if data_format == 'parquet':

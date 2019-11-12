@@ -1,4 +1,5 @@
 import pylab as pl
+import numpy as np
 
 
 class SpectraPlot:
@@ -58,3 +59,44 @@ class SpectraPlot:
             pl.show()
         else:
             pl.savefig(path)
+
+
+class SpectraListPlot:
+    _spectra_list = None
+
+    def __init__(self, spectra_list):
+        """
+        SpectraPlot os the plotting environment of the :class:`Phosphorpy.data.sub.spectra.Spectra` class.
+
+        :param spectra_list: The spectra
+        :type spectra_list: Phosphorpy.data.sub.spectra.SpectraList
+        """
+        self._spectra_list = spectra_list
+
+    def spectra(self, index, path='', min_wavelength=None, max_wavelength=None):
+        if type(index) == int:
+            self._spectra_list.get_by_id(index).plot.spectra(path, min_wavelength, max_wavelength)
+        elif type(index) == list:
+            pl.clf()
+            sp = pl.subplot()
+            for i in index:
+                specs = self._spectra_list.get_by_id(i)
+                for spec_id in range(len(specs)):
+                    spec = specs[spec_id]
+                    wave = spec.wavelength
+                    flux = spec.flux
+                    if min_wavelength is not None:
+                        m = wave >= min_wavelength
+                        wave = wave[m]
+                        flux = flux[m]
+
+                    if max_wavelength is not None:
+                        m = wave <= max_wavelength
+                        wave = wave[m]
+                        flux = flux[m]
+                    sp.step(wave, flux, label=f'{i}')
+
+            sp.set_xlabel('wavelength')
+            sp.set_ylabel('flux')
+            pl.legend(loc='best')
+            pl.show()

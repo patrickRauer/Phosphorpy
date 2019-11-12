@@ -167,6 +167,15 @@ class LightCurves:
     def to_time_series(self, index):
         raise NotImplementedError()
 
+    def to_astropy_table(self):
+        """
+        Returns the light curve data as an astropy Table
+
+        :return: The light curve data points
+        :rtype: Table
+        """
+        return Table.from_pandas(self.light_curves)
+
     @property
     def light_curves(self):
         return self._light_curves
