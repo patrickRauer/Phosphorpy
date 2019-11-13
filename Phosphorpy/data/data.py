@@ -9,7 +9,7 @@ from Phosphorpy.data.sub.magnitudes import MagnitudeTable as Magnitude, SurveyDa
 from Phosphorpy.data.sub.plots.plot import Plot
 from Phosphorpy.data.sub.table import Mask
 from Phosphorpy.external.image import PanstarrsImage, SDSSImage
-from Phosphorpy.external.spectra import get_spectra
+from Phosphorpy.external.spectra import get_spectra, get_all_spectra
 from Phosphorpy.external.vizier import query_by_name, query_simbad, constrain_query
 from Phosphorpy.data.sub.astrometry import AstrometryTable
 from Phosphorpy.report.Report import DataSetReport
@@ -227,6 +227,11 @@ class DataSet:
 
     @property
     def spectra(self):
+        if self._spectra is None:
+            self._spectra = get_all_spectra(
+                self.coordinates.to_sky_coord(),
+                self.coordinates.data.index.values
+            )
         return self._spectra
 
     def get_spectra(self, coordinate=None, ra=None, dec=None):

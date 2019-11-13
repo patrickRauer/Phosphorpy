@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='Phosphorpy',
-    version='0.6',
+    version='0.6.1',
     packages=['Phosphorpy', 'Phosphorpy.data',
               'Phosphorpy.data.sub', 'Phosphorpy.data.sub.plots',
               'Phosphorpy.config', 'Phosphorpy.report',

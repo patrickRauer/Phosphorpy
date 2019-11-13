@@ -232,3 +232,33 @@ def get_spectra(coord, ids=None, source='SDSS'):
         return get_gama_spectra(coord, ids=ids)
     else:
         raise ValueError(f'{source} is unknown for spectra.')
+
+
+def get_all_spectra(coordinates, index=None):
+    specs = None
+    try:
+        specs = get_spectra(coordinates, index)
+    except:
+        pass
+
+    try:
+        lamost = get_spectra(coordinates, index, LAMOST)
+        if specs is None:
+            specs = lamost
+        else:
+            specs.merge(lamost)
+    except:
+        pass
+
+    try:
+        gama = get_spectra(coordinates, index, GAMA)
+        if specs is None:
+            specs = gama[0]
+            specs.merge(gama[1])
+        else:
+            specs.merge(gama[0])
+            specs.merge(gama[1])
+    except:
+        pass
+
+    return specs

@@ -14,7 +14,7 @@ class SpectraPlot:
         """
         self._spectra = spectra
 
-    def spectra(self, path='', min_wavelength=None, max_wavelength=None):
+    def spectra(self, path='', min_wavelength=None, max_wavelength=None, normalize=False):
         """
         Basic spectra plot
 
@@ -37,6 +37,9 @@ class SpectraPlot:
         wave = self._spectra.wavelength
         flux = self._spectra.flux
 
+        if normalize:
+            flux /= np.nanmedian(flux)
+
         if min_wavelength is not None or max_wavelength is not None:
             spec = self._spectra.cut(min_wavelength=min_wavelength,
                                      max_wavelength=max_wavelength,
@@ -44,14 +47,15 @@ class SpectraPlot:
             wave = spec.wavelength
             flux = spec.flux
 
-        sp.step(wave, flux, '-k')
+        m = np.abs(flux) < 1e8
+        sp.step(wave[m], flux[m], '-k')
 
         if len(self._spectra.fit) > 0:
             for fit in self._spectra.fit:
                 sp.plot(wave, fit(wave), '--')
 
         sp.set_xlabel(f'wavelength [{self._spectra.wavelength_unit.to_string("latex")}]')
-        sp.set_ylabel(f'flux [{self._spectra.flux_unit.to_string("latex")}]')
+        sp.set_ylabel(f'flux')
 
         sp.set_xlim(wave.min(), wave.max())
 
@@ -73,9 +77,9 @@ class SpectraListPlot:
         """
         self._spectra_list = spectra_list
 
-    def spectra(self, index, path='', min_wavelength=None, max_wavelength=None):
+    def spectra(self, index, path='', min_wavelength=None, max_wavelength=None, normalize=False):
         if type(index) == int:
-            self._spectra_list.get_by_id(index).plot.spectra(path, min_wavelength, max_wavelength)
+            self._spectra_list.get_by_id(index)[0][0].plot.spectra(path, min_wavelength, max_wavelength)
         elif type(index) == list:
             pl.clf()
             sp = pl.subplot()
@@ -83,6 +87,8 @@ class SpectraListPlot:
                 specs = self._spectra_list.get_by_id(i)
                 for spec_id in range(len(specs)):
                     spec = specs[spec_id]
+                    if type(spec) == tuple:
+                        spec = spec[0]
                     wave = spec.wavelength
                     flux = spec.flux
                     if min_wavelength is not None:
@@ -94,7 +100,10 @@ class SpectraListPlot:
                         m = wave <= max_wavelength
                         wave = wave[m]
                         flux = flux[m]
-                    sp.step(wave, flux, label=f'{i}')
+                    m = np.abs(flux) < 1e8
+                    if normalize:
+                        flux /= np.nanmedian(flux[m])
+                    sp.step(wave[m], flux[m], label=f'{i}')
 
             sp.set_xlabel('wavelength')
             sp.set_ylabel('flux')

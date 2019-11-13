@@ -52,6 +52,9 @@ class SpectraList:
     def __str__(self):
         return f'SpectraList with {len(self)} spectra.'
 
+    def __repr__(self):
+        return str(self)
+
     def __getitem__(self, item):
         """
 
@@ -140,10 +143,8 @@ class SpectraList:
 
         if con:
             p = np.where(np.array(self._ids) == index)[0]
-            print(p)
             spec_list = SpectraList()
             for i in p:
-                print(i, self[i], type(i))
                 spec_list.append(*(self[i]))
             return spec_list
 
@@ -183,6 +184,9 @@ class SpectraList:
         :type second: SpectraList
         :return:
         """
+        if second is None:
+            return
+
         if type(second) != SpectraList:
             raise ValueError('second must be of the type \'SpectraList\'')
 
@@ -318,6 +322,9 @@ class Spectra:
     def __str__(self):
         return f'Spectra with wavelength between {self.min_wavelength} and {self.max_wavelength} with a' \
                f' wavelength resolution of {np.round(self.resolution_wavelength, 2)}.'
+
+    def __repr__(self):
+        return str(self)
 
     def write(self, path, data_format='fits', overwrite=True):
         """
