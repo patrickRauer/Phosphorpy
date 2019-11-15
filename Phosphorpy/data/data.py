@@ -249,7 +249,7 @@ class DataSet:
         :rtype: SpectraList
         """
         min_id, distance = self.coordinates.get_closest_source_id(coordinate, ra, dec)
-        return self.light_curves.get_light_curve(min_id)
+        return self.spectra.get_by_id(min_id)
 
     def get_light_curve(self, coordinate=None, ra=None, dec=None):
         """
@@ -265,7 +265,7 @@ class DataSet:
         :rtype: LightCurves
         """
         min_id, distance = self.coordinates.get_closest_source_id(coordinate, ra, dec)
-        return self.spectra.get_by_id(min_id)
+        return self.light_curves.get_light_curve(min_id)
 
     def remove_unmasked_data(self):
         """
