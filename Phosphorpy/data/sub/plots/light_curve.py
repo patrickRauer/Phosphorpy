@@ -43,7 +43,7 @@ class LightCurvePlot:
     def __init__(self, light_curve):
         self._light_curve = light_curve
 
-    def plot_light_curve(self, light_curve_id, path=None):
+    def plot_light_curve(self, light_curve_id, min_mjd=None, max_mjd=None, path=None):
         """
         Plots the light curve of the CSS
 
@@ -54,19 +54,28 @@ class LightCurvePlot:
         :type path: str
         :return:
         """
+
+        if min_mjd is None:
+            min_mjd = self._light_curve.light_curves['mjd'].min()
+
+        if max_mjd is None:
+            max_mjd = self._light_curve.light_curves['mjd'].max()
+
         pl.clf()
         sp = pl.subplot()
         if type(light_curve_id) is int:
             lc = self._light_curve.light_curves[self._light_curve.light_curves['row_id'] == light_curve_id]
+            lc = lc[(lc['mjd'] >= min_mjd) & (lc['mjd'] <= max_mjd)]
             _plot_light_curve(sp, lc)
 
         elif type(light_curve_id) is tuple or type(light_curve_id) is list:
             colors = get_cmap('Set1').colors
             for i, lci in enumerate(light_curve_id):
                 lc = self._light_curve.light_curves[self._light_curve.light_curves['row_id'] == lci]
+                lc = lc[(lc['mjd'] >= min_mjd) & (lc['mjd'] <= max_mjd)]
                 _plot_light_curve(sp, lc, str(lci),
                                   colors[i % len(colors)])
-            print(pl.legend(loc='best'))
+            pl.legend(loc='best')
 
         sp.invert_yaxis()
 
@@ -78,5 +87,5 @@ class LightCurvePlot:
         else:
             pl.show()
 
-    def light_curve(self, light_curve_id, path=None):
-        self.plot_light_curve(light_curve_id, path=path)
+    def light_curve(self, light_curve_id, min_mjd=None, max_mjd=None, path=None):
+        self.plot_light_curve(light_curve_id, min_mjd=min_mjd, max_mjd=max_mjd, path=path)

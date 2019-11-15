@@ -228,7 +228,7 @@ class Table:
         :param axis:
         :return:
         """
-        self.__data.rename(name_map, axis)
+        self.__data.rename(name_map, axis=axis)
 
     def merge(self, right, left_index=False, right_index=False):
         self.__data = self.__data.merge(right, left_index=left_index, right_index=right_index)
@@ -260,7 +260,10 @@ class Table:
             self.data.to_csv(path)
         elif data_format == 'fits':
             t = AstroTable.from_pandas(self.data)
-            self.survey.add_to_meta(t.meta, self.survey_name)
+            try:
+                self.survey.add_to_meta(t.meta, self.survey_name)
+            except AttributeError:
+                pass
             t.write(path, overwrite=True)
         else:
             raise ValueError('Unknown format')

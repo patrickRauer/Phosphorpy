@@ -54,7 +54,33 @@ class TestXMatch(unittest.TestCase):
                              c[1])
 
     def test_compute_gaia_mags(self):
-        pass
+        gaia_test = pd.DataFrame({
+            'phot_g_mean_mag': np.array([5., 6., 7.]),
+            'phot_bp_mean_mag': np.array([5., 6., 7.]),
+            'phot_rp_mean_mag': np.array([5., 6., 7.]),
+            'parallax': np.array([1, 0.5, 0.25]),
+            'parallax_error': np.array([1, 0.5, 0.25]),
+            'phot_g_mean_flux_error': np.array([1e-17, 2e-17, 3e-17]),
+            'phot_bp_mean_flux_error': np.array([1e-17, 2e-17, 3e-17]),
+            'phot_rp_mean_flux_error': np.array([1e-17, 2e-17, 3e-17]),
+            'phot_g_mean_flux': np.power(10., -0.4*np.array([5., 6., 7.])),
+            'phot_bp_mean_flux': np.power(10., -0.4*np.array([5., 6., 7.])),
+            'phot_rp_mean_flux': np.power(10., -0.4*np.array([5., 6., 7.])),
+        })
+        xmatch._compute_gaia_mags(gaia_test)
+
+    def test___output_columns__(self):
+        for k in xmatch.SURVEY_DATA.keys():
+            xmatch.__output_columns__(k)
 
     def test_xmatch(self):
-        pass
+        coords = pd.DataFrame({
+            'ra': np.array([114.084986, 247.083831]),
+            'dec': np.array([25.144718, 40.933285])})
+        for k in xmatch.SURVEY_DATA.keys():
+            print(k)
+            xmatch.xmatch(coords.copy(), 'ra', 'dec', k)
+
+
+if __name__ == '__main__':
+    unittest.main()

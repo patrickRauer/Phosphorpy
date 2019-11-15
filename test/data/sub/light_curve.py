@@ -18,27 +18,54 @@ class TestLightCurve(unittest.TestCase):
         )
         self.lc = light_curve.LightCurves(self.coord)
 
-    # def test_str(self):
-    #     print(self.lc)
-    #
-    # def test_stats(self):
-    #     print(self.lc.stats())
-    #
-    # def test_average(self):
-    #     print(self.lc.average().stats())
-    #
-    #     with self.assertRaises(ValueError):
-    #         self.lc.average(-1)
+    def test_str(self):
+        print(self.lc)
 
-    def test_align(self):
-        self.lc.align_light_curves()
+    def test_stats(self):
         print(self.lc.stats())
 
-    # def test_get_light_curve(self):
-    #     l = self.lc.get_light_curve(0)
-    #     l.plot.light_curve(0)
-    #
-    #     self.lc.plot.light_curve([0, 1])
+    def test_average(self):
+        print(self.lc.average().stats())
+
+        with self.assertRaises(ValueError):
+            self.lc.average(-1)
+
+    def test_align(self):
+        lc = self.lc.align_light_curves(inplace=False)
+        stats = lc.stats()
+        stats0 = self.lc.stats()
+        for i in stats.index.get_level_values(0).values:
+            st = stats.loc[i]
+            self.assertEqual(
+                np.round(np.std(st[('mag', 'median')].values), 6), 0
+            )
+            st0 = stats0.loc[i]
+            self.assertIsNot(
+                np.round(np.std(st0[('mag', 'median')].values), 6), 0
+            )
+
+        self.lc.align_light_curves()
+        stats = self.lc.stats()
+        for i in stats.index.get_level_values(0).values:
+            st = stats.loc[i]
+            self.assertEqual(
+                np.round(np.std(st[('mag', 'median')].values), 6), 0
+            )
+
+    def test_get_light_curve(self):
+        l = self.lc.get_light_curve(0)
+        l.plot.light_curve(0)
+
+        self.lc.plot.light_curve([0, 1])
+
+    def test_plot_light_curve(self):
+        self.lc.plot.light_curve(0)
+
+        self.lc.plot.light_curve(0, min_mjd=58000, max_mjd=58500)
+
+        self.lc.plot.light_curve([0, 1])
+
+        self.lc.plot.light_curve([0, 1], min_mjd=58000, max_mjd=58500)
 
 
 class TestLightCurveDataSet(unittest.TestCase):
@@ -52,3 +79,7 @@ class TestLightCurveDataSet(unittest.TestCase):
 
     def test_get_light_curves(self):
         print(self.ds.light_curves)
+
+
+if __name__ == '__main__':
+    unittest.main()
