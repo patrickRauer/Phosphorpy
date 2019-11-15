@@ -9,11 +9,9 @@ from Phosphorpy.data.sub.magnitudes import MagnitudeTable as Magnitude, SurveyDa
 from Phosphorpy.data.sub.plots.plot import Plot
 from Phosphorpy.data.sub.table import Mask
 from Phosphorpy.external.image import PanstarrsImage, SDSSImage
-from Phosphorpy.external.vizier import query_by_name, query_simbad, constrain_query
-from Phosphorpy.external.spectra import get_spectra
+from Phosphorpy.external.spectra import get_spectra, get_all_spectra
 from Phosphorpy.external.vizier import query_by_name, query_simbad, constrain_query
 from Phosphorpy.data.sub.astrometry import AstrometryTable
-from Phosphorpy.report.Report import DataSetReport
 
 try:
     from extinction.extinction import get_extinctions
@@ -249,7 +247,7 @@ class DataSet:
         :rtype: SpectraList
         """
         min_id, distance = self.coordinates.get_closest_source_id(coordinate, ra, dec)
-        return self.light_curves.get_light_curve(min_id)
+        return self.spectra.get_by_id(min_id)
 
     def get_light_curve(self, coordinate=None, ra=None, dec=None):
         """
@@ -265,7 +263,7 @@ class DataSet:
         :rtype: LightCurves
         """
         min_id, distance = self.coordinates.get_closest_source_id(coordinate, ra, dec)
-        return self.spectra.get_by_id(min_id)
+        return self.light_curves.get_light_curve(min_id)
 
     def remove_unmasked_data(self):
         """
