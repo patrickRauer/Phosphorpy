@@ -95,7 +95,8 @@ def get_lamost_spectra(coord, ids=None):
             spec = Spectra(wavelength=wave,
                            flux=fl,
                            wavelength_unit=u.angstrom,
-                           survey=LAMOST)
+                           survey=LAMOST,
+                           meta=fi[1].header)
             spec_list.append(spec, index)
 
     os.remove(temp_path)
@@ -147,7 +148,8 @@ def get_sdss_spectra(coord, ids=None):
         spec = Spectra(wavelength=spec['wavelength'],
                        flux=spec['flux'],
                        wavelength_unit=u.angstrom,
-                       survey=SDSS)
+                       survey=SDSS,
+                       meta=spec[1].header)
         spec_list.append(spec, index)
 
     return spec_list
@@ -189,7 +191,8 @@ def get_gama_spectra(coord, ids=None):
                 wavelength = header['CDELT1']*(np.arange(header['NAXIS1'])-header['CRPIX1'])+header['CRVAL1']
                 spec = Spectra(wavelength=wavelength,
                                flux=data[0], wavelength_unit=u.angstrom,
-                               survey=DFGRS)
+                               survey=DFGRS,
+                               meta=header)
                 spec_list_2dfgrs.append(spec, index)
             else:
                 wcs = WCS(fi[0].header)
@@ -198,7 +201,8 @@ def get_gama_spectra(coord, ids=None):
                 spec = Spectra(wavelength=waves,
                                flux=fi[0].data[0],
                                wavelength_unit=u.angstrom,
-                               survey=GAMA)
+                               survey=GAMA,
+                               meta=fi[0].header)
                 spec_list_gama.append(spec, index)
     # remove the temporary file
     os.remove(temp_path)

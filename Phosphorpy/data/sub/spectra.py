@@ -266,6 +266,7 @@ class Spectra:
 
     _survey = None
     _index = -1
+    _meta = None
 
     _fits = None
 
@@ -273,7 +274,8 @@ class Spectra:
 
     _plot = None
 
-    def __init__(self, wavelength=None, flux=None, wavelength_unit=None, flux_unit=None, survey=None, index=-1):
+    def __init__(self, wavelength=None, flux=None, wavelength_unit=None, flux_unit=None, survey=None,
+                 index=-1, meta=None):
         """
         Spectra is the basic class to handle different kinds of spectra on a basic level
         without any specific functionality related to any certain spectra
@@ -315,6 +317,7 @@ class Spectra:
 
         self._survey = survey
         self._index = index
+        self._meta = meta
 
         self._plot = SpectraPlot(self)
         self._fits = []
