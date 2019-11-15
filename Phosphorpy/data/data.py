@@ -228,6 +228,11 @@ class DataSet:
 
     @property
     def spectra(self):
+        if self._spectra is None:
+            self._spectra = get_all_spectra(
+                self.coordinates.to_sky_coord(),
+                self.coordinates.data.index.values
+            )
         return self._spectra
 
     def get_spectra(self, coordinate=None, ra=None, dec=None):
