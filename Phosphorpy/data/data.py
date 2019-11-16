@@ -1,3 +1,4 @@
+from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.table import Table
 
@@ -436,7 +437,7 @@ class DataSet:
         :type bands: None, tuple, list
         :param size: The wanted size of the image
         :type size: float, astropy.units.Quantity
-        :param smooth: Number of smoothings. Default is 0.
+        :param smooth: Number of smooths. Default is 0.
         :type smooth: int
         :return:
         """
@@ -509,7 +510,6 @@ class DataSet:
         """
         if self.magnitudes.data is None:
             raise AttributeError('No magnitudes are set.')
-        # todo: test if this works
         for s in self.magnitudes.survey.get_surveys():
             extinc = get_extinctions(self.coordinates['ra'],
                                      self.coordinates['dec'],
@@ -793,11 +793,57 @@ class DataSet:
             coords = coords.to_pandas()
             coords = coords.rename({ra_name: 'ra', dec_name: 'dec'}, axis='columns')
         elif format == 'csv':
-            coords = pd.read_csv(path)
+            coords = pd.read_csv(path)[[ra_name, dec_name]]
+            coords = coords.rename({ra_name: 'ra', dec_name: 'dec'}, axis='columns')
         else:
             raise ValueError(f'Format \'{format}\' is not supported.')
 
         return DataSet(coords)
+
+    @staticmethod
+    def from_coordinates(data=None, ra=None, dec=None):
+        """
+        Creates a DataSet object from a set of coordinates.
+        The coordinates can be an astropy Table, astropy SkyCoord or a pandas DataFrame.
+        Also ra and dec can be a list/array of coordinates.
+
+        At least data or ra and dec must be given.
+
+        :param data: The coordinates for the DataSet
+        :type data: Table, SkyCoord, DataFrame
+        :param ra: The RA-components of the coordinates or a string with the name of the RA column
+        :type ra: None, ndarray, str
+        :param dec: The Dec-components of the coordinates or a string with the name of the Dec column
+        :type dec: None, ndarray, str
+        :return: The DataSet object with the given coordinates
+        :rtype: DataSet
+        """
+        if data is None:
+            if ra is None or dec is None:
+                raise ValueError('Data or ra and dec must be not None!')
+
+            if len(ra) != len(dec):
+                raise ValueError('ra and dec must have the same length.')
+
+            data = DataFrame({'ra': ra, 'dec': dec})
+        else:
+            if type(data) == Table:
+                data = data.to_pandas()
+            elif type(data) == SkyCoord:
+                data = DataFrame({'ra': data.ra.degree, 'dec': data.dec.degree})
+            elif type(data) != DataFrame:
+                raise NotImplementedError('Only astropy Table, astropy SkyCoord and pandas DataFrame are implement.')
+
+            if 'ra' in data.columns and 'dec' in data.columns:
+                data = data[['ra', 'dec']]
+            elif ra is None or dec is None:
+                raise ValueError('If the input data does not contain \'ra\' and \'dec\' ra and dec must'
+                                 ' be the names of the corresponding columns.')
+            else:
+                data = data[[ra, dec]]
+                data = data.rename({ra: 'ra', dec: 'dec'}, axis='columns')
+
+        return DataSet(data)
 
     @staticmethod
     def from_vizier(name, **constrains):
