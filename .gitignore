@@ -107,3 +107,8 @@ venv.bak/
 *.html
 *.css
 *.png
+.idea/misc.xml
+.idea/inspectionProfiles/
+.idea/vcs.xml
+.idea/*
+.idea
