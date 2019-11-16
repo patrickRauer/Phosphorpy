@@ -437,7 +437,7 @@ class DataSet:
         :type bands: None, tuple, list
         :param size: The wanted size of the image
         :type size: float, astropy.units.Quantity
-        :param smooth: Number of smoothings. Default is 0.
+        :param smooth: Number of smooths. Default is 0.
         :type smooth: int
         :return:
         """
@@ -510,7 +510,6 @@ class DataSet:
         """
         if self.magnitudes.data is None:
             raise AttributeError('No magnitudes are set.')
-        # todo: test if this works
         for s in self.magnitudes.survey.get_surveys():
             extinc = get_extinctions(self.coordinates['ra'],
                                      self.coordinates['dec'],
