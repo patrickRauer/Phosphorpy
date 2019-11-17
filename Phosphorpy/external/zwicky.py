@@ -9,6 +9,17 @@ ZWICKY_URL = 'https://irsa.ipac.caltech.edu/cgi-bin/ZTF/nph_light_curves?' \
              'POS=CIRCLE{:+09.4f}{:+09.4f}{:+07.4f}&BANDNAME=r&NOBS_MIN=3&BAD_CATFLAGS_MASK=32768&FORMAT=ipac_table'
 
 
+def progress_bar(iteration, total, prefix='',
+                 suffix='', length=100, fill='█', print_end="\r"):
+    percent = f'{100*iteration/total:04.1f}'
+    filled_length = int(length * iteration // total)
+    bar = fill * filled_length + '-' * (length - filled_length)
+    print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end=print_end)
+    # Print New Line on Complete
+    if iteration == total:
+        print()
+
+
 def download_light_curve(ra, dec, radius=None, index=None):
     """
     Downloads the light curve from the `Zwicky-survey <https://www.ztf.caltech.edu/>`_ DR1.1
@@ -34,14 +45,19 @@ def download_light_curve(ra, dec, radius=None, index=None):
         radius = radius.to(u.deg)
         radius = radius.value
 
-    if type(ra) != float:
+    if not isinstance(ra, np.float):
         if index is None:
             index = np.arange(len(ra))
         out = []
+        counter = 0
+        print('Download ZTF light curves')
         for r, d, i in zip(ra, dec, index):
+            progress_bar(counter, len(ra), 'Download', 'Complete')
             t = download_light_curve(r, d, radius)
             t['row_id'] = i
             out.append(t)
+            counter += 1
+        progress_bar(counter, len(ra), 'Download', 'Complete')
         return pd.concat(out)
 
     t = Table.read(ZWICKY_URL.format(ra, dec, radius), format='ascii.ipac')
@@ -75,14 +91,19 @@ def download_ptf(ra, dec, radius=None, index=None):
     elif type(radius) == float:
         radius = radius*u.arcsec
 
-    if type(ra) != float:
+    if not isinstance(ra, np.float):
         if index is None:
             index = np.arange(len(ra))
         out = []
+        counter = 0
+        print('Download PTF light curves')
         for r, d, i in zip(ra, dec, index):
-            t = download_ptf(r, d, radius)
+            progress_bar(counter, len(ra), 'Download', 'Complete')
+            t = download_ptf(r, d, radius, i)
             t['row_id'] = i
             out.append(t)
+            counter += 1
+        progress_bar(counter, len(ra), 'Download', 'Complete')
         return pd.concat(out)
     s = SkyCoord(ra*u.deg, dec*u.deg)
     table = Irsa.query_region(s, catalog="ptf_lightcurves", spatial="Cone",

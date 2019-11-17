@@ -74,13 +74,13 @@ class LightCurves:
 
             if 'ptf' in surveys:
                 ptf_lc = zwicky.download_ptf(coordinates['ra'], coordinates['dec'],
-                                             index=coordinates.index.values)
+                                             index=coordinates.data.index.values)
                 ptf_lc['survey'] = 2
                 out.append(ptf_lc)
 
             if 'ztf' in surveys:
                 zwicky_lc = zwicky.download_light_curve(coordinates['ra'], coordinates['dec'],
-                                                        index=coordinates.index.values)
+                                                        index=coordinates.data.index.values)
                 zwicky_lc['survey'] = 3
                 out.append(zwicky_lc)
 
