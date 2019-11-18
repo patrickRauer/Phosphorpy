@@ -626,8 +626,6 @@ class DataSet:
         if self._spectra is not None:
             self._spectra.write(f'{os.path.dirname(path)}/spectra/')
 
-        print(hdu_list)
-
         hdu_list = fits.HDUList(hdu_list)
         hdu_list.writeto(path, overwrite=True)
 

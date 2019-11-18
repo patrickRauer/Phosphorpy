@@ -34,7 +34,11 @@ class TestData(unittest.TestCase):
         os.remove('temp_coordinates.fits')
         os.remove('temp_coordinates.csv')
         try:
-            shutil.rmtree(self.image_temp_path )
+            shutil.rmtree(self.image_temp_path)
+        except:
+            pass
+        try:
+            shutil.rmtree('./temp/')
         except:
             pass
 
