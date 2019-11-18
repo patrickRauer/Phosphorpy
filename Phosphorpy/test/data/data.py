@@ -143,6 +143,10 @@ class TestData(unittest.TestCase):
     def test_read_from_file(self):
         with self.assertRaises(FileNotFoundError):
             data.DataSet.read_from_file('test.sdfs')
+        self.ds.load_from_vizier('sdss')
+        self.ds.flux
+        self.ds.colors
+        self._write_full()
         ds = data.DataSet.read_from_file('./temp/ds.zip')
         print(ds)
 
