@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 from astropy.table import Table
+from astropy.io import fits
+import warnings
 
 from Phosphorpy.external import zwicky
 from Phosphorpy.data.sub.plots.light_curve import LightCurvePlot
@@ -63,26 +65,41 @@ class LightCurves:
 
             out = []
             if 'css' in surveys:
-                css_lc = download_light_curves(coordinates['ra'],
-                                               coordinates['dec'])[['InputID', 'ID', 'Mag', 'Magerr',
-                                                                    'RA', 'Decl', 'MJD']]
-                css_lc['survey'] = 1
-                css_lc = css_lc.rename({'InputID': 'row_id', 'ID': 'oid',
-                                        'Mag': 'mag', 'Magerr': 'magerr', 'RA': 'ra',
-                                        'Decl': 'dec', 'MJD': 'mjd'}, axis='columns')
-                out.append(css_lc)
+                try:
+                    css_lc = download_light_curves(coordinates['ra'],
+                                                   coordinates['dec'])[['InputID', 'ID', 'Mag', 'Magerr',
+                                                                        'RA', 'Decl', 'MJD']]
+                    css_lc['survey'] = 1
+                    css_lc = css_lc.rename({'InputID': 'row_id', 'ID': 'oid',
+                                            'Mag': 'mag', 'Magerr': 'magerr', 'RA': 'ra',
+                                            'Decl': 'dec', 'MJD': 'mjd'}, axis='columns')
+                    out.append(css_lc)
+                except:
+
+                    warnings.warn('CSS light curve(s) are not available.')
+
+            if type(coordinates) == pd.DataFrame:
+                index = coordinates.index.values
+            else:
+                index = coordinates.data.index.values
 
             if 'ptf' in surveys:
-                ptf_lc = zwicky.download_ptf(coordinates['ra'], coordinates['dec'],
-                                             index=coordinates.data.index.values)
-                ptf_lc['survey'] = 2
-                out.append(ptf_lc)
+                try:
+                    ptf_lc = zwicky.download_ptf(coordinates['ra'], coordinates['dec'],
+                                                 index=index)
+                    ptf_lc['survey'] = 2
+                    out.append(ptf_lc)
+                except:
+                    warnings.warn('PTF light curve(s) are not available.')
 
             if 'ztf' in surveys:
-                zwicky_lc = zwicky.download_light_curve(coordinates['ra'], coordinates['dec'],
-                                                        index=coordinates.data.index.values)
-                zwicky_lc['survey'] = 3
-                out.append(zwicky_lc)
+                try:
+                    zwicky_lc = zwicky.download_light_curve(coordinates['ra'], coordinates['dec'],
+                                                            index=index)
+                    zwicky_lc['survey'] = 3
+                    out.append(zwicky_lc)
+                except:
+                    warnings.warn('ZTF light curve(s) are not available.')
 
             if len(out) == 0:
                 raise ValueError('No light curves found for the coordinate and survey combination.')
@@ -204,6 +221,9 @@ class LightCurves:
         :rtype: Table
         """
         return Table.from_pandas(self.light_curves)
+
+    def to_bin_table_hdu(self):
+        return fits.BinTableHDU(self.to_astropy_table())
 
     @property
     def light_curves(self):

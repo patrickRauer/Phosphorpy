@@ -9,6 +9,7 @@ from astroquery.vizier import Vizier
 import numpy as np
 import urllib
 import os
+import warnings
 
 from Phosphorpy.data.sub.spectra import Spectra, SpectraList
 
@@ -96,7 +97,7 @@ def get_lamost_spectra(coord, ids=None):
                            flux=fl,
                            wavelength_unit=u.angstrom,
                            survey=LAMOST,
-                           meta=fi[1].header)
+                           meta=fi[0].header)
             spec_list.append(spec, index)
 
     os.remove(temp_path)
@@ -122,12 +123,15 @@ def get_sdss_spectra(coord, ids=None):
     ids = _check_ids(ids, coord)
 
     spec_list = SpectraList()
-    rs = sdss.query_region(coord, spectro=True)
+    try:
+        rs = sdss.query_region(coord, spectro=True)
+    except urllib.error.HTTPError:
+        warnings.warn('Connection problem to SDSS')
+        rs = None
 
     # if no SDSS spectra was found
     if rs is None:
         return spec_list
-
     # convert the output coordinates to SkyCoord and get the order of the input coordinate in
     # respect to tine output coordinates
     sdss_coord = SkyCoord(rs['ra']*u.deg,
@@ -135,8 +139,12 @@ def get_sdss_spectra(coord, ids=None):
     sort = sdss_coord.match_to_catalog_sky(coord)[0]
     ids = ids[sort]
 
-    # download the SDSS spectra
-    sp = sdss.get_spectra(matches=rs)
+    try:
+        # download the SDSS spectra
+        sp = sdss.get_spectra(matches=rs)
+    except urllib.error.HTTPError:
+        warnings.warn('Connection problem to SDSS')
+        return spec_list
 
     # read the spectra and convert the wavelength to a linear scale
     # add the resulting Spectra object to the SpectraList

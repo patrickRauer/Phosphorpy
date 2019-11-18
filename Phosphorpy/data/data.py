@@ -581,6 +581,8 @@ class DataSet:
         :type format: str
         :return:
         """
+        if not os.path.exists(os.path.dirname(path)):
+            os.makedirs(os.path.dirname(path))
         with zipfile.ZipFile(path, 'w', zipfile.ZIP_DEFLATED) as zi:
             add_to_zip(zi, self.coordinates, f'coordinates.{format}', format=format)
             if self._magnitudes.data is not None:
@@ -613,16 +615,18 @@ class DataSet:
             hdu_list.extend(self.magnitudes.to_bin_table_hdu('magnitudes'))
 
         if self._colors is not None:
-            hdu_list.append(self.colors.to_astropy_table('colors'))
+            hdu_list.extend(self.colors.to_bin_table_hdu('colors'))
 
         if self._flux is not None:
-            hdu_list.append(self.flux.to_astropy_table('flux'))
+            hdu_list.extend(self.flux.to_bin_table_hdu('flux'))
 
         if self._light_curves is not None:
-            hdu_list.append(self.light_curves.to_astropy_table())
+            hdu_list.extend(self.light_curves.to_bin_table_hdu())
 
         if self._spectra is not None:
             self._spectra.write(f'{os.path.dirname(path)}/spectra/')
+
+        print(hdu_list)
 
         hdu_list = fits.HDUList(hdu_list)
         hdu_list.writeto(path, overwrite=True)

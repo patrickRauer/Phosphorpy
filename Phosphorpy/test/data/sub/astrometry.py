@@ -90,6 +90,9 @@ class TestAstrometryTable(unittest.TestCase):
         )
         self.coord = CoordinateTable(self.coord, mask=Mask(len(self.coord)))
         self.astro = astrometry.AstrometryTable.load_astrometry(self.coord)
+        # astronomy = astrometry.AstrometryTable(Mask(len(self.coord)))
+        #
+        # astronomy._data = gaia
 
     def test_proper_motion(self):
         pm = self.astro.proper_motion()

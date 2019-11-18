@@ -75,11 +75,22 @@ class TestXMatch(unittest.TestCase):
 
     def test_xmatch(self):
         coords = pd.DataFrame({
-            'ra': np.array([114.084986, 247.083831]),
-            'dec': np.array([25.144718, 40.933285])})
+            'ra': np.array([114.084986, 247.083831, 044.9961159]),
+            'dec': np.array([25.144718, 40.933285, 00.005620003])})
+        check = {}
         for k in xmatch.SURVEY_DATA.keys():
-            print(k)
-            xmatch.xmatch(coords.copy(), 'ra', 'dec', k)
+            # exclude surveys/catalogs which are not available via XMatch
+            if 'Bailer' not in k and 'SkyMapper' not in k and 'GPS1' not in k:
+                print(k)
+                try:
+                    xmatch.xmatch(coords.copy(), 'ra', 'dec', k)
+                    check[k] = True
+                except ValueError:
+                    check[k] = False
+        print(check)
+        if not all(check.items()):
+            print(check)
+            raise ValueError()
 
 
 if __name__ == '__main__':
