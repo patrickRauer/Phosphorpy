@@ -12,6 +12,7 @@ import urllib
 import pandas
 import numpy as np
 import os
+import warnings
 
 
 def smooth(d, c=5):
@@ -111,7 +112,7 @@ def download_light_curves(ra, dec):
     url2 = 'http://nesssi.cacr.caltech.edu/cgi-bin/getdatamulti.cgi?ID={}&txtInput=0000'
     results = []
 #    try:
-    if True:
+    try:
         part_size = 80
         parts = len(ra)//part_size+1
         for i in range(parts):
@@ -144,7 +145,8 @@ def download_light_curves(ra, dec):
             os.remove('temp.csv')
             os.remove('temp.txt')
             results.append(pd)
-            
+    except:
+        warnings.warn('Connection problem')
 
 #    except ValueError:
 #        raise ValueError('No light curve available.')
