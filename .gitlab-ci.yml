@@ -10,4 +10,4 @@ stages:
 pytest:
   stage: Test
   script:
-  - pytest 
+  - python setup.py test 
