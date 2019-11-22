@@ -7,5 +7,4 @@ numba
 scikit-learn
 armapy
 requests
-extinction
 scipy
