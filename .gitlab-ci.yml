@@ -5,13 +5,7 @@ before_script:
   - pip install -r requirements.txt
 
 stages:
-  - Static Analysis
   - Test
-
-flake8:
-  stage: Static Analysis
-  script:
-  - flake8 --max-line-length=120 bild/*.py
 
 pytest:
   stage: Test
