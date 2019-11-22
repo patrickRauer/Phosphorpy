@@ -68,18 +68,5 @@ class TestLightCurve(unittest.TestCase):
         self.lc.plot.light_curve([0, 1], min_mjd=58000, max_mjd=58500)
 
 
-class TestLightCurveDataSet(unittest.TestCase):
-
-    def setUp(self) -> None:
-        from Phosphorpy import DataSet
-        Table.read('/Users/patrickr/Documents/temp/comb_ra_lte_180.fits')[:10].write('temp.fits', overwrite=True)
-        self.ds = DataSet.load_coordinates('temp.fits', 'fits', 'ra', 'dec')
-        # self.ds.load_from_vizier(['SDSS', '2MASS'])
-        os.remove('temp.fits')
-
-    def test_get_light_curves(self):
-        print(self.ds.light_curves)
-
-
 if __name__ == '__main__':
     unittest.main()
