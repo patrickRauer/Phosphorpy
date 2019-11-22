@@ -19,7 +19,5 @@ setup(
     author='Patrick Rauer',
     author_email='j.p.rauer@sron.nl',
     description='',
-    zip_safe=False,
-    install_requires=['seaborn', 'numpy', 'astropy', 'pandas', 'astroquery', 'numba', 'scikit-learn', 'armapy',
-                      'requests', 'extinction', 'scipy']
+    zip_safe=False
 )

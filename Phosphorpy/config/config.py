@@ -3,7 +3,6 @@ from astropy import units as u
 from threading import Thread
 import configparser
 from Phosphorpy.external.vizier import Vizier
-from Phosphorpy.report.Report import Report
 
 
 class MultiDict(OrderedDict):
