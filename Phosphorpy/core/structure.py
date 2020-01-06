@@ -193,11 +193,14 @@ class Table:
     def __getattr__(self, item):
         return self.__data.__getattribute__(item)
 
-    def __setattr__(self, key, value):
-        if self.__data is None or '_' in key[0]:
-            super().__setattr__(key, value)
-        else:
-            self.__data.__setattr__(key, value)
+    # def __setattr__(self, key, value):
+    #     print('key', key)
+    #     if self.__data is None or '_' in key[0] or 'data' in key:
+    #         print('to class')
+    #         super().__setattr__(key, value)
+    #     else:
+    #         print('to data')
+    #         self.__data.__setattr__(key, value)
 
     def set_mask(self, mask):
         """
@@ -244,6 +247,10 @@ class Table:
     @property
     def data(self):
         return self.__data
+
+    @data.setter
+    def data(self, d):
+        self.__data = d
 
     @property
     def survey(self):
