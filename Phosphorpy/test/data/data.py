@@ -167,6 +167,34 @@ class TestData(unittest.TestCase):
     #                                   **{'rmag': '<13', 'spCl': 'STAR'})
 
 
+class TestData2(unittest.TestCase):
+
+    def setUp(self) -> None:
+        self.coord = pd.DataFrame(
+            dict(
+                ra=[300.706346730, 300.70666426, 300.706019630, 300.707633470, 300.70814224, 300.70829226, 300.70375521],
+                dec=[25.23629731, 25.23574129, 25.237510750, 25.237205890, 25.23575684, 25.23468929, 25.23600555]
+            )
+        )
+        self.ds = data.DataSet.from_coordinates(self.coord)
+
+    def test_gs2000_ps(self):
+        self.ds.load_from_vizier('ps')
+
+        self.assertEqual(
+            len(self.coord), len(self.ds.magnitudes['ps'])
+        )
+
+    def test_gs2000_all(self):
+        self.ds.load_from_vizier('all')
+        print(self.ds.magnitudes)
+        print(self.ds.magnitudes.data)
+
+        for m in self.ds.magnitudes.data:
+            print(m)
+            print(m.data)
+
+
 def test_add_magnitudes():
     coord = pd.DataFrame(
         {

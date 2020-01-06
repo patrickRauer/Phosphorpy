@@ -1,6 +1,6 @@
 import numpy as np
 import pylab as pl
-
+import warnings
 
 def _hist(sp, x, bins, histtype, label=''):
 
@@ -48,11 +48,15 @@ class MagnitudePlot:
         pl.clf()
         sp = pl.subplot()
 
+        column_not_found = 0
         # go through all given magnitudes
         for c in cols:
             # check if the magnitude is in the data. If not, raise an error
             if c not in all_columns:
-                raise KeyError('Magnitude is not in the dataset!')
+                warnings.warn(f'Magnitude ({c}) is not in the Dataset!')
+                column_not_found += 1
+                continue
+
             if self._data.mask.get_mask_count() == 0:
                 _hist(sp, d[c],
                       bins='auto', histtype='step',
@@ -62,6 +66,9 @@ class MagnitudePlot:
                     _hist(sp, d[c][self._data.mask.get_mask(i).values],
                           bins='auto', histtype='step', label=c)
 
+        if column_not_found == len(cols):
+            raise ValueError('At least oe column must be in one survey available.')
+        
         # set the axis-labels
         sp.set_xlabel('magnitude')
         sp.set_ylabel('counts')

@@ -631,6 +631,11 @@ class MagnitudeTable(DataTable):
             string += str(d)
         return string
 
+    def __getitem__(self, item):
+        if type(item) == str:
+            return self.get_survey_data(item)
+        raise ValueError('No indices supported')
+
     def _set_cols(self, cols):
         mag = []
         err = []
@@ -884,6 +889,11 @@ class MagnitudeTable(DataTable):
             cols.append(c)
         mags = Magnitude(mags, cols, survey, mask=self.mask)
         mags.select_columns(cols)
+
+        if len(mags) == 0:
+            warnings.warn(f'No data found in {survey} for the given coordinates.\n{survey} will not be listed!')
+            return
+
         survey = survey.lower()
 
         if self._data is not None:

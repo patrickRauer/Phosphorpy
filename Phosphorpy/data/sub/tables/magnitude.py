@@ -22,6 +22,14 @@ class Magnitude(Table):
     def __init__(self, data, names, survey='', mask=None):
         Table.__init__(self, data, survey, mask)
         self._set_cols(names)
+        self.__remove_sources_without_data()
+
+    def __remove_sources_without_data(self):
+        m = np.array([False]*len(self.data))
+        for c in self.data.columns:
+            d = self.data[c].values
+            m |= d == d
+        self.data = self.data[m]
 
     def __str__(self):
         return f'Magnitude of {self.survey_name} with {len(self)} entries\n'
