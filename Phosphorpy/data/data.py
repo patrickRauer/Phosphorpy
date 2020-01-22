@@ -1,6 +1,7 @@
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.table import Table
+from http.client import RemoteDisconnected
 
 from Phosphorpy.data.sub.colors import Colors
 from Phosphorpy.data.sub.coordinates import CoordinateTable
@@ -464,6 +465,8 @@ class DataSet:
             s.get_color_image(coord, directory, bands=bands, size=size, smooth=smooth)
         except ValueError:
             warnings.warn("Image is not available", UserWarning)
+        except RemoteDisconnected:
+            warnings.warn('Connection interrupted.')
 
     def all_images(self, survey, directory='', bands=None, size=None, smooth=0):
         """

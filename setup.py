@@ -2,17 +2,17 @@ from setuptools import setup
 
 setup(
     name='Phosphorpy',
-    version='0.6.6',
+    version='0.6.8',
     python_requires='>=3.6',
     packages=['Phosphorpy', 'Phosphorpy.data',
               'Phosphorpy.data.sub', 'Phosphorpy.data.sub.plots',
-              'Phosphorpy.config', 'Phosphorpy.report',
+              'Phosphorpy.config',
               'Phosphorpy.fitting', 'Phosphorpy.external',
               'Phosphorpy.core', 'Phosphorpy.data.sub.tables'],
     # package_dir={'': 'Phosphorpy'},
     include_package_data=True,
     package_data={
-          '': ['local/survey.conf']
+          '': ['./local/survey.conf']
       },
     url='https://github.com/patrickRauer/Phosphorpy',
     license='GPL',
