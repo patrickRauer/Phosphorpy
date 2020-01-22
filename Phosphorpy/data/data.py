@@ -353,6 +353,8 @@ class DataSet:
     def __load_from_vizier__(self, name):
         d = query_by_name(name, self.coordinates.to_table())
         self._magnitudes.add_survey_mags(d, name.lower())
+        self._colors = None
+        self._flux = None
 
     def load_from_vizier(self, name):
         """
