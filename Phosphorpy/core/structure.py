@@ -270,6 +270,10 @@ class Table:
     def index(self):
         return self.__data.index
 
+    @property
+    def copy(self):
+        return self.__data.copy()
+
     def write(self, path, data_format='parquet', **kwargs):
         path, extension = os.path.splitext(path)
         path = f'{path}_{self.survey_name}.{extension}'
