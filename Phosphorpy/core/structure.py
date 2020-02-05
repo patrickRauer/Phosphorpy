@@ -190,8 +190,10 @@ class Table:
     def __len__(self):
         return len(self.__data)
 
-    def __getattr__(self, item):
-        return self.__data.__getattribute__(item)
+    # def __getattr__(self, item):
+    #     if item in dir(self):
+    #         return self.__getattr__(item)
+    #     return self.__data.__getattribute__(item)
 
     # def __setattr__(self, key, value):
     #     print('key', key)
@@ -255,6 +257,21 @@ class Table:
     @property
     def survey(self):
         return self.__head
+
+    @property
+    def columns(self):
+        return self.__data.columns
+
+    @property
+    def values(self):
+        return self.__data.values
+
+    @property
+    def index(self):
+        return self.__data.index
+
+    def copy(self):
+        return self.__data.copy()
 
     def write(self, path, data_format='parquet', **kwargs):
         path, extension = os.path.splitext(path)

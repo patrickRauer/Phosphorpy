@@ -30,6 +30,12 @@ class Colors(DataTable):
             cols[d.survey_name] = d.columns
         return cols
 
+    def get_survey_data(self, name):
+        for d in self.data:
+            if d.survey_name == name:
+                return d
+        raise ValueError(f'No survey with {name} found.')
+
     def add_colors(self, data, survey_name):
         """
         Add a new ColorTab to the colors
@@ -79,6 +85,7 @@ class Colors(DataTable):
         :return: All colors with the given names in it
         :rtype: pd.DataFrame
         """
+        print(cols)
         out = None
         for d in self.data:
             try:

@@ -52,10 +52,13 @@ def download_light_curve(ra, dec, radius=None, index=None):
         counter = 0
         print('Download ZTF light curves')
         for r, d, i in zip(ra, dec, index):
-            progress_bar(counter, len(ra), 'Download', 'Complete')
-            t = download_light_curve(r, d, radius)
-            t['row_id'] = i
-            out.append(t)
+            progress_bar(counter, len(ra), 'Download', '')
+            try:
+                t = download_light_curve(r, d, radius)
+                t['row_id'] = i
+                out.append(t)
+            except:
+                pass
             counter += 1
         progress_bar(counter, len(ra), 'Download', 'Complete')
         return pd.concat(out)

@@ -205,9 +205,13 @@ def test_add_magnitudes():
     Table.from_pandas(coord).write('temp_coordinates.fits', overwrite=True)
     ds = data.DataSet.load_coordinates('temp_coordinates.fits')
     ds.load_from_vizier('SDSS')
+    ds.load_from_vizier('ps')
     os.remove('temp_coordinates.fits')
+
+    ds.magnitudes.get_survey_data('ps')
 
 
 def test_load_coordinates():
     data.DataSet.load_coordinates('/Users/patrickr/Documents/test_dash.fits',
-                                  'fits', 'RAJ2000', 'DECJ2000')
+
+                    'fits', 'RAJ2000', 'DECJ2000')

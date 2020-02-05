@@ -1,6 +1,7 @@
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.table import Table
+from http.client import RemoteDisconnected
 
 from Phosphorpy.data.sub.colors import Colors
 from Phosphorpy.data.sub.coordinates import CoordinateTable
@@ -352,6 +353,8 @@ class DataSet:
     def __load_from_vizier__(self, name):
         d = query_by_name(name, self.coordinates.to_table())
         self._magnitudes.add_survey_mags(d, name.lower())
+        self._colors = None
+        self._flux = None
 
     def load_from_vizier(self, name):
         """
@@ -464,6 +467,8 @@ class DataSet:
             s.get_color_image(coord, directory, bands=bands, size=size, smooth=smooth)
         except ValueError:
             warnings.warn("Image is not available", UserWarning)
+        except RemoteDisconnected:
+            warnings.warn('Connection interrupted.')
 
     def all_images(self, survey, directory='', bands=None, size=None, smooth=0):
         """

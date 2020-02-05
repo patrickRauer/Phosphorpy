@@ -1,6 +1,7 @@
 import unittest
 import pandas as pd
 import os
+from hypothesis import given, strategies as st
 
 from Phosphorpy.core import structure
 
@@ -91,20 +92,23 @@ class TestTable(unittest.TestCase):
         for c in self.data.columns:
             self.assertTrue((self.table[c] == self.data[c]).all())
 
-    def test_write(self):
-        path_fits = self.table.write('./test.fits', 'fits')
-        path_csv = self.table.write('./test.csv', 'csv')
-        path_parquet = self.table.write('./test.parquet', 'parquet')
+    @given(st.text(
+        alphabet=list('abcdef0123456789'),
+        min_size=1,
+        max_size=20),
+        st.sampled_from(['fits', 'csv', 'parquet'])
+    )
+    def test_write(self, name, form):
+        path = self.table.write(f'./{name}.{form}', form)
 
         with self.assertRaises(ValueError):
-            self.table.write('./test.hans', 'hans')
+            self.table.write(f'./{name}.hans', 'hans')
 
-        os.remove(path_fits)
-        os.remove(path_csv)
-        os.remove(path_parquet)
+        os.remove(path)
 
-    def test_rename(self):
-        self.table.rename({'a': 'a_new', 'b': 'b_new'}, 'columns')
+    @given(st.text(), st.text())
+    def test_rename(self, a_new, b_new):
+        self.table.rename({'a': a_new, 'b': b_new}, 'columns')
 
     def test_select_columns(self):
         self.table.select_columns(['a'])

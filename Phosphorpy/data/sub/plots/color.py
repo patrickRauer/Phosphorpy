@@ -1,5 +1,6 @@
 import pylab as pl
 import seaborn
+import numpy as np
 
 
 def replace_labels(axes, cols, labels):
@@ -71,6 +72,8 @@ class Color:
         d = self._color.get_columns(cols)
 
         m = d[cols[0]] > -999
+        print(d.columns)
+        print(cols)
         for i in range(1, len(cols)):
             m = m & (d[cols[i]] > -999)
 
@@ -112,6 +115,54 @@ class Color:
         if hue is not None and legend:
             pp.add_legend()
             # pp.fig.tight_layout()
+
+    def __color_color_survey__(self, survey, labels, legend=False):
+        d = self._color.get_survey_data(survey)
+        m = np.array(len(d)*[True])
+        for c in d.columns:
+            m = m & (d[c] > -999)
+
+        cols = d.columns.values
+
+        hue = None
+        if self._color.mask.get_mask_count() > 0:
+            d['selection'] = '          '
+            hue = 'selection'
+            for i in range(1, self._color.mask.get_mask_count()):
+                d.loc[self._color.mask.get_mask(i)]['selection'] = self._color.mask.get_description(i)
+        d = d[m]
+        pp = seaborn.PairGrid(d, hue=hue)
+        pp.map_diag(pl.hist)
+        pp.map_lower(pl.scatter, marker='.')
+
+        pp.fig.subplots_adjust(wspace=0.02, hspace=0.02)
+
+        # change the current labels, which are the default column names to a proper style
+        # like removing 'mag' from the labels or replacing the labels with given labels
+        for i in range(len(cols)):
+            for j in range(len(cols)):
+                axes = pp.axes[i][j]
+                xlabel = axes.get_xlabel()
+                ylabel = axes.get_ylabel()
+                if type(labels) == list:
+                    if xlabel != '':
+                        axes.set_xlabel(labels[i])
+                    if ylabel != '':
+                        axes.set_ylabel(labels[j])
+                elif type(labels) == dict:
+                    if xlabel != '':
+                        axes.set_xlabel(labels[xlabel])
+                    if ylabel != '':
+                        axes.set_ylabel(labels[ylabel])
+                else:
+                    if xlabel != '':
+                        axes.set_xlabel(xlabel.replace('mag', ''))
+                    if ylabel != '':
+                        axes.set_ylabel(ylabel.replace('mag', ''))
+        if hue is not None and legend:
+            pp.add_legend()
+            # pp.fig.tight_layout()
+        pass
 
     def __color_color_single__(self, cols, labels, legend=False):
         """
@@ -172,7 +223,9 @@ class Color:
             if survey is None:
                 cols = self._color.data.columns.values
             else:
-                cols = self._color.survey_colors[survey].values
+                self.__color_color_survey__(survey, labels, legend=legend)
+                return
+                # cols = self._color.survey_colors[survey].values
         else:
             use_cols = []
             if type(cols) is list:
