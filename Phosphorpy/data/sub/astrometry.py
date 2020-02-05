@@ -136,10 +136,11 @@ class AstrometryTable(DataTable):
         :rtype: numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray
         """
 
-        x = self._data['pmra'].values
-        y = self._data['pmdec'].values
-        x_err = self._data['pmra_error'].values
-        y_err = self._data['pmdec_error'].values
+        temp = self._data[['pmra', 'pmdec', 'pmra_error', 'pmdec_error']].copy()
+        x = temp['pmra'].values
+        y = temp['pmdec'].values
+        x_err = temp['pmra_error'].values
+        y_err = temp['pmdec_error'].values
         if cos_correction:
             dec_rad = np.deg2rad(self._data['dec'].values)
             cos_c = np.cos(dec_rad)
