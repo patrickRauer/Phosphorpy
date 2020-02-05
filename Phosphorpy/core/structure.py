@@ -262,6 +262,14 @@ class Table:
     def columns(self):
         return self.__data.columns
 
+    @property
+    def values(self):
+        return self.__data.values
+
+    @property
+    def index(self):
+        return self.__data.index
+
     def write(self, path, data_format='parquet', **kwargs):
         path, extension = os.path.splitext(path)
         path = f'{path}_{self.survey_name}.{extension}'
