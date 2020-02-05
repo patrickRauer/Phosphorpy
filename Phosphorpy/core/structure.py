@@ -270,7 +270,6 @@ class Table:
     def index(self):
         return self.__data.index
 
-    @property
     def copy(self):
         return self.__data.copy()
 
