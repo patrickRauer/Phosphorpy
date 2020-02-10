@@ -20,6 +20,16 @@ def power_2_10(x):
     return np.power(10., -x/2.5)
 
 
+def remove_astrometry_columns(mags):
+    cols = []
+    for c in mags.columns:
+        cl = c.lower()
+        if 'ra' in cl or 'de' in cl or 'plx' in cl:
+            continue
+        cols.append(c)
+    return cols
+
+
 @numba.vectorize
 def subtract(a, b):
     """
@@ -589,11 +599,11 @@ def __check_input__(data, names):
     return data
 
 
-class SurveyMag(DataTable):
-    pass
-
-    def __init__(self, data, names=None, survey='', mask=None):
-        DataTable.__init__(self, mask=mask)
+# class SurveyMag(DataTable):
+#     pass
+#
+#     def __init__(self, data, names=None, survey='', mask=None):
+#         DataTable.__init__(self, mask=mask)
 
 
 class MagnitudeTable(DataTable):
@@ -868,6 +878,21 @@ class MagnitudeTable(DataTable):
     def head(self):
         return self._survey
 
+    def add_costum_magnitudes(self, mags, name, survey):
+        """
+        costum
+        """
+
+        if len(mags) == 0:
+            raise ValueError('No magnitudes are inside the given data.')
+
+        # get the columns of the given data without the astrometry columns
+        cols = remove_astrometry_columns(mags)
+
+        magnitudes = Magnitude(mags[cols], cols, name, self.mask)
+        magnitudes.select_columns(cols)
+
+
     def add_survey_mags(self, mags, survey):
         """
         Adds a new set of magnitudes from another survey. If already magnitudes with the same name are
@@ -879,14 +904,9 @@ class MagnitudeTable(DataTable):
         :type survey: str
         :return:
         """
-        # cols = guess_surveys(mags.columns)
-        cols = []
-        for c in mags.columns:
-            cl = c.lower()
-            # todo: magnitude columns from config file
-            if 'ra' in cl or 'de' in cl or 'plx' in cl:
-                continue
-            cols.append(c)
+        # get the columns of the given data without the astrometry columns
+        cols = remove_astrometry_columns(mags)
+
         mags = Magnitude(mags, cols, survey, mask=self.mask)
         mags.select_columns(cols)
 

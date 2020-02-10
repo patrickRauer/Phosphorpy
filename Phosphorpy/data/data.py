@@ -493,7 +493,7 @@ class DataSet:
         for i in range(len(self.coordinates)):
             if not m[i]:
                 continue
-            self.images(survey, i, directory, bands=bands, size=size)
+            self.images(survey, i, directory, bands=bands, size=size, smooth=smooth)
 
     @property
     def light_curves(self):
@@ -530,11 +530,11 @@ class DataSet:
         # recompute flux and colors if they are already computed
         if self._flux is not None:
             self._flux = None
-            self.flux
+            self._flux = self._magnitudes.get_flux()
 
         if self._colors is not None:
             self._colors = None
-            self.colors
+            self._colors = self._magnitudes.get_colors()
 
     def reset_masks(self):
         """
