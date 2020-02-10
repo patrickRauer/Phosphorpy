@@ -9,4 +9,4 @@ scikit-learn
 armapy
 requests
 scipy
-pyarrow'
+pyarrow
