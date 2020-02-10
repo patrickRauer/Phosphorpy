@@ -1,0 +1,12 @@
+hypothesis
+seaborn
+numpy
+astropy
+pandas
+astroquery
+numba
+scikit-learn
+armapy
+requests
+scipy
+pyarrow'
