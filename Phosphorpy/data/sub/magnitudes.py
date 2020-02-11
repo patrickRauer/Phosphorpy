@@ -815,7 +815,7 @@ class MagnitudeTable(DataTable):
         :return:
         """
         for d in self._data:
-            if survey is None or survey == d.survey_name:
+            if survey is None or d.has_name(survey):
                 try:
                     d.set_limit(band, minimum=minimum, maximum=maximum, previous=previous)
                 except ValueError:
@@ -831,7 +831,7 @@ class MagnitudeTable(DataTable):
         :rtype: SurveyData
         """
         for d in self._data:
-            if name == d.survey_name or name.lower() == d.survey_name:
+            if d.has_name(surve):
                 return d
 
     def get_columns(self, cols):
