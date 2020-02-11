@@ -1,5 +1,10 @@
 import configparser
 import pkg_resources
+import os
+import urllib
+import warnings
+
+
 ADS_LINK = 'https://ui.adsabs.harvard.edu/?#abs/{}'
 
 
@@ -30,6 +35,12 @@ def read_survey_data():
     resource_package = 'Phosphorpy'
     resource_path = '/'.join(('local', 'survey.conf'))
     shortcut_path = pkg_resources.resource_filename(resource_package, resource_path)
+    
+    # if the config file was not included in the package (for some reasons)
+    if not os.path.exists(shortcut_path):
+        warnings.warn('Survey configuration file is missing. Download it from GitHub.')
+        url = 'https://raw.githubusercontent.com/patrickRauer/Phosphorpy/master/Phosphorpy/local/survey.conf'
+        urllib.request.urlretrieve(url, shortcut_path)
 
     conf = configparser.ConfigParser()
     conf.read(shortcut_path)
