@@ -213,5 +213,19 @@ def test_add_magnitudes():
 
 def test_load_coordinates():
     data.DataSet.load_coordinates('/Users/patrickr/Documents/test_dash.fits',
+                                  'fits', 'RAJ2000', 'DECJ2000')
 
-                    'fits', 'RAJ2000', 'DECJ2000')
+
+def test_color_2mass_plot():
+    coord = pd.DataFrame(
+        {
+            'ra': [18.15629, 166.12397, 260.78809],
+            'dec': [33.49162, 8.6418, 48.31078]
+        }
+    )
+    Table.from_pandas(coord).write('temp_coordinates.fits', overwrite=True)
+    ds = data.DataSet.load_coordinates('temp_coordinates.fits')
+    ds.load_from_vizier('SDSS')
+    ds.load_from_vizier('ps')
+    ds.load_from_vizier('2MASS')
+    ds.colors.plot.color_color('2MASS')
