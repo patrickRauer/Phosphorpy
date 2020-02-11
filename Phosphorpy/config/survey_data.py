@@ -39,7 +39,7 @@ def read_survey_data():
     # if the config file was not included in the package (for some reasons)
     if not os.path.exists(shortcut_path):
         warnings.warn('Survey configuration file is missing. Download it from GitHub.')
-        url = 'https://github.com/patrickRauer/Phosphorpy/blob/master/Phosphorpy/local/survey.conf'
+        url = 'https://raw.githubusercontent.com/patrickRauer/Phosphorpy/master/Phosphorpy/local/survey.conf'
         urllib.request.urlretrieve(url, shortcut_path)
 
     conf = configparser.ConfigParser()
