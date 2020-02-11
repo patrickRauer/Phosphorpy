@@ -831,7 +831,7 @@ class MagnitudeTable(DataTable):
         :rtype: SurveyData
         """
         for d in self._data:
-            if d.has_name(surve):
+            if d.has_name(name):
                 return d
 
     def get_columns(self, cols):
