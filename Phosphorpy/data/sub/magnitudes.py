@@ -17,7 +17,7 @@ from .tables.magnitude import Magnitude
 
 
 def power_2_10(x):
-    return np.power(10., -x/2.5)
+    return np.power(10., -x / 2.5)
 
 
 def remove_astrometry_columns(mags):
@@ -39,7 +39,7 @@ def subtract(a, b):
     :param b:
     :return:
     """
-    return a-b
+    return a - b
 
 
 def get_prefix(cols, unique_col):
@@ -87,7 +87,7 @@ def get_survey_cols(cols, s_cols, prefix):
 
 
 def guess_surveys(mag_cols):
-        """
+    """
         Try to find matches of the magnitude column names with a few
         implement large sky surveys.
 
@@ -98,167 +98,167 @@ def guess_surveys(mag_cols):
 
         :return:
         """
-        pan_starrs = 0
-        two_mass = 0
-        sdss = 0
-        kids = 0
-        viking = 0
-        wise = 0
-        apass = 0
-        gaia = 0
-        galex = 0
-        ukidss = 0
-        skymapper = 0
+    pan_starrs = 0
+    two_mass = 0
+    sdss = 0
+    kids = 0
+    viking = 0
+    wise = 0
+    apass = 0
+    gaia = 0
+    galex = 0
+    ukidss = 0
+    skymapper = 0
 
-        # count how often a band could be part of a survey
-        for mag in mag_cols:
-            # ignore error columns or J2000 coordinate columns
-            if 'e_' in mag or 'J2000' in mag or 'deg' in mag or 'ra' in mag or 'dec' in mag:
-                continue
-            # strip mag postfix
-            if 'mag' in mag:
-                mag = mag.split('mag')[0]
-            elif 'Petro' in mag:
-                mag = mag.split('Petro')[0]
+    # count how often a band could be part of a survey
+    for mag in mag_cols:
+        # ignore error columns or J2000 coordinate columns
+        if 'e_' in mag or 'J2000' in mag or 'deg' in mag or 'ra' in mag or 'dec' in mag:
+            continue
+        # strip mag postfix
+        if 'mag' in mag:
+            mag = mag.split('mag')[0]
+        elif 'Petro' in mag:
+            mag = mag.split('Petro')[0]
 
-            if 'u' in mag:
-                kids += 1
-                sdss += 1
-                skymapper += 1
-            elif 'g' in mag or 'r' in mag or 'i' in mag:
-                if 'p' in mag:
-                    apass += 1
-                else:
-                    pan_starrs += 1
-                    sdss += 1
-                    kids += 1
-                    skymapper += 1
-
-            elif 'z' in mag:
-                pan_starrs += 1
-                sdss += 1
-                skymapper += 1
-            elif 'y' in mag:
-                pan_starrs += 1
-            elif 'Y' in mag or 'Z' in mag:
-                viking += 1
-                ukidss += 1
-            elif 'J' in mag or 'H' in mag or 'K' in mag:
-                viking += 1
-                two_mass += 1
-                ukidss += 1
-            elif 'W' in mag:
-                wise += 1
-            elif 'G' in mag or 'RP' in mag or 'BP' in mag:
-                gaia += 1
-            elif 'FUV' in mag or 'NUV' in mag:
-                galex += 1
-            elif 'B' in mag or 'V' in mag:
+        if 'u' in mag:
+            kids += 1
+            sdss += 1
+            skymapper += 1
+        elif 'g' in mag or 'r' in mag or 'i' in mag:
+            if 'p' in mag:
                 apass += 1
-            elif 'v' in mag:
+            else:
+                pan_starrs += 1
+                sdss += 1
+                kids += 1
                 skymapper += 1
-        # TODO: use data from local file
-        # decide which survey it is
-        if skymapper == 6:
-            kids -= 4
-            sdss -= 5
-            pan_starrs -= 4
-            prefix = get_prefix(mag_cols, 'v')
-            s_cols = ['u', 'v', 'g', 'r', 'i', 'z']
-            mag_cols, cols = get_survey_cols(mag_cols, s_cols, prefix)
-            return cols
 
-        if pan_starrs == 5 or (pan_starrs > 5 and 'y' in mag_cols):
-            kids -= 3
-            sdss -= 4
+        elif 'z' in mag:
+            pan_starrs += 1
+            sdss += 1
+            skymapper += 1
+        elif 'y' in mag:
+            pan_starrs += 1
+        elif 'Y' in mag or 'Z' in mag:
+            viking += 1
+            ukidss += 1
+        elif 'J' in mag or 'H' in mag or 'K' in mag:
+            viking += 1
+            two_mass += 1
+            ukidss += 1
+        elif 'W' in mag:
+            wise += 1
+        elif 'G' in mag or 'RP' in mag or 'BP' in mag:
+            gaia += 1
+        elif 'FUV' in mag or 'NUV' in mag:
+            galex += 1
+        elif 'B' in mag or 'V' in mag:
+            apass += 1
+        elif 'v' in mag:
+            skymapper += 1
+    # TODO: use data from local file
+    # decide which survey it is
+    if skymapper == 6:
+        kids -= 4
+        sdss -= 5
+        pan_starrs -= 4
+        prefix = get_prefix(mag_cols, 'v')
+        s_cols = ['u', 'v', 'g', 'r', 'i', 'z']
+        mag_cols, cols = get_survey_cols(mag_cols, s_cols, prefix)
+        return cols
 
-            prefix = get_prefix(mag_cols, 'y')
+    if pan_starrs == 5 or (pan_starrs > 5 and 'y' in mag_cols):
+        kids -= 3
+        sdss -= 4
 
-            s_cols = ['g', 'r', 'i', 'z', 'y']
-            mag_cols, cols = get_survey_cols(mag_cols, s_cols, prefix)
-            return cols
+        prefix = get_prefix(mag_cols, 'y')
 
-        if sdss == 5 or sdss == 9:
-            kids -= 4
+        s_cols = ['g', 'r', 'i', 'z', 'y']
+        mag_cols, cols = get_survey_cols(mag_cols, s_cols, prefix)
+        return cols
 
-            prefix = get_prefix(mag_cols, 'z')
+    if sdss == 5 or sdss == 9:
+        kids -= 4
 
-            s_cols = ['u', 'g', 'r', 'i', 'z']
-            mag_cols, cols = get_survey_cols(mag_cols, s_cols, prefix)
-            return cols
+        prefix = get_prefix(mag_cols, 'z')
 
-        if kids == 4:
-            prefix = get_prefix(mag_cols, 'u')
+        s_cols = ['u', 'g', 'r', 'i', 'z']
+        mag_cols, cols = get_survey_cols(mag_cols, s_cols, prefix)
+        return cols
 
-            s_cols = ['u', 'g', 'r', 'i']
-            mag_cols, cols = get_survey_cols(mag_cols, s_cols, prefix)
-            return cols
+    if kids == 4:
+        prefix = get_prefix(mag_cols, 'u')
 
-        if viking == 5 or (viking > 5 and 'Z' in mag_cols):
-            prefix = get_prefix(mag_cols, 'Z')
+        s_cols = ['u', 'g', 'r', 'i']
+        mag_cols, cols = get_survey_cols(mag_cols, s_cols, prefix)
+        return cols
 
-            s_cols = ['Z', 'Y', 'J', 'H', 'K']
-            mag_cols, cols = get_survey_cols(mag_cols, s_cols, prefix)
-            two_mass -= 3
-            ukidss -= 4
-            return cols
+    if viking == 5 or (viking > 5 and 'Z' in mag_cols):
+        prefix = get_prefix(mag_cols, 'Z')
 
-        if ukidss == 3:
-            # todo: update after J band is included
-            prefix = get_prefix(mag_cols, 'Y')
+        s_cols = ['Z', 'Y', 'J', 'H', 'K']
+        mag_cols, cols = get_survey_cols(mag_cols, s_cols, prefix)
+        two_mass -= 3
+        ukidss -= 4
+        return cols
 
-            s_cols = ['Y', 'H', 'K']
-            mag_cols, cols = get_survey_cols(mag_cols, s_cols, prefix)
-            two_mass -= 2
-            return cols
+    if ukidss == 3:
+        # todo: update after J band is included
+        prefix = get_prefix(mag_cols, 'Y')
 
-        if two_mass == 3:
-            prefix = get_prefix(mag_cols, 'H')
-            s_cols = ['J', 'H', 'K']
-            mag_cols, cols = get_survey_cols(mag_cols, s_cols, prefix)
-            return cols
+        s_cols = ['Y', 'H', 'K']
+        mag_cols, cols = get_survey_cols(mag_cols, s_cols, prefix)
+        two_mass -= 2
+        return cols
 
-        if wise == 4:
-            cols = []
-            for i, c in enumerate(mag_cols):
-                if 'W' in c:
-                    cols.append(c)
-            return cols
+    if two_mass == 3:
+        prefix = get_prefix(mag_cols, 'H')
+        s_cols = ['J', 'H', 'K']
+        mag_cols, cols = get_survey_cols(mag_cols, s_cols, prefix)
+        return cols
 
-        if gaia == 3:
-            cols = []
-            n_cols = []
-            for i, c in enumerate(mag_cols):
-                if 'G' in c or 'BP' in c or 'RP' in c:
-                    cols.append(c)
-                else:
-                    n_cols.append(c)
-            return cols
+    if wise == 4:
+        cols = []
+        for i, c in enumerate(mag_cols):
+            if 'W' in c:
+                cols.append(c)
+        return cols
 
-        if apass == 5:
-            cols = []
-            n_cols = []
-            for i, c in enumerate(mag_cols):
-                if 'gp' in c or 'rp' in c or 'ip' in c or 'B' in c or 'V' in c:
-                    cols.append(c)
-                else:
-                    n_cols.append(c)
-            return cols
+    if gaia == 3:
+        cols = []
+        n_cols = []
+        for i, c in enumerate(mag_cols):
+            if 'G' in c or 'BP' in c or 'RP' in c:
+                cols.append(c)
+            else:
+                n_cols.append(c)
+        return cols
 
-        if galex == 2:
-            cols = []
-            n_cols = []
-            for i, c in enumerate(mag_cols):
-                if 'FUV' in c or 'NUV' in c:
-                    cols.append(c)
-                else:
-                    n_cols.append(c)
-            return cols
+    if apass == 5:
+        cols = []
+        n_cols = []
+        for i, c in enumerate(mag_cols):
+            if 'gp' in c or 'rp' in c or 'ip' in c or 'B' in c or 'V' in c:
+                cols.append(c)
+            else:
+                n_cols.append(c)
+        return cols
+
+    if galex == 2:
+        cols = []
+        n_cols = []
+        for i, c in enumerate(mag_cols):
+            if 'FUV' in c or 'NUV' in c:
+                cols.append(c)
+            else:
+                n_cols.append(c)
+        return cols
 
 
 def mag_cols_only(cols):
     """
-    Returns only the columns names of the magnitudes by excluding columns with "e\_" in it.
+    Returns only the columns names of the magnitudes by excluding columns with "e_" in it.
 
     :param cols: A list with all column names
     :type cols: list
@@ -315,11 +315,32 @@ class SurveyData:
         return out
 
     def get_survey_id(self, survey_name):
+        """
+        Returns the index of the survey with the given name. If no survey with such a name is in the data,
+        a ValueError raises.
+
+        :param survey_name: The name of the survey
+        :type survey_name: str
+        :return: The index of the survey
+        :rtype: int
+        """
         survey_name = survey_name.lower()
-        return np.where(
-            np.array(list(self._survey_cols.keys())) == survey_name)[0][0]
+        try:
+            return np.where(
+                np.array(list(self._survey_cols.keys())) == survey_name)[0][0]
+        except IndexError:
+            raise ValueError(f'Survey {survey_name} not known.')
 
     def get_corresponding_survey(self, mag_name):
+        """
+        Returns the first survey with a magnitude with such a name.
+         If no survey with such magnitude name is found, it returns None.
+
+        :param mag_name: The name of the magnitude
+        :type mag_name: str
+        :return: The survey
+        :rtype:
+        """
         for s in self._survey_cols:
             if mag_name in self._survey_cols[s]:
                 return s
@@ -351,6 +372,16 @@ class SurveyData:
         return out
 
     def get_survey_error_names(self, survey_name):
+        """
+        Returns the names of the error magnitude columns of  the required survey
+
+        :param survey_name: The name of the survey
+        :type survey_name: str
+        :return:
+            The names of the error columns, if such a survey exists.
+            If no survey with such a name exists, an empty list will be returned.
+        :rtype: list
+        """
         survey_name = survey_name.lower()
         out = self.get_survey_magnitude(survey_name)
         o = []
@@ -464,6 +495,13 @@ class SurveyData:
         return bool(self._properties[survey][band])
 
     def _to_config(self, path):
+        """
+        Writes the survey properties as a config file
+
+        :param path: The path to the file
+        :type path: str
+        :return: None
+        """
         conf = configparser.ConfigParser()
         for survey in self.get_surveys():
             conf.add_section(survey)
@@ -476,6 +514,12 @@ class SurveyData:
             conf.write(f)
 
     def to_dataframe(self):
+        """
+        Converts the survey properties to a single pandas DataFrame.
+
+        :return: All available survey properties
+        :rtype: DataFrame
+        """
         surveys = self.get_surveys()
         data = {'survey': [],
                 'band': []}
@@ -551,7 +595,7 @@ class SurveyData:
             for c in conf[s]:
                 if 'magnitudes' not in c:
                     band = c.split('_')[0]
-                    key = c.split(band+'_')[-1]
+                    key = c.split(band + '_')[-1]
                     if band not in props:
                         props[band] = {}
                     props[band][key] = conf[s][c]
@@ -891,7 +935,6 @@ class MagnitudeTable(DataTable):
 
         magnitudes = Magnitude(mags[cols], cols, name, self.mask)
         magnitudes.select_columns(cols)
-
 
     def add_survey_mags(self, mags, survey):
         """

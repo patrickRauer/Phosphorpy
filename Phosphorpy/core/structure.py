@@ -185,7 +185,7 @@ class Table:
         return self.__data[item]
 
     def __setitem__(self, key, value):
-        self.__data[key] = value
+        self.__data.loc[:, key] = value
 
     def __len__(self):
         return len(self.__data)
