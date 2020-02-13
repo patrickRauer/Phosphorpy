@@ -29,7 +29,14 @@ setup(
         
         These task are for example, cross-match different catalogs (photometric and 
         astrometric), make basic selection, plotting results, simple image and/or
-        light curves downloads..
+        light curves downloads.
     ''',
-    zip_safe=False
+    zip_safe=False,
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Science/Research",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+        "Topic :: Scientific/Engineering :: Astronomy",
+    ],
 )
