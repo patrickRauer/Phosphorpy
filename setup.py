@@ -20,6 +20,16 @@ setup(
     license='GPL',
     author='Patrick Rauer',
     author_email='j.p.rauer@sron.nl',
-    description='',
+    description='''
+        Phosphorpy is python package to mine large photometric sky surveys. 
+        It is designed to allow to do common and regular task, which are done if
+        large photometric data sets are used, in just few lines. 
+        The aim is to provide a simple interface to make such data sets and 
+        specially data set combination more accessible to the community.
+        
+        These task are for example, cross-match different catalogs (photometric and 
+        astrometric), make basic selection, plotting results, simple image and/or
+        light curves downloads..
+    ''',
     zip_safe=False
 )
