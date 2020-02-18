@@ -93,5 +93,17 @@ class TestXMatch(unittest.TestCase):
             raise ValueError()
 
 
+def test_large_file():
+    try:
+        path = '/Volumes/UNTITLED/sed/sdss_2mass/330_60_15.fits'
+        data = Table.read(path)[['RAJ2000', 'DEJ2000']]
+        rs = xmatch.xmatch(data.to_pandas(), 'RAJ2000', 'DEJ2000', 'GAIA')
+
+        print(len(data), len(rs))
+        pass
+    except:
+        pass
+
+
 if __name__ == '__main__':
     unittest.main()
