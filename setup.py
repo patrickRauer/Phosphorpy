@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='Phosphorpy',
-    version='0.6.16',
+    version='0.6.17',
     python_requires='>=3.6',
     packages=['Phosphorpy', 'Phosphorpy.data',
               'Phosphorpy.data.sub', 'Phosphorpy.data.sub.plots',
