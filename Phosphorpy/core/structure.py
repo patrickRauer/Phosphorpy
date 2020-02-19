@@ -185,7 +185,7 @@ class Table:
         return self.__data[item]
 
     def __setitem__(self, key, value):
-        self.__data[key] = value
+        self.__data.loc[:, key] = value
 
     def __len__(self):
         return len(self.__data)
@@ -237,6 +237,9 @@ class Table:
 
     def merge(self, right, left_index=False, right_index=False):
         self.__data = self.__data.merge(right, left_index=left_index, right_index=right_index)
+
+    def has_name(self, name):
+        return name == self.survey_name or name.lower() == self.survey_name
 
     @property
     def survey_name(self):

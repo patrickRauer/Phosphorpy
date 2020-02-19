@@ -32,7 +32,7 @@ class Colors(DataTable):
 
     def get_survey_data(self, name):
         for d in self.data:
-            if d.survey_name == name:
+            if d.has_name(name):
                 return d
         raise ValueError(f'No survey with {name} found.')
 
@@ -73,7 +73,7 @@ class Colors(DataTable):
         if minimum >= maximum:
             raise ValueError(f'Minimum must be bigger than maximum: {minimum} >= {maximum}')
         for d in self.data:
-            if survey is None or survey == d.survey_name:
+            if survey is None or d.has_name(survey):
                 d.set_limit(col, minimum=minimum, maximum=maximum, previous=previous)
 
     def get_columns(self, cols):
@@ -125,5 +125,5 @@ class Colors(DataTable):
         """
         survey = survey.lower()
         for d in self.data:
-            if survey == d.survey_name:
+            if d.has_name(survey):
                 d.outlier_detection()

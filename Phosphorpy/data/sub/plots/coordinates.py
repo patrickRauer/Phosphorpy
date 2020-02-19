@@ -34,7 +34,7 @@ class CoordinatePlot:
         self._coordinate = coordinate
 
     def equatorial(self, path='', marker='.', color='k',
-                   mask_colors=None):
+                   mask_colors=None, mollweide=True):
         """
         Plot the position of the entries in equatorial coordinates
 
@@ -46,13 +46,18 @@ class CoordinatePlot:
         :type color: str
         :param mask_colors: A color or a list of colors for the mask data
         :type mask_colors: str, list
+        :param mollweide:
+            True, if a mollweide projection should be used, else False.
+            Default is True.
+        :type mollweide: bool
         :return:
         """
         self._scatter('ra', 'dec', 'R.A. [deg]', 'Dec [deg]',
-                      path, marker, color, mask_colors=mask_colors)
+                      path, marker, color, mask_colors=mask_colors,
+                      mollweide=mollweide)
 
     def galactic(self, path='', marker='.', color='k',
-                 mask_colors=None):
+                 mask_colors=None, mollweide=True):
         """
         Plot the position of the entries in galactic coordinates
 
@@ -64,13 +69,18 @@ class CoordinatePlot:
         :type color: str
         :param mask_colors: A color or a list of colors for the mask data
         :type mask_colors: str, list
+        :param mollweide:
+            True, if a mollweide projection should be used, else False.
+            Default is True.
+        :type mollweide: bool
         :return:
         """
         self._scatter('l', 'b', 'l [deg]', 'b [deg]',
-                      path, marker, color, mask_colors=mask_colors)
+                      path, marker, color, mask_colors=mask_colors,
+                      mollweide=mollweide)
 
     def _scatter(self, col1, col2, x_label, y_label, path, marker, color,
-                 mask_colors=None):
+                 mask_colors=None, mollweide=True):
         """
         Makes a scatter plot of two coordinates
 
@@ -90,10 +100,18 @@ class CoordinatePlot:
         :type color: str
         :param mask_colors: A color or a list of colors for the mask data
         :type mask_colors: str, list
+        :param mollweide:
+            True, if a mollweide projection should be used, else False.
+            Default is True.
+        :type mollweide: bool
         :return:
         """
         pl.clf()
-        sp = pl.subplot(projection='mollweide')
+
+        if mollweide:
+            sp = pl.subplot(projection='mollweide')
+        else:
+            sp = pl.subplot()
 
         _angle_plot(self._coordinate[col1],
                     self._coordinate[col2],

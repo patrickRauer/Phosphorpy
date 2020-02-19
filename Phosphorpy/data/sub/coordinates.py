@@ -64,7 +64,7 @@ class CoordinateTable(DataTable):
         d[:, 3] = b
         self._data = DataFrame(data=d, columns=['ra', 'dec', 'l', 'b'],
                                index=np.arange(len(ra))+1)
-        self._data['row_id'] = np.arange(len(self._data))
+        self._data['row_id'] = np.arange(len(self._data))+1
         self._data = self._data.set_index('row_id')
 
     def __getitem__(self, item):

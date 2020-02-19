@@ -235,6 +235,10 @@ class DataSet:
             )
         return self._spectra
 
+    @property
+    def mask(self):
+        return self._mask
+
     def get_spectra(self, coordinate=None, ra=None, dec=None):
         """
         Returns the spectra close to the given coordinates.
