@@ -301,19 +301,29 @@ class AstrometryTable(DataTable):
             m = (pm_d >= minimal) & (pm_d <= maximal)
         self.mask.add_mask(m, f'Proper motion limit in {direction} direction from {minimal} to {maximal}')
 
-    def to_sky_coord(self):
+    def to_sky_coord(self, bailer_jones=False):
         """
         Creates from the Gaia data a astropy.coordinates.SkyCoord object for every source.
         The SkyCoord contains beside the coordinates, the proper motions (pm ra is corrected)
         and a distance estimation.
 
+        :param bailer_jones:
+            True, if the distance estimation from Bailer-Jones et al. should be used.
+            Else False for the Gaia DR2's parallax. In this case negative parallaxes are replaced with NaN.
+        :type bailer_jones: bool
         :return: SkyCoord objects of the detections
         :rtype: SkyCoord
         """
-
+        if bailer_jones:
+            distance = Distance(self._data['rest']*u.pc)
+        else:
+            m = self._data['parallax'] == self._data['parallax']
+            distance = self._data['parallax'].values
+            distance[m] = np.nan
+            distance = Distance(parallax=distance*u.mas)
         s = SkyCoord(self._data['ra'].values*u.deg,
                      self._data['dec'].values*u.deg,
                      pm_ra_cosdec=self._data['pmra'].values*np.cos(np.deg2rad(self._data['dec'].values))*u.mas/u.yr,
                      pm_dec=self._data['pmdec'].values*u.mas/u.yr,
-                     distance=Distance(parallax=self._data['parallax'].values*u.mas))
+                     distance=distance)
         return s

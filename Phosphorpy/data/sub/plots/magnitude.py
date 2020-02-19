@@ -64,7 +64,7 @@ class MagnitudePlot:
             else:
                 for i in range(self._data.mask.get_mask_count()):
                     _hist(sp, d[c][self._data.mask.get_mask(i).values],
-                          bins='auto', histtype='step', label=c)
+                          bins='auto', histtype='step', label=c.split('mag')[0])
 
         if column_not_found == len(cols):
             raise ValueError('At least oe column must be in one survey available.')
