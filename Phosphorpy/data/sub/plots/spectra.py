@@ -105,6 +105,8 @@ class SpectraListPlot:
                     if normalize:
                         flux /= np.nanmedian(flux[m])
                     sp.step(wave[m], flux[m], label=f'{i}')
+        else:
+            raise ValueError('Only integer or iterables like tuple or list with are allowed.')
 
             sp.set_xlabel('wavelength')
             sp.set_ylabel('flux')
