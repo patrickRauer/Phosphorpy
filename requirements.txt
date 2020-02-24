@@ -1,3 +1,4 @@
+matplotlib
 hypothesis
 seaborn
 numpy

@@ -10,6 +10,11 @@ from sklearn.neighbors import NearestNeighbors
 from .plots.coordinates import CoordinatePlot
 from .table import DataTable
 
+try:
+    from Phosphorpy.data.sub.interactive_plotting.coordinates import CoordinatePlot as CoordinatePlotHV
+except ImportError:
+    CoordinatePlotHV = None
+
 RA_NAMES = ['ra', 'Ra', 'RA', 'RAJ2000', 'RA_ICRS', '_RAJ2000']
 DEC_NAMES = ['dec', 'Dec', 'DEC', 'DEJ2000', 'DECJ2000', 'DE_ICRS', '_DEJ2000']
 L_NAMES = ['l', 'L']
@@ -29,6 +34,9 @@ class CoordinateTable(DataTable):
         DataTable.__init__(self, mask=mask)
         self._head = head
         self._plot = CoordinatePlot(self)
+
+        if CoordinatePlotHV.holoviews():
+            self._hv_plot = CoordinatePlotHV(self)
 
         # create SkyCoord objects to get the galactic coordinates of the sources
         if type(data) == SkyCoord:

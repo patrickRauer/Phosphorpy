@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 import pylab as pl
 import numpy as np
 
@@ -80,7 +81,7 @@ class SpectraListPlot:
     def spectra(self, index, path='', min_wavelength=None, max_wavelength=None, normalize=False):
         if type(index) == int:
             self._spectra_list.get_by_id(index)[0][0].plot.spectra(path, min_wavelength, max_wavelength)
-        elif type(index) == list:
+        elif isinstance(index, Iterable):
             pl.clf()
             sp = pl.subplot()
             for i in index:
@@ -104,6 +105,9 @@ class SpectraListPlot:
                     if normalize:
                         flux /= np.nanmedian(flux[m])
                     sp.step(wave[m], flux[m], label=f'{i}')
+                    sp.set_xlim(wave[m].min(), wave[m].max())
+        else:
+            raise ValueError('Only integer or iterables like tuple or list with are allowed.')
 
             sp.set_xlabel('wavelength')
             sp.set_ylabel('flux')

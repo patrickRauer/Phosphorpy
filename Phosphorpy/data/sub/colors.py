@@ -4,6 +4,11 @@ from Phosphorpy.data.sub.tables.color import Color as ColorTab
 from .plots.color import Color
 from .table import DataTable
 
+try:
+    from Phosphorpy.data.sub.interactive_plotting.color import Color as ColorHV
+except ImportError:
+    ColorHV = None
+
 
 class Colors(DataTable):
 
@@ -16,6 +21,9 @@ class Colors(DataTable):
         self._survey_colors = survey_colors
 
         self._plot = Color(self)
+
+        if ColorHV.holoviews():
+            self._hv_plot = ColorHV(self)
 
     def __str__(self):
         s = 'Colors:\n'
