@@ -1,7 +1,10 @@
 from matplotlib.cm import get_cmap
 from collections.abc import Iterable
 import numpy as np
-import holoviews as hv
+try:
+    import holoviews as hv
+except ImportError:
+    hv = None
 
 SURVEY = ('CSS', 'PTF', 'ZTF')
 
@@ -106,3 +109,10 @@ class LightCurvePlot:
 
     def light_curve(self, light_curve_id, min_mjd=None, max_mjd=None, path=None, **hv_kwargs):
         self.plot_light_curve(light_curve_id, min_mjd=min_mjd, max_mjd=max_mjd, path=path, **hv_kwargs)
+
+    @staticmethod
+    def holoviews():
+        if hv is not None:
+            return True
+        else:
+            return False

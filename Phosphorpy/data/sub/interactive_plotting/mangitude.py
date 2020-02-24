@@ -1,6 +1,10 @@
 import numpy as np
-import holoviews as hv
 import warnings
+
+try:
+    import holoviews as hv
+except ImportError:
+    hv = None
 
 
 def _hist(x, bins, histtype, label=''):
@@ -84,3 +88,10 @@ class MagnitudePlot:
             **hv_kwargs
         )
         return graph
+
+    @staticmethod
+    def holoviews():
+        if hv is not None:
+            return True
+        else:
+            return False

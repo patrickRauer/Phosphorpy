@@ -1,5 +1,8 @@
 import numpy as np
-import holoviews as hv
+try:
+    import holoviews as hv
+except ImportError:
+    hv = None
 
 
 class AstrometryPlot:
@@ -111,3 +114,10 @@ class AstrometryPlot:
         )
 
         return graph
+
+    @staticmethod
+    def holoviews():
+        if hv is not None:
+            return True
+        else:
+            return False

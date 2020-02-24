@@ -120,7 +120,7 @@ class LightCurves:
 
         self._plot = LightCurvePlot(self)
 
-        if LightCurvePlotHV is not None:
+        if LightCurvePlotHV.holoviews():
             self._hv_plot = LightCurvePlotHV(self)
 
     def __str__(self):

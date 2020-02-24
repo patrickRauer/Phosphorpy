@@ -8,10 +8,7 @@ from Phosphorpy.data.sub.plots.astrometry import AstrometryPlot
 from Phosphorpy.external.vizier import Gaia, BailerJones
 from .table import DataTable
 
-try:
-    from Phosphorpy.data.sub.interactive_plotting.astrometry import AstrometryPlot as AstrometryPlotHV
-except ImportError:
-    AstrometryPlotHV = None
+from Phosphorpy.data.sub.interactive_plotting.astrometry import AstrometryPlot as AstrometryPlotHV
 
 
 def _only_nearest(data):
@@ -93,7 +90,7 @@ class AstrometryTable(DataTable):
         DataTable.__init__(self, mask=mask)
         self._plot = AstrometryPlot(self)
 
-        if AstrometryPlotHV is not None:
+        if AstrometryPlotHV.holoviews():
             self._hv_plot = AstrometryPlotHV(self)
 
     @staticmethod

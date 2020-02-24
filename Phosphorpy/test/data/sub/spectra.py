@@ -61,9 +61,6 @@ class TestSpectra(unittest.TestCase):
         )
 
     def test_cut(self):
-        # check, if an error raises, if no limit is set
-        with self.assertRaises(ValueError):
-            self.spectra.cut(inplace=False)
 
         # not inplace
         # without units

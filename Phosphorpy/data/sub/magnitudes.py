@@ -670,7 +670,7 @@ class MagnitudeTable(DataTable):
         self._plot = MagnitudePlot(self)
         data = __check_input__(data, names)
 
-        if MagnitudePlotHV is not None:
+        if MagnitudePlotHV.holoviews():
             self._hv_plot = MagnitudePlotHV(self)
 
         try:

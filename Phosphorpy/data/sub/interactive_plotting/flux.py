@@ -1,4 +1,7 @@
-import holoviews as hv
+try:
+    import holoviews as hv
+except ImportError:
+    hv = None
 
 
 class FluxPlot:
@@ -66,3 +69,10 @@ class FluxPlot:
             ylog=y_log, **hv_kwargs
         )
         return graph
+
+    @staticmethod
+    def holoviews():
+        if hv is not None:
+            return True
+        else:
+            return False

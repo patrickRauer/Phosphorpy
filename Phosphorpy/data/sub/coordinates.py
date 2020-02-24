@@ -35,7 +35,7 @@ class CoordinateTable(DataTable):
         self._head = head
         self._plot = CoordinatePlot(self)
 
-        if CoordinatePlotHV is not None:
+        if CoordinatePlotHV.holoviews():
             self._hv_plot = CoordinatePlotHV(self)
 
         # create SkyCoord objects to get the galactic coordinates of the sources

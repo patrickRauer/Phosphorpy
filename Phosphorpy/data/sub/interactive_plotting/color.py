@@ -1,7 +1,10 @@
 import pylab as pl
 import seaborn
 import numpy as np
-import holoviews as hv
+try:
+    import holoviews as hv
+except ImportError:
+    hv = None
 
 
 def replace_labels(axes, cols, labels):
@@ -317,3 +320,10 @@ class Color:
         )
 
         return graph
+
+    @staticmethod
+    def holoviews():
+        if hv is not None:
+            return True
+        else:
+            return False

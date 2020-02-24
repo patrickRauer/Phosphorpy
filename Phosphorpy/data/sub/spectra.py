@@ -53,7 +53,7 @@ class SpectraList:
 
         self._plot = SpectraListPlot(self)
 
-        if SpectraListPlotHV is not None:
+        if SpectraListPlotHV.holoviews():
             self._hv_plot = SpectraListPlotHV(self)
 
     def __len__(self):
@@ -337,7 +337,7 @@ class Spectra:
         self._plot = SpectraPlot(self)
         self._fits = []
 
-        if SpectraPlotHV is not None:
+        if SpectraPlotHV.holoviews():
             self._hv_plot = SpectraPlotHV(self)
 
     def __str__(self):

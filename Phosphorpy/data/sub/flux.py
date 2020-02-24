@@ -221,7 +221,7 @@ class FluxTable(DataTable):
         self._survey = survey_head
         self._plot = FluxPlot(self)
 
-        if FluxPlotHV is not None:
+        if FluxPlotHV.holoviews():
             self._hv_plot = FluxPlotHV(self)
 
     def add_fluxes(self, data, survey_name):

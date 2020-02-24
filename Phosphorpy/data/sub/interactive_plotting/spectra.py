@@ -1,7 +1,11 @@
-import holoviews as hv
 from collections.abc import Iterable
 import numpy as np
 import warnings
+
+try:
+    import holoviews as hv
+except ImportError:
+    hv = None
 
 
 class SpectraPlot:
@@ -83,6 +87,13 @@ class SpectraPlot:
         )
         return graph
 
+    @staticmethod
+    def holoviews():
+        if hv is not None:
+            return True
+        else:
+            return False
+
 
 class SpectraListPlot:
     _opts = None
@@ -156,4 +167,11 @@ class SpectraListPlot:
             return graph
         else:
             raise ValueError('Only integer or iterables like tuple or list with are allowed.')
+
+    @staticmethod
+    def holoviews():
+        if hv is not None:
+            return True
+        else:
+            return False
 

@@ -22,7 +22,7 @@ class Colors(DataTable):
 
         self._plot = Color(self)
 
-        if ColorHV is not None:
+        if ColorHV.holoviews():
             self._hv_plot = ColorHV(self)
 
     def __str__(self):
