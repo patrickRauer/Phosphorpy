@@ -165,7 +165,7 @@ class Color:
             # pp.fig.tight_layout()
         pass
 
-    def __color_color_single__(self, cols, labels, legend=False):
+    def __color_color_single__(self, cols, labels, legend=False, **hv_kwargs):
         """
         Creates a color-color plot with two magnitudes
 
@@ -204,12 +204,13 @@ class Color:
 
         graph = graph.opts(
             xlabel=cols[0],
-            ylabel=cols[1]
+            ylabel=cols[1],
+            **hv_kwargs
         )
 
         return graph
 
-    def color_color(self, survey=None, cols=None, path='', labels=None, legend=False):
+    def color_color(self, survey=None, cols=None, path='', labels=None, legend=False, **hv_kwargs):
         """
         Plots a color color diagram. If their are more than two columns, it will
         plot the color-color diagrams in a grid
@@ -250,14 +251,14 @@ class Color:
                 raise ValueError(f'{type(cols)} is not supported format for color names.')
             cols = use_cols
 
-        pl.clf()
         if len(cols) > 2:
             raise NotImplementedError('Multi color-color plots are not supported in the interactive plotting '
                                       'environment.\n Choose the standard plotting environment to create these plots.')
         else:
-            return self.__color_color_single__(cols, labels, legend=legend)
+            return self.__color_color_single__(cols, labels, legend=legend, **hv_kwargs)
 
-    def color_hist(self, cols=None, bins='auto', histtype='step', range=None, density=False, path='', labels=None):
+    def color_hist(self, cols=None, bins='auto', histtype='step', range=None, density=False, path='',
+                   labels=None, **hv_kwargs):
         """
         Plots a histogram of the color(s).
 
@@ -311,7 +312,8 @@ class Color:
 
         graph = graph.opts(
             xlabel=cols[0],
-            ylabel=ylabel
+            ylabel=ylabel,
+            **hv_kwargs
         )
 
         return graph

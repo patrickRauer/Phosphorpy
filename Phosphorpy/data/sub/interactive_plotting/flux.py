@@ -12,7 +12,7 @@ class FluxPlot:
         """
         self._data = data
 
-    def sed(self, index, fit=None, path='', x_log=False, y_log=False, legend=False):
+    def sed(self, index, fit=None, path='', x_log=False, y_log=False, legend=False, **hv_kwargs):
         """
         Plot the SED of the source with the given index.
 
@@ -63,6 +63,6 @@ class FluxPlot:
             xlabel='wavelength [$\\AA$]',
             ylabel='flux',
             xlog=x_log,
-            ylog=y_log
+            ylog=y_log, **hv_kwargs
         )
         return graph

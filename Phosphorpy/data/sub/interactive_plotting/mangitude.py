@@ -19,7 +19,7 @@ class MagnitudePlot:
     def __init__(self, data):
         self._data = data
 
-    def hist(self, cols=None, survey=None, path=''):
+    def hist(self, cols=None, survey=None, path='', **hv_kwargs):
         """
         Plots the histogram(s) of the different magnitude(s).
 
@@ -80,6 +80,7 @@ class MagnitudePlot:
         # set the axis-labels
         graph = graph.opts(
             xlabel='magnitude',
-            ylabel='counts'
+            ylabel='counts',
+            **hv_kwargs
         )
         return graph
