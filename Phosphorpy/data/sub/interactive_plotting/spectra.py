@@ -2,13 +2,15 @@ from collections.abc import Iterable
 import numpy as np
 import warnings
 
+from Phosphorpy.data.sub.interactive_plotting.interactive_plotting import HVPlot
+
 try:
     import holoviews as hv
 except ImportError:
     hv = None
 
 
-class SpectraPlot:
+class SpectraPlot(HVPlot):
     _opts = None
     _spectra = None
 
@@ -22,8 +24,7 @@ class SpectraPlot:
         self._spectra = spectra
         self._opts = dict(
             xlabel='wavelength',
-            ylabel='flux',
-            tools=['hover']
+            ylabel='flux'
         )
 
     def spectra(self, path='', min_wavelength=None, max_wavelength=None, normalize=False,
@@ -75,9 +76,11 @@ class SpectraPlot:
             wave_c, flux_c
         ))
 
+        graph = self._hover(graph)
+
         if len(self._spectra.fit) > 0:
             for fit in self._spectra.fit:
-                graph *= hv.Curve((wave, fit(wave)))
+                graph *= self._hover(hv.Curve((wave, fit(wave))))
 
         opts = self._opts.copy()
         if hv_kwargs is not None:
@@ -87,15 +90,8 @@ class SpectraPlot:
         )
         return graph
 
-    @staticmethod
-    def holoviews():
-        if hv is not None:
-            return True
-        else:
-            return False
 
-
-class SpectraListPlot:
+class SpectraListPlot(HVPlot):
     _opts = None
     _spectra_list = None
 
@@ -109,8 +105,7 @@ class SpectraListPlot:
         self._spectra_list = spectra_list
         self._opts = dict(
             xlabel='wavelength',
-            ylabel='flux',
-            tools=['hover']
+            ylabel='flux'
         )
 
     def spectra(self, index, path='', min_wavelength=None, max_wavelength=None, normalize=False,
@@ -148,8 +143,7 @@ class SpectraListPlot:
                                 flux[m]
                             ),
                             label=f'{i}')
-                        if 'tools' in opts:
-                            graph = graph.opts(tools=opts['tools'])
+                        graph = self._hover(graph)
                     else:
                         g = hv.Curve(
                             (
@@ -157,9 +151,7 @@ class SpectraListPlot:
                                 flux[m]
                             ),
                             label=f'{i}')
-                        if 'tools' in opts:
-                            g = g.opts(tools=opts['tools'])
-                        graph *= g
+                        graph *= self._hover(g)
 
             graph = graph.opts(
                 **opts
@@ -167,11 +159,3 @@ class SpectraListPlot:
             return graph
         else:
             raise ValueError('Only integer or iterables like tuple or list with are allowed.')
-
-    @staticmethod
-    def holoviews():
-        if hv is not None:
-            return True
-        else:
-            return False
-

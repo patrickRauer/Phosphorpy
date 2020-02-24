@@ -1,5 +1,6 @@
 import numpy as np
 import warnings
+from Phosphorpy.data.sub.interactive_plotting.interactive_plotting import HVPlot
 
 try:
     import holoviews as hv
@@ -17,7 +18,7 @@ def _hist(x, bins, histtype, label=''):
     return graph
 
 
-class MagnitudePlot:
+class MagnitudePlot(HVPlot):
     _data = None
 
     def __init__(self, data):
@@ -70,8 +71,10 @@ class MagnitudePlot:
                               label=c.split('mag')[0])
             else:
                 for i in range(self._data.mask.get_mask_count()):
-                    g = _hist(d[c][self._data.mask.get_mask(i).values],
+                    g = _hist(d[c][self._data.mask.get_mask(i)],
                               bins='auto', histtype='step', label=c.split('mag')[0])
+
+                    g = self._hover(g)
 
                     if graph is None:
                         graph = g
@@ -88,10 +91,3 @@ class MagnitudePlot:
             **hv_kwargs
         )
         return graph
-
-    @staticmethod
-    def holoviews():
-        if hv is not None:
-            return True
-        else:
-            return False

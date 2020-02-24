@@ -7,10 +7,22 @@ Created on Wed Mar 13 09:07:21 2019
 """
 import numpy as np
 import pandas as pd
+from collections.abc import Iterable
 from sklearn.cluster import DBSCAN
 
 from Phosphorpy.core.structure import Table
 from Phosphorpy.data.sub.plots.color import create_color_name
+
+
+def _add_mag(c):
+    mag_count = c.count('mag')
+    if mag_count == 0:
+        out = f'{c[0]}mag - {c[-1]}mag'
+    elif mag_count == 2 or mag_count == 1:
+        return add_mag(c.replace('mag', ''))
+    else:
+        raise ValueError('Can not understand your column names.')
+    return out
 
 
 class Color(Table):
@@ -47,7 +59,7 @@ class Color(Table):
         """
         if type(cols) == str:
             cols = [cols]
-        elif type(cols) != list and type(cols) != tuple and type(cols) != set and type(cols) != np.ndarray:
+        elif not isinstance(cols, Iterable):
             raise AttributeError('Input must be a string, list, tuple or a set.')
 
         use_cols = []
@@ -55,6 +67,7 @@ class Color(Table):
         for c in cols:
             if type(c) != str:
                 raise ValueError('Elements must be strings.')
+            c = _add_mag(c)
             if c in col_names:
                 use_cols.append(c)
             else:

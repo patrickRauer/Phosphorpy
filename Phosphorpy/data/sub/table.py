@@ -135,6 +135,7 @@ class DataTable:
     def plot(self, value):
         raise AttributeError('Replacing plot is not allowed!')
 
+    @property
     def hvplot(self):
         return self._hv_plot
 
