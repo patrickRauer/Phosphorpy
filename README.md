@@ -36,7 +36,8 @@ and do the calculations.
 * scipy
 * urllib
 * [armapy](https://github.com/patrickRauer/armapy)
-* extinction
+* holoviews (optional)
+
 
 ## Example
 See [example](https://gitlab.sron.nl/patrickr/Phosphorpy/wikis/Example) for

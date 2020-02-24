@@ -8,6 +8,11 @@ from Phosphorpy.external import zwicky
 from Phosphorpy.data.sub.plots.light_curve import LightCurvePlot
 from Phosphorpy.external.css import download_light_curves
 
+try:
+    from Phosphorpy.data.sub.interactive_plotting.light_curve import LightCurvePlot as LightCurvePlotHV
+except ImportError:
+    LightCurvePlotHV = None
+
 
 def _average_light_curve(lc, dt_max):
     """
@@ -114,6 +119,9 @@ class LightCurves:
         self._stat_operations = [np.mean, np.median, np.std, np.min, np.max, 'count']
 
         self._plot = LightCurvePlot(self)
+
+        if LightCurvePlotHV is not None:
+            self._hv_plot = LightCurvePlotHV(self)
 
     def __str__(self):
         out = ''.join(['Number of light curves: {}\n',
@@ -254,6 +262,10 @@ class LightCurves:
     @property
     def plot(self):
         return self._plot
+
+    @property
+    def hvplot(self):
+        return self._hv_plot
 
     def write(self, path, format='fits'):
         """

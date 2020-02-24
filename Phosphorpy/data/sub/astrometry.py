@@ -8,9 +8,13 @@ from Phosphorpy.data.sub.plots.astrometry import AstrometryPlot
 from Phosphorpy.external.vizier import Gaia, BailerJones
 from .table import DataTable
 
+try:
+    from Phosphorpy.data.sub.interactive_plotting.astrometry import AstrometryPlot as AstrometryPlotHV
+except ImportError:
+    AstrometryPlotHV = None
+
 
 def _only_nearest(data):
-
         row_ids, row_id_count = np.unique(data['row_id'], return_counts=True)
         # find or multiple detections the closest one
         nearest = []
@@ -88,6 +92,9 @@ class AstrometryTable(DataTable):
         """
         DataTable.__init__(self, mask=mask)
         self._plot = AstrometryPlot(self)
+
+        if AstrometryPlotHV is not None:
+            self._hv_plot = AstrometryPlotHV(self)
 
     @staticmethod
     def load_to_dataset(ds):

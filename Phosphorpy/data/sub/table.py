@@ -14,6 +14,7 @@ class DataTable:
     _data = None
 
     _plot = None
+    _hv_plot = None
     _q = [0.15, 0.25, 0.75, 0.85]
 
     _category = None
@@ -133,6 +134,9 @@ class DataTable:
     @plot.setter
     def plot(self, value):
         raise AttributeError('Replacing plot is not allowed!')
+
+    def hvplot(self):
+        return self._hv_plot
 
     @property
     def q(self):

@@ -11,6 +11,11 @@ from Phosphorpy.data.sub.plots.flux import FluxPlot
 from Phosphorpy.data.sub.tables.flux import Flux
 from .table import DataTable
 
+try:
+    from Phosphorpy.data.sub.interactive_plotting.flux import FluxPlot as FluxPlotHV
+except ImportError:
+    FluxPlotHV = None
+
 
 def get_column_names(length):
     # create columns names 'a', 'b', 'c', ...
@@ -215,6 +220,9 @@ class FluxTable(DataTable):
         self._data = data
         self._survey = survey_head
         self._plot = FluxPlot(self)
+
+        if FluxPlotHV is not None:
+            self._hv_plot = FluxPlotHV(self)
 
     def add_fluxes(self, data, survey_name):
         fl = Flux(data, survey=survey_name)
