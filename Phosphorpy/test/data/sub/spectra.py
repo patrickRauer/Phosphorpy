@@ -131,15 +131,15 @@ class TestSpectra(unittest.TestCase):
         self.spectra.plot.spectra(min_wavelength=400, max_wavelength=700)
 
     def test_fit(self):
-        print(self.spectra.fit_line())
+        self.spectra.fit_line()
 
     def test_fit_gaus(self):
-        print(self.spectra.fit_gauss({'mean': 360, 'stddev': 100}))
+        self.spectra.fit_gauss({'mean': 360, 'stddev': 100})
         self.spectra.plot.spectra()
 
     def test_fit_dgaus(self):
-        print(self.spectra.fit_double_gauss({'mean': 360, 'stddev': 100},
-                                            {'mean': 600, 'stddev': 10}))
-        print(self.spectra.fit_gauss({'mean': 360, 'stddev': 100}))
-        print(self.spectra.fit_gauss({'mean': 600, 'stddev': 10}))
+        self.spectra.fit_double_gauss({'mean': 360, 'stddev': 100},
+                                            {'mean': 600, 'stddev': 10})
+        self.spectra.fit_gauss({'mean': 360, 'stddev': 100})
+        self.spectra.fit_gauss({'mean': 600, 'stddev': 10})
         self.spectra.plot.spectra()
