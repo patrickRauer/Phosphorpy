@@ -15,6 +15,11 @@ from .plots.magnitude import MagnitudePlot
 from .table import DataTable
 from .tables.magnitude import Magnitude
 
+try:
+    from Phosphorpy.data.sub.interactive_plotting.mangitude import MagnitudePlot as MagnitudePlotHV
+except ImportError:
+    MagnitudePlotHV = None
+
 
 def power_2_10(x):
     return np.power(10., -x / 2.5)
@@ -664,6 +669,9 @@ class MagnitudeTable(DataTable):
         self._err_cols = []
         self._plot = MagnitudePlot(self)
         data = __check_input__(data, names)
+
+        if MagnitudePlotHV.holoviews():
+            self._hv_plot = MagnitudePlotHV(self)
 
         try:
             cols = guess_surveys(data.columns)
