@@ -78,7 +78,6 @@ class SpectraPlot:
         opts = self._opts.copy()
         if hv_kwargs is not None:
             opts.update(hv_kwargs)
-        print(opts)
         graph = graph.opts(
             **opts
         )
