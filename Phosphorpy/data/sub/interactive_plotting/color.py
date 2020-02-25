@@ -7,6 +7,8 @@ from Phosphorpy.data.sub.interactive_plotting.interactive_plotting import HVPlot
 
 try:
     import holoviews as hv
+    import numba
+    from holoviews.operation.datashader import datashade
 except ImportError:
     hv = None
 
@@ -187,28 +189,33 @@ class Color(HVPlot):
         :type legend: bool
         :return:
         """
+        # todo: make sure that one survey is used
         color1 = self._color.get_column(cols[0])
         color2 = self._color.get_column(cols[1])
 
-        graph = hv.Scatter(
-            (
-                color1,
-                color2
-            )
+        color1, color2 = color1.align(color2)
+
+        graph = hv.Points(
+            (color1,
+             color2)
         )
+
+        if len(color1) > 1000:
+            graph = datashade(graph)
         graph = self._hover(graph)
-        graph = graph.opts(color='k')
 
         # iterate over all masks
         for i in range(self._color.mask.get_mask_count()):
             m = self._color.mask.get_mask(i)
-            g = hv.Scatter(
+            g = hv.Points(
                 (
                     color1[m],
                     color2[m]
                 ),
                 label=self._color.mask.get_description(i)
             )
+            if len(color1) > 1000:
+                g = datashade(g)
             g = self._hover(g)
             graph *= g
 
@@ -311,9 +318,9 @@ class Color(HVPlot):
             for c in cols:
                 color = self._color.get_columns(c)
                 m = color == color
-                hist, edge = np.histogram(color[m], bins=bins,
+                hist, edge = np.histogram(color[m.values], bins=bins,
                                           range=xlimit, density=density)
-                g = hv.Histogram((hist, edge))
+                g = hv.Histogram((hist, edge), label=c)
 
                 g = self._hover(g)
 
@@ -324,13 +331,13 @@ class Color(HVPlot):
         else:
             color = self._color.get_columns(cols)
             m = color == color
-            hist, edge = np.histogram(color[m], bins=bins,
+            hist, edge = np.histogram(color[m.values], bins=bins,
                                       range=xlimit, density=density)
             graph = hv.Histogram((hist, edge)).opts(tools=['hover'])
             graph = self._hover(graph)
 
         graph = graph.opts(
-            xlabel=cols[0],
+            xlabel='color',
             ylabel=ylabel,
             **hv_kwargs
         )
