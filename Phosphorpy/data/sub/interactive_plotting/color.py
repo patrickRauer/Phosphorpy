@@ -82,8 +82,6 @@ class Color(HVPlot):
         d = self._color.get_columns(cols)
 
         m = d[cols[0]] > -999
-        print(d.columns)
-        print(cols)
         for i in range(1, len(cols)):
             m = m & (d[cols[i]] > -999)
 
@@ -220,8 +218,8 @@ class Color(HVPlot):
             graph *= g
 
         graph = graph.opts(
-            xlabel=cols[0],
-            ylabel=cols[1],
+            xlabel=cols[0].replace('mag', ''),
+            ylabel=cols[1].replace('mag', ''),
             **hv_kwargs
         )
 
