@@ -172,7 +172,7 @@ class Color(HVPlot):
             # pp.fig.tight_layout()
         pass
 
-    def __color_color_single__(self, cols, labels, legend=False, **hv_kwargs):
+    def __color_color_single__(self, cols, labels, legend=False, use_datashade=True, **hv_kwargs):
         """
         Creates a color-color plot with two magnitudes
 
@@ -198,7 +198,7 @@ class Color(HVPlot):
              color2)
         )
 
-        if len(color1) > 1000:
+        if len(color1) > 1000 and use_datashade:
             graph = datashade(graph)
         graph = self._hover(graph)
 
@@ -212,7 +212,7 @@ class Color(HVPlot):
                 ),
                 label=self._color.mask.get_description(i)
             )
-            if len(color1) > 1000:
+            if len(color1) > 1000 and use_datashade:
                 g = datashade(g)
             g = self._hover(g)
             graph *= g
@@ -225,7 +225,7 @@ class Color(HVPlot):
 
         return graph
 
-    def color_color(self, survey=None, cols=None, path='', labels=None, legend=False, **hv_kwargs):
+    def color_color(self, survey=None, cols=None, path='', labels=None, legend=False, use_datashade=True, **hv_kwargs):
         """
         Plots a color color diagram. If their are more than two columns, it will
         plot the color-color diagrams in a grid
@@ -270,7 +270,7 @@ class Color(HVPlot):
             raise NotImplementedError('Multi color-color plots are not supported in the interactive plotting '
                                       'environment.\n Choose the standard plotting environment to create these plots.')
         else:
-            return self.__color_color_single__(cols, labels, legend=legend, **hv_kwargs)
+            return self.__color_color_single__(cols, labels, legend=legend, use_datashade=use_datashade, **hv_kwargs)
 
     def color_hist(self, cols=None, bins='auto', histtype='step', xlimit=None, density=False, path='',
                    labels=None, **hv_kwargs):
