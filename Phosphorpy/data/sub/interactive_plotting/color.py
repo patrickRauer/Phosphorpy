@@ -316,9 +316,10 @@ class Color(HVPlot):
             for c in cols:
                 color = self._color.get_columns(c)
                 m = color == color
-                hist, edge = np.histogram(color[m.values], bins=bins,
-                                          range=xlimit, density=density)
-                g = hv.Histogram((hist, edge), label=c)
+                # hist, edge = np.histogram(color[m.values], bins=bins,
+                #                           range=xlimit, density=density)
+                g = hv.Distribution(color[m.values], label=c.replace('mag', ''))
+                # g = hv.Histogram((hist, edge), label=c.replace('mag', ''))
 
                 g = self._hover(g)
 
@@ -341,10 +342,3 @@ class Color(HVPlot):
         )
 
         return graph
-
-    @staticmethod
-    def holoviews():
-        if hv is not None:
-            return True
-        else:
-            return False

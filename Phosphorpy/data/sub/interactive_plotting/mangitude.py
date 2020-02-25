@@ -14,7 +14,7 @@ def _hist(x, bins, histtype, label=''):
                                   np.nanmin(x),
                                   np.nanmax(x)
                               ])
-    graph = hv.Histogram((edge, hist), label=label)
+    graph = hv.Distribution(x, label=label)
     return graph
 
 
@@ -87,7 +87,8 @@ class MagnitudePlot(HVPlot):
         # set the axis-labels
         graph = graph.opts(
             xlabel='magnitude',
-            ylabel='counts',
+            ylabel='density [#/bin]',
             **hv_kwargs
         )
+        graph = graph.opts(hv.opts.Distribution(filled=False, line_color=hv.Cycle()))
         return graph
