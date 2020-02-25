@@ -53,6 +53,7 @@ def _average_light_curve(lc, dt_max):
 class LightCurves:
     _stat_columns = None
     _stat_operations = None
+    _survey_names = None
 
     _light_curves = None
     _average = None
@@ -67,7 +68,7 @@ class LightCurves:
                 if type(surveys) == str:
                     surveys = [surveys]
                 surveys = [s.lower() for s in surveys]
-
+            self._survey_names = surveys
             out = []
             if 'css' in surveys:
                 try:
@@ -131,6 +132,9 @@ class LightCurves:
 
     def __repr__(self):
         return self.__str__()
+
+    def survey_id2name(self, sid):
+        return self._survey_names[sid-1]
 
     def stats(self):
         """
