@@ -21,7 +21,7 @@ class LightCurvePlot(HVPlot):
         self._opts = dict(
             xlabel='MJD [days]',
             ylabel='mag',
-            tools=['hover']
+            invert_yaxis=True
         )
 
     def plot_light_curve(self, light_curve_id, min_mjd=None, max_mjd=None, path=None,

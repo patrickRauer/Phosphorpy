@@ -117,12 +117,12 @@ class CoordinatePlot(HVPlot):
             raise NotImplementedError('Projection is not supported by holoviews. Use the non-interactive plotting '
                                       'for the mollweide-projection instead.')
 
-        graph = hv.Scatter(self._coordinate.data, col1, col2).opts(color=color)
+        graph = hv.Scatter(self._coordinate.data, col1, col2)
         graph = self._hover(graph)
         if self._coordinate.mask.get_mask_count() > 0:
             for mask_id in range(self._coordinate.mask.get_mask_count()):
                 g = hv.Scatter(self._coordinate.data[self._coordinate.mask.get_mask(mask_id)],
-                               col1, col2).opts(color=color)
+                               col1, col2)
                 graph *= self._hover(g)
 
         graph = graph.opts(xlabel=x_label,
