@@ -65,7 +65,7 @@ class LightCurvePlot(HVPlot):
                 else:
                     graph *= g
         else:
-            raise ValueError('\'licht_curve_id\' must be an integer or an iterable object of integers.')
+            raise ValueError('\'light_curve_id\' must be an integer or an iterable object of integers.')
 
         graph = graph.opts(
             **opts
@@ -79,7 +79,6 @@ class LightCurvePlot(HVPlot):
         """
         Plots the light curve of a specific target with different markers for every survey
 
-        :param sp: The plotting environment
         :param lc: The light curve data
         :type lc: DataFrame
         :param label: The name of the target
@@ -100,7 +99,7 @@ class LightCurvePlot(HVPlot):
             m = markers[s - 1]
             l = lc[lc['survey'] == s]
             error = hv.ErrorBars(l, 'mjd', ['mag', 'magerr'])
-            g = hv.Scatter(l, 'mjd', 'mag').opts(size=5)
+            g = hv.Scatter(l, 'mjd', 'mag', label=f'{label} {self._light_curve.survey_id2name(s)}').opts(size=5)
 
             if hover:
                 g = self._hover(g)
