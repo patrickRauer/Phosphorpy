@@ -19,7 +19,7 @@ def _add_mag(c):
     if mag_count == 0:
         out = f'{c[0]}mag - {c[-1]}mag'
     elif mag_count == 2 or mag_count == 1:
-        return add_mag(c.replace('mag', ''))
+        return _add_mag(c.replace('mag', ''))
     else:
         raise ValueError('Can not understand your column names.')
     return out
