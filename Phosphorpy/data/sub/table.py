@@ -139,6 +139,10 @@ class DataTable:
         return self._hv_plot
 
     @property
+    def hvplot(self):
+        return self._hv_plot
+
+    @property
     def q(self):
         return self._q
 

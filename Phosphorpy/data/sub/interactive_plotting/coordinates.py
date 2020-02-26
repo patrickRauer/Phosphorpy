@@ -1,6 +1,8 @@
 from astropy import units as u
 from astropy.coordinates import Angle
 
+from Phosphorpy.data.sub.interactive_plotting.interactive_plotting import HVPlot
+
 try:
     import holoviews as hv
 except ImportError:
@@ -29,7 +31,7 @@ def _angle_plot(x, y, sp, marker, color):
     sp.scatter(x.radian, y.radian, marker=marker, c=color)
 
 
-class CoordinatePlot:
+class CoordinatePlot(HVPlot):
     """
     Basic class to provide coordinate plots
     """
@@ -38,7 +40,7 @@ class CoordinatePlot:
         self._coordinate = coordinate
 
     def equatorial(self, path='', marker='.', color='k',
-                   mask_colors=None, mollweide=True, **hv_kwargs):
+                   mask_colors=None, mollweide=False, **hv_kwargs):
         """
         Plot the position of the entries in equatorial coordinates
 
@@ -56,12 +58,12 @@ class CoordinatePlot:
         :type mollweide: bool
         :return:
         """
-        self._scatter('ra', 'dec', 'R.A. [deg]', 'Dec [deg]',
-                      path, marker, color, mask_colors=mask_colors,
-                      mollweide=mollweide, **hv_kwargs)
+        return self._scatter('ra', 'dec', 'R.A. [deg]', 'Dec [deg]',
+                             path, marker, color, mask_colors=mask_colors,
+                             mollweide=mollweide, **hv_kwargs)
 
     def galactic(self, path='', marker='.', color='k',
-                 mask_colors=None, mollweide=True, **hv_kwargs):
+                 mask_colors=None, mollweide=False, **hv_kwargs):
         """
         Plot the position of the entries in galactic coordinates
 
@@ -79,9 +81,9 @@ class CoordinatePlot:
         :type mollweide: bool
         :return:
         """
-        self._scatter('l', 'b', 'l [deg]', 'b [deg]',
-                      path, marker, color, mask_colors=mask_colors,
-                      mollweide=mollweide, **hv_kwargs)
+        return self._scatter('l', 'b', 'l [deg]', 'b [deg]',
+                             path, marker, color, mask_colors=mask_colors,
+                             mollweide=mollweide, **hv_kwargs)
 
     def _scatter(self, col1, col2, x_label, y_label, path, marker, color,
                  mask_colors=None, mollweide=True, **hv_kwargs):
@@ -115,20 +117,15 @@ class CoordinatePlot:
             raise NotImplementedError('Projection is not supported by holoviews. Use the non-interactive plotting '
                                       'for the mollweide-projection instead.')
 
-        graph = hv.Scatter(self._coordinate.data, col1, col2).opts(color=color, tools=['hover'])
+        graph = hv.Scatter(self._coordinate.data, col1, col2)
+        graph = self._hover(graph)
         if self._coordinate.mask.get_mask_count() > 0:
             for mask_id in range(self._coordinate.mask.get_mask_count()):
-                graph *= hv.Scatter(self._coordinate.data[self._coordinate.mask.get_mask(mask_id)],
-                                    col1, col2).opts(color=color, tools=['hover'])
+                g = hv.Scatter(self._coordinate.data[self._coordinate.mask.get_mask(mask_id)],
+                               col1, col2)
+                graph *= self._hover(g)
 
         graph = graph.opts(xlabel=x_label,
                            ylabel=y_label,
                            **hv_kwargs)
         return graph
-
-    @staticmethod
-    def holoviews():
-        if hv is not None:
-            return True
-        else:
-            return False

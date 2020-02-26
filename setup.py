@@ -5,13 +5,15 @@ with open("README.md", "r") as fh:
 
 setup(
     name='Phosphorpy',
-    version='0.7',
+    version='0.7.1',
     python_requires='>=3.6',
     packages=['Phosphorpy', 'Phosphorpy.data',
-              'Phosphorpy.data.sub', 'Phosphorpy.data.sub.plots',
+              'Phosphorpy.data.sub',
+              'Phosphorpy.data.sub.plots', 'Phosphorpy.data.sub.interactive_plotting',
               'Phosphorpy.config',
               'Phosphorpy.fitting', 'Phosphorpy.external',
-              'Phosphorpy.core', 'Phosphorpy.data.sub.tables', 'Phosphorpy.local'],
+              'Phosphorpy.core', 'Phosphorpy.data.sub.tables',
+              'Phosphorpy.local'],
     # package_dir={'': 'Phosphorpy'},
     include_package_data=True,
     # package_data={

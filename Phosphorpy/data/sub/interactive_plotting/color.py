@@ -1,8 +1,14 @@
+from collections.abc import Iterable
 import pylab as pl
 import seaborn
 import numpy as np
+
+from Phosphorpy.data.sub.interactive_plotting.interactive_plotting import HVPlot
+
 try:
     import holoviews as hv
+    import numba
+    from holoviews.operation.datashader import datashade
 except ImportError:
     hv = None
 
@@ -45,7 +51,7 @@ def create_color_name(c):
     return c
 
 
-class Color:
+class Color(HVPlot):
     """
     Class to handle different plot with the colors
     """
@@ -76,8 +82,6 @@ class Color:
         d = self._color.get_columns(cols)
 
         m = d[cols[0]] > -999
-        print(d.columns)
-        print(cols)
         for i in range(1, len(cols)):
             m = m & (d[cols[i]] > -999)
 
@@ -168,7 +172,7 @@ class Color:
             # pp.fig.tight_layout()
         pass
 
-    def __color_color_single__(self, cols, labels, legend=False, **hv_kwargs):
+    def __color_color_single__(self, cols, labels, legend=False, use_datashade=True, **hv_kwargs):
         """
         Creates a color-color plot with two magnitudes
 
@@ -183,37 +187,45 @@ class Color:
         :type legend: bool
         :return:
         """
+        # todo: make sure that one survey is used
         color1 = self._color.get_column(cols[0])
         color2 = self._color.get_column(cols[1])
 
-        graph = hv.Scatter(
-            (
-                color1,
-                color2
-            )
-        ).opts(tools=['hover'])
-        graph = graph.opts(color='k')
+        color1, color2 = color1.align(color2)
+
+        graph = hv.Points(
+            (color1,
+             color2)
+        )
+
+        if len(color1) > 1000 and use_datashade:
+            graph = datashade(graph)
+        graph = self._hover(graph)
 
         # iterate over all masks
         for i in range(self._color.mask.get_mask_count()):
             m = self._color.mask.get_mask(i)
-            graph *= hv.Scatter(
+            g = hv.Points(
                 (
                     color1[m],
                     color2[m]
                 ),
                 label=self._color.mask.get_description(i)
-            ).opts(tools=['hover'])
+            )
+            if len(color1) > 1000 and use_datashade:
+                g = datashade(g)
+            g = self._hover(g)
+            graph *= g
 
         graph = graph.opts(
-            xlabel=cols[0],
-            ylabel=cols[1],
+            xlabel=cols[0].replace('mag', ''),
+            ylabel=cols[1].replace('mag', ''),
             **hv_kwargs
         )
 
         return graph
 
-    def color_color(self, survey=None, cols=None, path='', labels=None, legend=False, **hv_kwargs):
+    def color_color(self, survey=None, cols=None, path='', labels=None, legend=False, use_datashade=True, **hv_kwargs):
         """
         Plots a color color diagram. If their are more than two columns, it will
         plot the color-color diagrams in a grid
@@ -258,9 +270,9 @@ class Color:
             raise NotImplementedError('Multi color-color plots are not supported in the interactive plotting '
                                       'environment.\n Choose the standard plotting environment to create these plots.')
         else:
-            return self.__color_color_single__(cols, labels, legend=legend, **hv_kwargs)
+            return self.__color_color_single__(cols, labels, legend=legend, use_datashade=use_datashade, **hv_kwargs)
 
-    def color_hist(self, cols=None, bins='auto', histtype='step', range=None, density=False, path='',
+    def color_hist(self, cols=None, bins='auto', histtype='step', xlimit=None, density=False, path='',
                    labels=None, **hv_kwargs):
         """
         Plots a histogram of the color(s).
@@ -272,8 +284,8 @@ class Color:
         :type bins: int, str
         :param histtype: The type of the histogram. Default is 'step'.
         :type histtype: str
-        :param range: The range of the x_axis. Default is None.
-        :type range: list, tuple
+        :param xlimit: The range of the x_axis. Default is None.
+        :type xlimit: list, tuple
         :param density: True if the histogram should be a density histogram, else False. Default is False.
         :type density: bool
         :param path:
@@ -286,10 +298,12 @@ class Color:
         :return:
         """
 
+        if type(cols) == str:
+            cols = [cols]
         # exclude data with nan values
-        m = self._color.data[cols[0]] > -999
-        for i in range(1, len(cols)):
-            m = m & (self._color.data[cols[i]] > -999)
+        # m = self._color.get_columns(cols[0]) > -999
+        # for i in range(1, len(cols)):
+        #     m = m & (self._color.get_columns(cols[i]) > -999)
 
         if density:
             ylabel = 'density'
@@ -298,32 +312,33 @@ class Color:
 
         graph = None
 
-        if type(cols) == list:
+        if isinstance(cols, Iterable):
             for c in cols:
-                hist, edge = np.histogram(self._color.data[cols][m], bins=bins,
-                                          range=range, density=density)
-                g = hv.Histogram((hist, edge)).opts(tools=['hover'])
+                color = self._color.get_columns(c)
+                m = color == color
+                # hist, edge = np.histogram(color[m.values], bins=bins,
+                #                           range=xlimit, density=density)
+                g = hv.Distribution(color[m.values], label=c.replace('mag', ''))
+                # g = hv.Histogram((hist, edge), label=c.replace('mag', ''))
+
+                g = self._hover(g)
 
                 if graph is None:
                     graph = g
                 else:
                     graph *= g
         else:
-            hist, edge = np.histogram(self._color.data[cols][m], bins=bins,
-                                      range=range, density=density)
+            color = self._color.get_columns(cols)
+            m = color == color
+            hist, edge = np.histogram(color[m.values], bins=bins,
+                                      range=xlimit, density=density)
             graph = hv.Histogram((hist, edge)).opts(tools=['hover'])
+            graph = self._hover(graph)
 
         graph = graph.opts(
-            xlabel=cols[0],
+            xlabel='color',
             ylabel=ylabel,
             **hv_kwargs
         )
 
         return graph
-
-    @staticmethod
-    def holoviews():
-        if hv is not None:
-            return True
-        else:
-            return False
