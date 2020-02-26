@@ -1,10 +1,12 @@
+from Phosphorpy.data.sub.interactive_plotting.interactive_plotting import HVPlot
+
 try:
     import holoviews as hv
 except ImportError:
     hv = None
 
 
-class FluxPlot:
+class FluxPlot(HVPlot):
     _data = None
 
     def __init__(self, data):
@@ -55,7 +57,7 @@ class FluxPlot:
                     s.get_flux(index)
                 ),
                 label=s.survey_name)
-            g = errs * g.opts(tools=['hover'])
+            g = errs * self._hover(g)
 
             if graph is None:
                 graph = g
@@ -65,14 +67,7 @@ class FluxPlot:
         graph = graph.opts(
             xlabel='wavelength [$\\AA$]',
             ylabel='flux',
-            xlog=x_log,
-            ylog=y_log, **hv_kwargs
+            logx=x_log,
+            logy=y_log, **hv_kwargs
         )
         return graph
-
-    @staticmethod
-    def holoviews():
-        if hv is not None:
-            return True
-        else:
-            return False

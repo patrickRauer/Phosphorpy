@@ -45,14 +45,16 @@ def _average_light_curve(lc, dt_max):
         ra.append(np.sum(l['ra'].values*err_sq)*err_sq_sum)
         dec.append(np.sum(l['dec'].values*err_sq)*err_sq_sum)
     s = lc['survey'].values[0]
-    return pd.DataFrame({'mag': mags, 'magerr': errs, 'mjd': mjds,
-                         'row_id': len(errs)*[lc['row_id'].values[0]],
-                         'ra': ra, 'dec': dec, 'survey': np.linspace(s, s, len(errs))})
+    avg = pd.DataFrame({'mag': mags, 'magerr': errs, 'mjd': mjds,
+                        'row_id': len(errs)*[lc.index.values[0]],
+                        'ra': ra, 'dec': dec, 'survey': np.linspace(s, s, len(errs))})
+    return avg.set_index('row_id')
 
 
 class LightCurves:
     _stat_columns = None
     _stat_operations = None
+    _survey_names = None
 
     _light_curves = None
     _average = None
@@ -67,7 +69,7 @@ class LightCurves:
                 if type(surveys) == str:
                     surveys = [surveys]
                 surveys = [s.lower() for s in surveys]
-
+            self._survey_names = np.array(surveys)
             out = []
             if 'css' in surveys:
                 try:
@@ -110,12 +112,13 @@ class LightCurves:
                 raise ValueError('No light curves found for the coordinate and survey combination.')
 
             self._light_curves = pd.concat(out)
+            self._light_curves.set_index('row_id', inplace=True)
         elif light_curves is not None:
             self._light_curves = light_curves
         else:
             raise ValueError('coordinates or light curves must be given.')
 
-        self._stat_columns = ['row_id', 'survey', 'mag', 'magerr', 'ra', 'dec', 'mjd']
+        self._stat_columns = ['survey', 'mag', 'magerr', 'ra', 'dec', 'mjd']
         self._stat_operations = [np.mean, np.median, np.std, np.min, np.max, 'count']
 
         self._plot = LightCurvePlot(self)
@@ -126,11 +129,14 @@ class LightCurves:
     def __str__(self):
         out = ''.join(['Number of light curves: {}\n',
                        'with {} entries.'])
-        out = out.format(len(np.unique(self._light_curves['row_id'])), len(self._light_curves))
+        out = out.format(len(np.unique(self._light_curves.index.values)), len(self._light_curves))
         return out
 
     def __repr__(self):
         return self.__str__()
+
+    def survey_id2name(self, sid):
+        return self._survey_names[sid-1]
 
     def stats(self):
         """
@@ -163,8 +169,8 @@ class LightCurves:
             return self._average
 
         out = []
-        for lc_id in np.unique(self._light_curves['row_id']):
-            lc = self._light_curves[self._light_curves['row_id'] == lc_id]
+        for lc_id in np.unique(self._light_curves.index.values):
+            lc = self._light_curves.loc[lc_id]
             for s in np.unique(lc['survey']):
 
                 out.append(_average_light_curve(lc[lc['survey'] == s], dt_max))
@@ -179,7 +185,7 @@ class LightCurves:
         :rtype index: int
         :return:
         """
-        return LightCurves(light_curves=self._light_curves[self._light_curves['row_id'] == index])
+        return LightCurves(light_curves=self._light_curves.loc[index])
 
     def align_light_curves(self, inplace=True):
         """
@@ -203,7 +209,7 @@ class LightCurves:
         out = []
         for index in stats.index.values:
             mag_med = stats.loc[index][('mag', 'median')]
-            lc_mask = (lc['row_id'] == index[0]) & (lc['survey'] == index[1])
+            lc_mask = (lc.index.values == index[0]) & (lc['survey'] == index[1])
             if index[1] == 1:
                 mag0 = mag_med
                 out.append(lc[lc_mask])
@@ -232,6 +238,24 @@ class LightCurves:
 
     def to_bin_table_hdu(self):
         return fits.BinTableHDU(self.to_astropy_table())
+
+    def get_data(self, with_names=False):
+        """
+        Returns the raw data of the light curves.
+
+        :param with_names:
+            True if the survey ID's should be replaced by the names of the surveys, else False.
+            Default is False.
+        :type with_names: bool
+        :return: The raw data of the light curves
+        :rtype: DataFrame
+        """
+        data = self._light_curves.copy()
+        if with_names:
+            sid = data['survey'].values
+            del data['survey']
+            data['survey'] = self.survey_id2name(sid)
+        return data
 
     @property
     def light_curves(self):

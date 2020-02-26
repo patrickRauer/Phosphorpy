@@ -1,11 +1,14 @@
 import numpy as np
+
+from Phosphorpy.data.sub.interactive_plotting.interactive_plotting import HVPlot
+
 try:
     import holoviews as hv
 except ImportError:
     hv = None
 
 
-class AstrometryPlot:
+class AstrometryPlot(HVPlot):
     _astrometry = None
 
     def __init__(self, astrometry):
@@ -29,7 +32,7 @@ class AstrometryPlot:
             m = self._astrometry.mask.get_mask(i).copy()
             m.index.name = pms.index.name
             dpms = pms[m]
-            graph *= hv.Scatter(dpms, 'pmra', 'pmdec')
+            graph *= self._hover(hv.Scatter(dpms, 'pmra', 'pmdec'))
 
         if cos_correction:
             xlabel = '$\\mu_\\alpha^*$ [mas/yr]'
@@ -60,10 +63,11 @@ class AstrometryPlot:
         hist, edge = np.histogram(x, bins='auto', range=hist_range)
 
         graph = hv.Histogram((edge, hist)).opts(color='k')
+        graph = self._hover(graph)
         for i in range(1, self._astrometry.mask.get_mask_count()):
             hist, edge = np.histogram(x[self._astrometry.mask.get_mask(i).values],
                                       bins='auto', range=hist_range)
-            graph *= hv.Histogram((edge, hist))
+            graph *= self._hover(hv.Histogram((edge, hist)))
 
         graph = graph.opts(xlabel=xlabel, ylabel='count', **hv_kwargs)
 

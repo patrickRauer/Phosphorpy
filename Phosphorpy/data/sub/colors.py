@@ -93,7 +93,6 @@ class Colors(DataTable):
         :return: All colors with the given names in it
         :rtype: pd.DataFrame
         """
-        print(cols)
         out = None
         for d in self.data:
             try:

@@ -121,7 +121,7 @@ def download_light_curves(ra, dec):
             with open('temp.txt', 'w') as f:
                 for j, (r, d) in enumerate(zip(d_ra, d_dec)):
                     row_id = i*part_size+j
-                    f.write(f"{row_id}\t{round(r, 5)}\t{round(d, 5)}\n")
+                    f.write(f"{row_id+1}\t{round(r, 5)}\t{round(d, 5)}\n")
 
             with open('temp.txt') as f:
                 r = requests.post(url,
