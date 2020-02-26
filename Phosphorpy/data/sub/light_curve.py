@@ -45,9 +45,10 @@ def _average_light_curve(lc, dt_max):
         ra.append(np.sum(l['ra'].values*err_sq)*err_sq_sum)
         dec.append(np.sum(l['dec'].values*err_sq)*err_sq_sum)
     s = lc['survey'].values[0]
-    return pd.DataFrame({'mag': mags, 'magerr': errs, 'mjd': mjds,
-                         'row_id': len(errs)*[lc.index.values[0]],
-                         'ra': ra, 'dec': dec, 'survey': np.linspace(s, s, len(errs))})
+    avg = pd.DataFrame({'mag': mags, 'magerr': errs, 'mjd': mjds,
+                        'row_id': len(errs)*[lc.index.values[0]],
+                        'ra': ra, 'dec': dec, 'survey': np.linspace(s, s, len(errs))})
+    return avg.set_index('row_id')
 
 
 class LightCurves:
