@@ -1,4 +1,5 @@
 from matplotlib.cm import get_cmap
+from collections.abc import Iterable
 import numpy as np
 import pylab as pl
 
@@ -64,14 +65,14 @@ class LightCurvePlot:
         pl.clf()
         sp = pl.subplot()
         if type(light_curve_id) is int:
-            lc = self._light_curve.light_curves[self._light_curve.light_curves['row_id'] == light_curve_id]
+            lc = self._light_curve.get_light_curve(light_curve_id).light_curves
             lc = lc[(lc['mjd'] >= min_mjd) & (lc['mjd'] <= max_mjd)]
             _plot_light_curve(sp, lc)
 
-        elif type(light_curve_id) is tuple or type(light_curve_id) is list:
+        elif isinstance(light_curve_id, Iterable):
             colors = get_cmap('Set1').colors
             for i, lci in enumerate(light_curve_id):
-                lc = self._light_curve.light_curves[self._light_curve.light_curves['row_id'] == lci]
+                lc = self._light_curve.get_light_curve(lci).light_curves
                 lc = lc[(lc['mjd'] >= min_mjd) & (lc['mjd'] <= max_mjd)]
                 _plot_light_curve(sp, lc, str(lci),
                                   colors[i % len(colors)])
