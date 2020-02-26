@@ -4,6 +4,11 @@ from Phosphorpy.data.sub.tables.color import Color as ColorTab
 from .plots.color import Color
 from .table import DataTable
 
+try:
+    from Phosphorpy.data.sub.interactive_plotting.color import Color as ColorHV
+except ImportError:
+    ColorHV = None
+
 
 class Colors(DataTable):
 
@@ -17,6 +22,9 @@ class Colors(DataTable):
 
         self._plot = Color(self)
 
+        if ColorHV.holoviews():
+            self._hv_plot = ColorHV(self)
+
     def __str__(self):
         s = 'Colors:\n'
         for d in self.data:
@@ -29,6 +37,12 @@ class Colors(DataTable):
         for d in self.data:
             cols[d.survey_name] = d.columns
         return cols
+
+    def get_survey_data(self, name):
+        for d in self.data:
+            if d.has_name(name):
+                return d
+        raise ValueError(f'No survey with {name} found.')
 
     def add_colors(self, data, survey_name):
         """
@@ -67,7 +81,7 @@ class Colors(DataTable):
         if minimum >= maximum:
             raise ValueError(f'Minimum must be bigger than maximum: {minimum} >= {maximum}')
         for d in self.data:
-            if survey is None or survey == d.survey_name:
+            if survey is None or d.has_name(survey):
                 d.set_limit(col, minimum=minimum, maximum=maximum, previous=previous)
 
     def get_columns(self, cols):
@@ -118,5 +132,5 @@ class Colors(DataTable):
         """
         survey = survey.lower()
         for d in self.data:
-            if survey == d.survey_name:
+            if d.has_name(survey):
                 d.outlier_detection()

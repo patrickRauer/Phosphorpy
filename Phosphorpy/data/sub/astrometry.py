@@ -8,9 +8,10 @@ from Phosphorpy.data.sub.plots.astrometry import AstrometryPlot
 from Phosphorpy.external.vizier import Gaia, BailerJones
 from .table import DataTable
 
+from Phosphorpy.data.sub.interactive_plotting.astrometry import AstrometryPlot as AstrometryPlotHV
+
 
 def _only_nearest(data):
-
         row_ids, row_id_count = np.unique(data['row_id'], return_counts=True)
         # find or multiple detections the closest one
         nearest = []
@@ -89,6 +90,9 @@ class AstrometryTable(DataTable):
         DataTable.__init__(self, mask=mask)
         self._plot = AstrometryPlot(self)
 
+        if AstrometryPlotHV.holoviews():
+            self._hv_plot = AstrometryPlotHV(self)
+
     @staticmethod
     def load_to_dataset(ds):
         astrometry = AstrometryTable.load_astrometry(ds.coordinates)
@@ -136,10 +140,11 @@ class AstrometryTable(DataTable):
         :rtype: numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray
         """
 
-        x = self._data['pmra'].values
-        y = self._data['pmdec'].values
-        x_err = self._data['pmra_error'].values
-        y_err = self._data['pmdec_error'].values
+        temp = self._data[['pmra', 'pmdec', 'pmra_error', 'pmdec_error']].copy()
+        x = temp['pmra'].values
+        y = temp['pmdec'].values
+        x_err = temp['pmra_error'].values
+        y_err = temp['pmdec_error'].values
         if cos_correction:
             dec_rad = np.deg2rad(self._data['dec'].values)
             cos_c = np.cos(dec_rad)
@@ -300,19 +305,29 @@ class AstrometryTable(DataTable):
             m = (pm_d >= minimal) & (pm_d <= maximal)
         self.mask.add_mask(m, f'Proper motion limit in {direction} direction from {minimal} to {maximal}')
 
-    def to_sky_coord(self):
+    def to_sky_coord(self, bailer_jones=False):
         """
         Creates from the Gaia data a astropy.coordinates.SkyCoord object for every source.
         The SkyCoord contains beside the coordinates, the proper motions (pm ra is corrected)
         and a distance estimation.
 
+        :param bailer_jones:
+            True, if the distance estimation from Bailer-Jones et al. should be used.
+            Else False for the Gaia DR2's parallax. In this case negative parallaxes are replaced with NaN.
+        :type bailer_jones: bool
         :return: SkyCoord objects of the detections
         :rtype: SkyCoord
         """
-
+        if bailer_jones:
+            distance = Distance(self._data['rest']*u.pc)
+        else:
+            m = self._data['parallax'] == self._data['parallax']
+            distance = self._data['parallax'].values
+            distance[m] = np.nan
+            distance = Distance(parallax=distance*u.mas)
         s = SkyCoord(self._data['ra'].values*u.deg,
                      self._data['dec'].values*u.deg,
                      pm_ra_cosdec=self._data['pmra'].values*np.cos(np.deg2rad(self._data['dec'].values))*u.mas/u.yr,
                      pm_dec=self._data['pmdec'].values*u.mas/u.yr,
-                     distance=Distance(parallax=self._data['parallax'].values*u.mas))
+                     distance=distance)
         return s

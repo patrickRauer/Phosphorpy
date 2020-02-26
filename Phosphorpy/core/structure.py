@@ -185,19 +185,24 @@ class Table:
         return self.__data[item]
 
     def __setitem__(self, key, value):
-        self.__data[key] = value
+        self.__data.loc[:, key] = value
 
     def __len__(self):
         return len(self.__data)
 
-    def __getattr__(self, item):
-        return self.__data.__getattribute__(item)
+    # def __getattr__(self, item):
+    #     if item in dir(self):
+    #         return self.__getattr__(item)
+    #     return self.__data.__getattribute__(item)
 
-    def __setattr__(self, key, value):
-        if self.__data is None or '_' in key[0]:
-            super().__setattr__(key, value)
-        else:
-            self.__data.__setattr__(key, value)
+    # def __setattr__(self, key, value):
+    #     print('key', key)
+    #     if self.__data is None or '_' in key[0] or 'data' in key:
+    #         print('to class')
+    #         super().__setattr__(key, value)
+    #     else:
+    #         print('to data')
+    #         self.__data.__setattr__(key, value)
 
     def set_mask(self, mask):
         """
@@ -233,6 +238,9 @@ class Table:
     def merge(self, right, left_index=False, right_index=False):
         self.__data = self.__data.merge(right, left_index=left_index, right_index=right_index)
 
+    def has_name(self, name):
+        return name == self.survey_name or name.lower() == self.survey_name
+
     @property
     def survey_name(self):
         return self.__head.name
@@ -245,9 +253,28 @@ class Table:
     def data(self):
         return self.__data
 
+    @data.setter
+    def data(self, d):
+        self.__data = d
+
     @property
     def survey(self):
         return self.__head
+
+    @property
+    def columns(self):
+        return self.__data.columns
+
+    @property
+    def values(self):
+        return self.__data.values
+
+    @property
+    def index(self):
+        return self.__data.index
+
+    def copy(self):
+        return self.__data.copy()
 
     def write(self, path, data_format='parquet', **kwargs):
         path, extension = os.path.splitext(path)

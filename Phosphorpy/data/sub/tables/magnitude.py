@@ -22,6 +22,14 @@ class Magnitude(Table):
     def __init__(self, data, names, survey='', mask=None):
         Table.__init__(self, data, survey, mask)
         self._set_cols(names)
+        self.__remove_sources_without_data()
+
+    def __remove_sources_without_data(self):
+        m = np.array([False]*len(self.data))
+        for c in self.data.columns:
+            d = self.data[c].values
+            m |= d == d
+        self.data = self.data[m]
 
     def __str__(self):
         return f'Magnitude of {self.survey_name} with {len(self)} entries\n'
@@ -97,7 +105,6 @@ class Magnitude(Table):
                 cols = [cols]
 
         colors = Color(self.data[[]], self.survey_name, mask=self.mask)
-        color_color_cols = []
         for i, c1 in enumerate(cols):
             for j, c2 in enumerate(cols):
                 
@@ -105,7 +112,6 @@ class Magnitude(Table):
                 # (assumption is that the columns are sorted in such a way)
                 if i < j:
                     cc_name = '{} - {}'.format(c1, c2)
-                    color_color_cols.append(cc_name)
                     if len(self) < 1e4:
                         colors[cc_name] = self[c1].values - self[c2].values
                     else:

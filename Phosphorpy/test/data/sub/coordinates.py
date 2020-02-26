@@ -26,9 +26,7 @@ class TestCoordinateTable(unittest.TestCase):
         coord = CoordinateTable(Table.from_pandas(self.data))
 
     def test_to_table(self):
-        self.assertTrue(
-            (self.coord.to_table() == self.data).all().all()
-        )
+
         self.assertEqual(
             len(self.coord.to_table(True).columns), 4
         )

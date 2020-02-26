@@ -208,7 +208,7 @@ def xmatch(data, ra_name, dec_name, survey, max_distance=1.*u.arcsec, blank=Fals
         data = __check_row_id__(data)
 
         rs = []
-        steps = len(data)//max_rows
+        steps = len(data)//max_rows+1
         for i in range(steps):
             rs.append(
                 _xmatch(

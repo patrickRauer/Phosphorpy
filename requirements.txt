@@ -1,3 +1,5 @@
+matplotlib
+hypothesis
 seaborn
 numpy
 astropy
@@ -8,3 +10,4 @@ scikit-learn
 armapy
 requests
 scipy
+pyarrow

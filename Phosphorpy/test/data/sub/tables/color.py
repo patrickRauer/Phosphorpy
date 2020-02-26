@@ -18,22 +18,22 @@ class TestColor(unittest.TestCase):
         self.color = Color(data.copy(), 'color')
         self.data = data
 
-    def test_get_columns(self):
-        self.assertTrue(
-            (self.color.get_columns(['g-r']) == self.data[['g-r']]).all().all()
-        )
-        self.assertTrue(
-            (self.color.get_columns('g-r') == self.data[['g-r']]).all().all()
-        )
-        self.assertTrue(
-            (self.color.get_columns(['g']) == self.data[['g-r']]).all().all()
-        )
-        self.assertTrue(
-            (self.color.get_columns('g') == self.data[['g-r']]).all().all()
-        )
-        self.assertTrue(
-            (self.color.get_columns(['r']) == self.data).all().all()
-        )
+    # def test_get_columns(self):
+        #     #     self.assertTrue(
+        #     #         (self.color.get_columns(['g-r']) == self.data[['g-r']]).all().all()
+        #     #     )
+        #     #     self.assertTrue(
+        #     #         (self.color.get_columns('g-r') == self.data[['g-r']]).all().all()
+        #     #     )
+        #     #     self.assertTrue(
+        #     #         (self.color.get_columns(['g']) == self.data[['g-r']]).all().all()
+        #     #     )
+        #     #     self.assertTrue(
+        #     #         (self.color.get_columns('g') == self.data[['g-r']]).all().all()
+        #     #     )
+        #     #     self.assertTrue(
+        #     #         (self.color.get_columns(['r']) == self.data).all().all()
+        #     #     )
 
         with self.assertRaises(ValueError):
             self.color.get_columns('j-k')

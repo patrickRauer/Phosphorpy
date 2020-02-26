@@ -1,20 +1,30 @@
 import numpy as np
-import pylab as pl
 import warnings
+from Phosphorpy.data.sub.interactive_plotting.interactive_plotting import HVPlot
 
-def _hist(sp, x, bins, histtype, label=''):
+try:
+    import holoviews as hv
+except ImportError:
+    hv = None
 
-    sp.hist(x, bins=bins, histtype=histtype, label=label, range=[np.nanmin(x),
-                                                                 np.nanmax(x)])
+
+def _hist(x, bins, histtype, label=''):
+    hist, edge = np.histogram(x, bins=bins,
+                              range=[
+                                  np.nanmin(x),
+                                  np.nanmax(x)
+                              ])
+    graph = hv.Distribution(x, label=label)
+    return graph
 
 
-class MagnitudePlot:
+class MagnitudePlot(HVPlot):
     _data = None
 
     def __init__(self, data):
         self._data = data
 
-    def hist(self, cols=None, survey=None, path=''):
+    def hist(self, cols=None, survey=None, path='', **hv_kwargs):
         """
         Plots the histogram(s) of the different magnitude(s).
 
@@ -45,11 +55,9 @@ class MagnitudePlot:
             if 'mag' not in c:
                 cols[i] = f'{c}mag'
 
-        pl.clf()
-        sp = pl.subplot()
-
         column_not_found = 0
         # go through all given magnitudes
+        graph = None
         for c in cols:
             # check if the magnitude is in the data. If not, raise an error
             if c not in all_columns:
@@ -58,24 +66,29 @@ class MagnitudePlot:
                 continue
 
             if self._data.mask.get_mask_count() == 0:
-                _hist(sp, d[c],
-                      bins='auto', histtype='step',
-                      label=c.split('mag')[0])
+                graph = _hist(d[c],
+                              bins='auto', histtype='step',
+                              label=c.split('mag')[0])
             else:
                 for i in range(self._data.mask.get_mask_count()):
-                    _hist(sp, d[c][self._data.mask.get_mask(i).values],
-                          bins='auto', histtype='step', label=c.split('mag')[0])
+                    g = _hist(d[c][self._data.mask.get_mask(i)],
+                              bins='auto', histtype='step', label=c.split('mag')[0])
+
+                    g = self._hover(g)
+
+                    if graph is None:
+                        graph = g
+                    else:
+                        graph *= g
 
         if column_not_found == len(cols):
             raise ValueError('At least oe column must be in one survey available.')
-        
-        # set the axis-labels
-        sp.set_xlabel('magnitude')
-        sp.set_ylabel('counts')
-        pl.legend(loc='best')
 
-        # if a path is given, save the figure, else show the figure
-        if path != '':
-            pl.savefig(path)
-        else:
-            pl.show()
+        # set the axis-labels
+        graph = graph.opts(
+            xlabel='magnitude',
+            ylabel='density [#/bin]',
+            **hv_kwargs
+        )
+        graph = graph.opts(hv.opts.Distribution(filled=False, line_color=hv.Cycle()))
+        return graph

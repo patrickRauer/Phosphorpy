@@ -1,4 +1,4 @@
-from astropy.table import Table, vstack
+from astropy.table import Table
 from astropy.modeling import models, fitting
 from astropy import units as u
 import numpy as np
@@ -7,6 +7,13 @@ import os
 import numbers
 
 from Phosphorpy.data.sub.plots.spectra import SpectraPlot, SpectraListPlot
+
+try:
+    from Phosphorpy.data.sub.interactive_plotting.spectra import SpectraPlot as SpectraPlotHV
+    from Phosphorpy.data.sub.interactive_plotting.spectra import SpectraListPlot as SpectraListPlotHV
+except ImportError:
+    SpectraPlotHV = None
+    SpectraListPlotHV = None
 
 
 class SpectraList:
@@ -45,6 +52,9 @@ class SpectraList:
                 self._ids = [0]
 
         self._plot = SpectraListPlot(self)
+
+        if SpectraListPlotHV.holoviews():
+            self._hv_plot = SpectraListPlotHV(self)
 
     def __len__(self):
         return len(self._spectra)
@@ -239,6 +249,10 @@ class SpectraList:
     def plot(self):
         return self._plot
 
+    @property
+    def hvplot(self):
+        return self._hv_plot
+
 
 class Spectra:
     NORMALIZE_MEAN = np.mean
@@ -273,6 +287,7 @@ class Spectra:
     _lines = None
 
     _plot = None
+    _hv_plot = None
 
     def __init__(self, wavelength=None, flux=None, wavelength_unit=None, flux_unit=None, survey=None,
                  index=-1, meta=None):
@@ -321,6 +336,9 @@ class Spectra:
 
         self._plot = SpectraPlot(self)
         self._fits = []
+
+        if SpectraPlotHV.holoviews():
+            self._hv_plot = SpectraPlotHV(self)
 
     def __str__(self):
         return f'Spectra with wavelength between {self.min_wavelength} and {self.max_wavelength} with a' \
@@ -469,6 +487,8 @@ class Spectra:
     def cut(self, min_wavelength=None, max_wavelength=None, inplace=True):
         """
         Make a cutout of the spectra between the minimal and maximal wavelengths.
+        If nether minimal wavelength or maximal wavelength is given,
+        it will make a copy of the original data.
 
         :param min_wavelength:
             The minimal wavelength as a float, then the we assume the same units as the wavelength,
@@ -484,9 +504,6 @@ class Spectra:
         :type inplace: bool
         :return:
         """
-        # if both are None, raise an error because it does not make any sense
-        if min_wavelength is max_wavelength:
-            raise ValueError('At least one of minimal wavelength or maximal wavelength must be given.')
 
         wave = self.wavelength.copy()
         flux = self.flux.copy()
@@ -658,6 +675,10 @@ class Spectra:
         :return:
         """
         return self._plot
+
+    @property
+    def hvplot(self):
+        return self._hv_plot
 
     @property
     def min_wavelength(self):

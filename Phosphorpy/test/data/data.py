@@ -167,6 +167,38 @@ class TestData(unittest.TestCase):
     #                                   **{'rmag': '<13', 'spCl': 'STAR'})
 
 
+class TestData2(unittest.TestCase):
+
+    def setUp(self) -> None:
+        self.coord = pd.DataFrame(
+            dict(
+                ra=[300.706346730, 300.70666426, 300.706019630,
+                    300.707633470, 300.70814224, 300.70829226,
+                    300.70375521],
+                dec=[25.23629731, 25.23574129, 25.237510750,
+                     25.237205890, 25.23575684, 25.23468929,
+                     25.23600555]
+            )
+        )
+        self.ds = data.DataSet.from_coordinates(self.coord)
+
+    def test_gs2000_ps(self):
+        self.ds.load_from_vizier('ps')
+
+        self.assertEqual(
+            len(self.coord), len(self.ds.magnitudes['ps'])
+        )
+
+    def test_gs2000_all(self):
+        self.ds.load_from_vizier('all')
+        print(self.ds.magnitudes)
+        print(self.ds.magnitudes.data)
+
+        for m in self.ds.magnitudes.data:
+            print(m)
+            print(m.data)
+
+
 def test_add_magnitudes():
     coord = pd.DataFrame(
         {
@@ -177,9 +209,27 @@ def test_add_magnitudes():
     Table.from_pandas(coord).write('temp_coordinates.fits', overwrite=True)
     ds = data.DataSet.load_coordinates('temp_coordinates.fits')
     ds.load_from_vizier('SDSS')
+    ds.load_from_vizier('ps')
     os.remove('temp_coordinates.fits')
+
+    ds.magnitudes.get_survey_data('ps')
 
 
 def test_load_coordinates():
     data.DataSet.load_coordinates('/Users/patrickr/Documents/test_dash.fits',
                                   'fits', 'RAJ2000', 'DECJ2000')
+
+
+def test_color_2mass_plot():
+    coord = pd.DataFrame(
+        {
+            'ra': [18.15629, 166.12397, 260.78809],
+            'dec': [33.49162, 8.6418, 48.31078]
+        }
+    )
+    Table.from_pandas(coord).write('temp_coordinates.fits', overwrite=True)
+    ds = data.DataSet.load_coordinates('temp_coordinates.fits')
+    ds.load_from_vizier('SDSS')
+    ds.load_from_vizier('ps')
+    ds.load_from_vizier('2MASS')
+    ds.colors.plot.color_color('2MASS')

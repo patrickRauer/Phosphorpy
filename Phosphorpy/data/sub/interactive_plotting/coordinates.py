@@ -1,6 +1,12 @@
-import pylab as pl
 from astropy import units as u
 from astropy.coordinates import Angle
+
+from Phosphorpy.data.sub.interactive_plotting.interactive_plotting import HVPlot
+
+try:
+    import holoviews as hv
+except ImportError:
+    hv = None
 
 
 def _angle_plot(x, y, sp, marker, color):
@@ -25,7 +31,7 @@ def _angle_plot(x, y, sp, marker, color):
     sp.scatter(x.radian, y.radian, marker=marker, c=color)
 
 
-class CoordinatePlot:
+class CoordinatePlot(HVPlot):
     """
     Basic class to provide coordinate plots
     """
@@ -34,7 +40,7 @@ class CoordinatePlot:
         self._coordinate = coordinate
 
     def equatorial(self, path='', marker='.', color='k',
-                   mask_colors=None, mollweide=True):
+                   mask_colors=None, mollweide=False, **hv_kwargs):
         """
         Plot the position of the entries in equatorial coordinates
 
@@ -52,12 +58,12 @@ class CoordinatePlot:
         :type mollweide: bool
         :return:
         """
-        self._scatter('ra', 'dec', 'R.A. [deg]', 'Dec [deg]',
-                      path, marker, color, mask_colors=mask_colors,
-                      mollweide=mollweide)
+        return self._scatter('ra', 'dec', 'R.A. [deg]', 'Dec [deg]',
+                             path, marker, color, mask_colors=mask_colors,
+                             mollweide=mollweide, **hv_kwargs)
 
     def galactic(self, path='', marker='.', color='k',
-                 mask_colors=None, mollweide=True):
+                 mask_colors=None, mollweide=False, **hv_kwargs):
         """
         Plot the position of the entries in galactic coordinates
 
@@ -75,12 +81,12 @@ class CoordinatePlot:
         :type mollweide: bool
         :return:
         """
-        self._scatter('l', 'b', 'l [deg]', 'b [deg]',
-                      path, marker, color, mask_colors=mask_colors,
-                      mollweide=mollweide)
+        return self._scatter('l', 'b', 'l [deg]', 'b [deg]',
+                             path, marker, color, mask_colors=mask_colors,
+                             mollweide=mollweide, **hv_kwargs)
 
     def _scatter(self, col1, col2, x_label, y_label, path, marker, color,
-                 mask_colors=None, mollweide=True):
+                 mask_colors=None, mollweide=True, **hv_kwargs):
         """
         Makes a scatter plot of two coordinates
 
@@ -106,32 +112,20 @@ class CoordinatePlot:
         :type mollweide: bool
         :return:
         """
-        pl.clf()
 
         if mollweide:
-            sp = pl.subplot(projection='mollweide')
-        else:
-            sp = pl.subplot()
+            raise NotImplementedError('Projection is not supported by holoviews. Use the non-interactive plotting '
+                                      'for the mollweide-projection instead.')
 
-        _angle_plot(self._coordinate[col1],
-                    self._coordinate[col2],
-                    sp, marker=marker,
-                    color=color)
+        graph = hv.Scatter(self._coordinate.data, col1, col2)
+        graph = self._hover(graph)
         if self._coordinate.mask.get_mask_count() > 0:
-            # todo: implement color and/or marker iteration
             for mask_id in range(self._coordinate.mask.get_mask_count()):
-                _angle_plot(self._coordinate[col1][self._coordinate.mask.get_mask(mask_id)],
-                            self._coordinate[col2][self._coordinate.mask.get_mask(mask_id)],
-                            sp, marker=marker,
-                            color=mask_colors)
-        sp.grid(True)
-        sp.set_xticklabels(['14h', '16h', '18h', '20h', '22h',
-                            '0h', '2h', '4h', '6h', '8h', '10h'])
+                g = hv.Scatter(self._coordinate.data[self._coordinate.mask.get_mask(mask_id)],
+                               col1, col2)
+                graph *= self._hover(g)
 
-        sp.set_xlabel(x_label)
-        sp.set_ylabel(y_label)
-
-        if path != '':
-            pl.savefig(path)
-        else:
-            pl.show()
+        graph = graph.opts(xlabel=x_label,
+                           ylabel=y_label,
+                           **hv_kwargs)
+        return graph
