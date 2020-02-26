@@ -184,7 +184,7 @@ class LightCurves:
         :rtype index: int
         :return:
         """
-        return LightCurves(light_curves=self._light_curves[self._light_curves['row_id'] == index])
+        return LightCurves(light_curves=self._light_curves.loc[index])
 
     def align_light_curves(self, inplace=True):
         """
@@ -208,7 +208,7 @@ class LightCurves:
         out = []
         for index in stats.index.values:
             mag_med = stats.loc[index][('mag', 'median')]
-            lc_mask = (lc['row_id'] == index[0]) & (lc['survey'] == index[1])
+            lc_mask = (lc.index.values == index[0]) & (lc['survey'] == index[1])
             if index[1] == 1:
                 mag0 = mag_med
                 out.append(lc[lc_mask])
