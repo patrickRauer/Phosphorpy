@@ -48,7 +48,7 @@ class LightCurvePlot(HVPlot):
             opts.update(hv_kwargs)
 
         if type(light_curve_id) is int:
-            lc = self._light_curve.light_curves[self._light_curve.light_curves['row_id'] == light_curve_id]
+            lc = self._light_curve.get_light_curve(light_curve_id).light_curves
             lc = lc[(lc['mjd'] >= min_mjd) & (lc['mjd'] <= max_mjd)]
             graph = self._plot_light_curve(lc)
 
@@ -56,7 +56,7 @@ class LightCurvePlot(HVPlot):
             colors = get_cmap('Set1').colors
             graph = None
             for i, lci in enumerate(light_curve_id):
-                lc = self._light_curve.light_curves[self._light_curve.light_curves['row_id'] == lci]
+                lc = self._light_curve.get_light_curve(lci).light_curves
                 lc = lc[(lc['mjd'] >= min_mjd) & (lc['mjd'] <= max_mjd)]
                 g = self._plot_light_curve(lc, str(lci),
                                       colors[i % len(colors)])
