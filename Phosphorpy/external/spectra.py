@@ -67,11 +67,11 @@ def get_lamost_spectra(coord, ids=None):
 
     spec_list = SpectraList()
 
-    lamost_download_url = 'http://dr4.lamost.org/./spectrum/fits/{}?token='
+    lamost_download_url = 'http://dr5.lamost.org/./spectrum/fits/{}?token='
     lamost = Vizier(
         columns=['_q', 'RAJ2000', 'DEJ2000', 'ObsID', 'snru', 'snrg', 'snrr', 'snri', 'snrz', 'z', 'SubClass'])
     lamost.ROW_LIMIT = -1
-    rs = lamost.query_region(coord, 1 * u.arcsec, catalog='V/153/dr4')
+    rs = lamost.query_region(coord, 1 * u.arcsec, catalog='V/164/dr5')
 
     if len(rs) == 0:
         return spec_list
