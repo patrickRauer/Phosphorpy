@@ -68,7 +68,7 @@ class LightCurves:
                 if type(surveys) == str:
                     surveys = [surveys]
                 surveys = [s.lower() for s in surveys]
-            self._survey_names = surveys
+            self._survey_names = np.array(surveys)
             out = []
             if 'css' in surveys:
                 try:
@@ -117,7 +117,7 @@ class LightCurves:
         else:
             raise ValueError('coordinates or light curves must be given.')
 
-        self._stat_columns = ['row_id', 'survey', 'mag', 'magerr', 'ra', 'dec', 'mjd']
+        self._stat_columns = ['survey', 'mag', 'magerr', 'ra', 'dec', 'mjd']
         self._stat_operations = [np.mean, np.median, np.std, np.min, np.max, 'count']
 
         self._plot = LightCurvePlot(self)
@@ -128,7 +128,7 @@ class LightCurves:
     def __str__(self):
         out = ''.join(['Number of light curves: {}\n',
                        'with {} entries.'])
-        out = out.format(len(np.unique(self._light_curves['row_id'])), len(self._light_curves))
+        out = out.format(len(np.unique(self._light_curves.index.values)), len(self._light_curves))
         return out
 
     def __repr__(self):
@@ -168,8 +168,8 @@ class LightCurves:
             return self._average
 
         out = []
-        for lc_id in np.unique(self._light_curves['row_id']):
-            lc = self._light_curves[self._light_curves['row_id'] == lc_id]
+        for lc_id in np.unique(self._light_curves.index.values):
+            lc = self._light_curves.loc[lc_id]
             for s in np.unique(lc['survey']):
 
                 out.append(_average_light_curve(lc[lc['survey'] == s], dt_max))
@@ -237,6 +237,24 @@ class LightCurves:
 
     def to_bin_table_hdu(self):
         return fits.BinTableHDU(self.to_astropy_table())
+
+    def get_data(self, with_names=False):
+        """
+        Returns the raw data of the light curves.
+
+        :param with_names:
+            True if the survey ID's should be replaced by the names of the surveys, else False.
+            Default is False.
+        :type with_names: bool
+        :return: The raw data of the light curves
+        :rtype: DataFrame
+        """
+        data = self._light_curves.copy()
+        if with_names:
+            sid = data['survey'].values
+            del data['survey']
+            data['survey'] = self.survey_id2name(sid)
+        return data
 
     @property
     def light_curves(self):
