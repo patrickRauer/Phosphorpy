@@ -111,6 +111,7 @@ class LightCurves:
                 raise ValueError('No light curves found for the coordinate and survey combination.')
 
             self._light_curves = pd.concat(out)
+            self._light_curves.set_index('row_id', inplace=True)
         elif light_curves is not None:
             self._light_curves = light_curves
         else:
