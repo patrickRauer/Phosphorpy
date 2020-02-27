@@ -51,7 +51,7 @@ def _check_ids(ids, coord):
     :rtype: ndarray
     """
     if ids is None:
-        ids = np.arange(len(coord))
+        ids = np.arange(len(coord))+1
     else:
         if len(ids) != len(coord):
             raise ValueError('If ID\'s are given, they must have the same length as the given coordinates')
@@ -61,6 +61,18 @@ def _check_ids(ids, coord):
 
 
 def get_lamost_spectra(coord, ids=None):
+    """
+    Downloads spectra from the LAMOST DR5.
+    The cross-match radius is set to 1 arcsec.
+
+    :param coord: The coordinates of the targets
+    :type coord: SkyCoord
+    :param ids:
+        ID's corresponding to the coordinates. Default is None, which means that the positions in the coord
+        is used as ID.
+    :return: The downloaded spectra
+    :rtype: SpectraList
+    """
     coord = _check_coordinates(coord)
 
     ids = _check_ids(ids, coord)
@@ -112,7 +124,7 @@ def get_sdss_spectra(coord, ids=None):
     :param coord: The coordinates of the objects for which spectra are wanted
     :type coord: SkyCoord
     :param ids:
-        ID's of the spectra. If no ID's are given, the ID's are set to [0, len(coord)-1].
+        ID's of the spectra. If no ID's are given, the ID's are set to [1, len(coord)].
         Default is None.
     :type ids: Union
     :return: SpectraList with the found spectra or an empty SpectraList, if no spectra was found.
@@ -164,6 +176,18 @@ def get_sdss_spectra(coord, ids=None):
 
 
 def get_gama_spectra(coord, ids=None):
+    """
+    Downloads GAMA spectra for objects at the given coordinates, if spectra are available.
+
+    :param coord: The coordinates of the objects for which spectra are wanted
+    :type coord: SkyCoord
+    :param ids:
+        ID's of the spectra. If no ID's are given, the ID's are set to [0, len(coord)-1].
+        Default is None.
+    :type ids: Union
+    :return: SpectraList with the found spectra or an empty SpectraList, if no spectra was found.
+    :rtype: SpectraList
+    """
     spec_list_gama = SpectraList()
     spec_list_2dfgrs = SpectraList()
     coord = _check_coordinates(coord)
@@ -224,7 +248,7 @@ def get_spectra(coord, ids=None, source='SDSS'):
     :param coord: The coordinate(s) of the required sources
     :type coord: SkyCoord
     :param ids:
-        ID's of the spectra. If no ID's are given, the ID's are set to [0, len(coord)-1].
+        ID's of the spectra. If no ID's are given, the ID's are set to [1, len(coord)].
         Default is None.
     :type ids: Union
     :param source: The source of the spectra
