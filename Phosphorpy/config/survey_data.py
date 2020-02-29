@@ -88,4 +88,12 @@ def add_survey(name, vizier_path, release, reference, magnitudes, coordinates=No
     # conf.write()
 
 
+def get_survey_data(survey_name):
+    survey_name = survey_name.lower()
+    for k in SURVEY_DATA:
+        if k.lower() == survey_name:
+            return SURVEY_DATA[k]
+    raise ValueError('Survey not found!')
+
+
 SURVEY_DATA = read_survey_data()

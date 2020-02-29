@@ -12,6 +12,7 @@ import os
 import warnings
 from glob import glob
 
+from Phosphorpy.config.survey_data import get_survey_data
 from Phosphorpy.data.sub.spectra import Spectra, SpectraList
 
 
@@ -89,11 +90,10 @@ def get_lamost_spectra(coord, ids=None):
 
     spec_list = SpectraList()
 
-    lamost_download_url = 'http://dr5.lamost.org/./spectrum/fits/{}?token='
-    lamost = Vizier(
-        columns=['_q', 'RAJ2000', 'DEJ2000', 'ObsID', 'snru', 'snrg', 'snrr', 'snri', 'snrz', 'z', 'SubClass'])
+    lamost_data = get_survey_data('LAMOST')
+    lamost = Vizier(columns=lamost_data['columns'])
     lamost.ROW_LIMIT = -1
-    rs = lamost.query_region(coord, 1 * u.arcsec, catalog='V/164/dr5')
+    rs = lamost.query_region(coord, 1 * u.arcsec, catalog=lamost_data['vizier'])
 
     if len(rs) == 0:
         return spec_list
@@ -109,7 +109,7 @@ def get_lamost_spectra(coord, ids=None):
     temp_path = f'temp_lamost_spec_{np.random.randint(0, 10000)}.fits'
 
     for obs_id, index in zip(rs['ObsID'], ids):
-        urllib.request.urlretrieve(lamost_download_url.format(obs_id), temp_path)
+        urllib.request.urlretrieve(lamost_data['url'].format(obs_id), temp_path)
         with fits.open(temp_path) as fi:
             d = fi[0].data
             wave = d[2]
@@ -281,6 +281,19 @@ def get_spectra(coord, ids=None, source='SDSS'):
 
 
 def get_all_spectra(coordinates, index=None):
+    """
+    Downloads all available spectra from SDSS, GAMA and LAMOST DR5
+
+    :param coordinates: The coordinates of the targets with potential spectra
+    :type coordinates: SkyCoord
+    :param index:
+        Optional, individual indices of the targets. If no indices are given, the return spectra will have indices
+        from 1 to len(coordinates) with the same order as the given coordinates.
+        Default is None.
+    :type index: Union
+    :return: The found spectra from the three surveys
+    :rtype: SpectraList
+    """
     specs = None
     try:
         specs = get_spectra(coordinates, index)
