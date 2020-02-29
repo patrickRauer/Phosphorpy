@@ -10,6 +10,7 @@ import numpy as np
 import urllib
 import os
 import warnings
+from glob import glob
 
 from Phosphorpy.data.sub.spectra import Spectra, SpectraList
 
@@ -18,6 +19,15 @@ SDSS = 'sdss'
 LAMOST = 'lamost'
 GAMA = 'gama'
 DFGRS = '2fDGR'
+
+
+def _remove_temp_files():
+    """
+    Removes all temporary spectra
+    :return:
+    """
+    for f in glob('temp_*_spec_*.fits'):
+        os.remove(f)
 
 
 def _check_coordinates(coord):
@@ -296,5 +306,7 @@ def get_all_spectra(coordinates, index=None):
             specs.merge(gama[1])
     except:
         pass
+
+    _remove_temp_files()
 
     return specs
