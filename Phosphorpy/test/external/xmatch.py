@@ -89,6 +89,8 @@ class TestXMatch(unittest.TestCase):
                     check[k] = True
                 except ValueError:
                     check[k] = False
+                except KeyError:
+                    check[k] = False
         print(check)
         if not all(check.items()):
             print(check)
