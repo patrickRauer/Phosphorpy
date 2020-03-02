@@ -385,7 +385,7 @@ class DataSet:
             # download the available photometric data from the SDSS survey
             ds.load_from_vizier('sdss')
 
-            # load also all NIR photometric data 
+            # load also all NIR photometric data
             ds.load_from_vizier('NIR')
 
         :param name:
