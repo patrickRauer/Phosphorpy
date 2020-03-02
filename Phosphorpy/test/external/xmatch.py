@@ -82,7 +82,7 @@ class TestXMatch(unittest.TestCase):
         exclude = ['Bailer', 'SkyMappper', 'GPS1', 'LAMOST']
         for k in xmatch.SURVEY_DATA.keys():
             # exclude surveys/catalogs which are not available via XMatch
-            if k in exclude:
+            if k not in exclude:
                 print(k)
                 try:
                     xmatch.xmatch(coords.copy(), 'ra', 'dec', k)
