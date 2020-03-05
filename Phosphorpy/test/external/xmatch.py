@@ -83,7 +83,6 @@ class TestXMatch(unittest.TestCase):
         for k in xmatch.SURVEY_DATA.keys():
             # exclude surveys/catalogs which are not available via XMatch
             if k not in exclude:
-                print(k)
                 try:
                     xmatch.xmatch(coords.copy(), 'ra', 'dec', k)
                     check[k] = True
@@ -91,9 +90,8 @@ class TestXMatch(unittest.TestCase):
                     check[k] = False
                 except KeyError:
                     check[k] = False
-        print(check)
+
         if not all(check.items()):
-            print(check)
             raise ValueError()
 
 
