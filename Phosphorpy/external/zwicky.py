@@ -22,7 +22,7 @@ def progress_bar(iteration, total, prefix='',
 
 def download_light_curve(ra, dec, radius=None, index=None):
     """
-    Downloads the light curve from the `Zwicky-survey <https://www.ztf.caltech.edu/>`_ DR1.1
+    Downloads the light curve from the `Zwicky-survey <https://www.ztf.caltech.edu/>`_ DR2
 
     :param ra: RA coordinate
     :type ra: float, Union

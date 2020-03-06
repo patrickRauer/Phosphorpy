@@ -34,7 +34,7 @@ class Vizier:
     reference = ''
     release = ''
 
-    def __init__(self, catalog='', name=None):
+    def __init__(self, catalog='', name=None, columns=None):
         """
         Basic class for an interface between the Vizier class of the astroquery package
 
@@ -70,10 +70,15 @@ class Vizier:
                 cols.append(c)
                 cols.append(f'e_{c}')
 
-        # if there are additional columns set
-        if 'columns' in selected_survey.keys():
-            cols.extend(selected_survey['columns'])
-        self.columns = cols
+        if columns is None:
+            # if there are additional columns set
+            if 'columns' in selected_survey.keys():
+                cols.extend(selected_survey['columns'])
+            self.columns = cols
+        else:
+            self.columns = columns
+        self.vizier = Viz(columns=self.columns)
+        self.vizier.ROW_LIMIT = -1
 
     def __adjust_coordinate_names__(self):
         """
@@ -280,8 +285,6 @@ class Gaia(Vizier):
         Child class to query GAIA DR2 data
         """
         Vizier.__init__(self)
-        self.vizier = Viz(columns=self.columns)
-        self.vizier.ROW_LIMIT = -1
 
 
 class TwoMass(Vizier):
@@ -293,8 +296,6 @@ class TwoMass(Vizier):
         Child class to query 2MASS data
         """
         Vizier.__init__(self)
-        self.vizier = Viz(columns=self.columns)
-        self.vizier.ROW_LIMIT = -1
 
 
 class SkyMapper(Vizier):
@@ -305,13 +306,14 @@ class SkyMapper(Vizier):
         """
         Child class to query 2MASS data
         """
-        Vizier.__init__(self)
-        self.columns = ['_RAJ2000', '_DEJ2000',
-                        'uPetro', 'e_uPetro', 'vPetro', 'e_vPetro',
-                        'gPetro', 'e_gPetro', 'rPetro', 'e_rPetro',
-                        'iPetro', 'e_iPetro', 'zPetro', 'e_zPetro']
-        self.vizier = Viz(columns=self.columns)
-        self.vizier.ROW_LIMIT = -1
+        Vizier.__init__(self,
+                        columns=[
+                            '_RAJ2000', '_DEJ2000',
+                            'uPetro', 'e_uPetro', 'vPetro', 'e_vPetro',
+                            'gPetro', 'e_gPetro', 'rPetro', 'e_rPetro',
+                            'iPetro', 'e_iPetro', 'zPetro', 'e_zPetro'
+                        ]
+                        )
 
 
 class Wise(Vizier):
@@ -322,8 +324,6 @@ class Wise(Vizier):
         Child class to query AllWise data
         """
         Vizier.__init__(self)
-        self.vizier = Viz(columns=self.columns)
-        self.vizier.ROW_LIMIT = -1
 
 
 class PanStarrs(Vizier):
@@ -334,8 +334,6 @@ class PanStarrs(Vizier):
         Child class to query PanSTARRS DR1 data
         """
         Vizier.__init__(self)
-        self.vizier = Viz(columns=self.columns)
-        self.vizier.ROW_LIMIT = -1
 
 
 class SDSS(Vizier):
@@ -346,8 +344,6 @@ class SDSS(Vizier):
         Child class to query SDSS DR12 data
         """
         Vizier.__init__(self)
-        self.vizier = Viz(columns=self.columns)
-        self.vizier.ROW_LIMIT = -1
 
 
 class Apass(Vizier):
@@ -358,8 +354,6 @@ class Apass(Vizier):
         Child class to query APASS DR9 data
         """
         Vizier.__init__(self)
-        self.vizier = Viz(columns=self.columns)
-        self.vizier.ROW_LIMIT = -1
 
 
 class Galex(Vizier):
@@ -370,8 +364,6 @@ class Galex(Vizier):
         Child class to query GALEX DR5 data
         """
         Vizier.__init__(self)
-        self.vizier = Viz(columns=self.columns)
-        self.vizier.ROW_LIMIT = -1
 
 
 class Kids(Vizier):
@@ -383,8 +375,6 @@ class Kids(Vizier):
         Child class to query KiDS DR3 data
         """
         Vizier.__init__(self)
-        self.vizier = Viz(columns=self.columns)
-        self.vizier.ROW_LIMIT = -1
 
 
 class Viking(Vizier):
@@ -396,8 +386,6 @@ class Viking(Vizier):
         Child class to query VIKING DR2 data
         """
         Vizier.__init__(self)
-        self.vizier = Viz(columns=self.columns)
-        self.vizier.ROW_LIMIT = -1
 
 
 class Ukidss(Vizier):
@@ -409,8 +397,6 @@ class Ukidss(Vizier):
         Child class to query VIKING DR2 data
         """
         Vizier.__init__(self)
-        self.vizier = Viz(columns=self.columns)
-        self.vizier.ROW_LIMIT = -1
 
 
 class BailerJones(Vizier):
@@ -422,8 +408,6 @@ class BailerJones(Vizier):
         Child class to query Bailer-Jones distance estimations from the GAIA DR2
         """
         Vizier.__init__(self)
-        self.vizier = Viz(columns=self.columns)
-        self.vizier.ROW_LIMIT = -1
 
 
 class MultiSurvey:
@@ -594,21 +578,32 @@ def query_simbad(coordinates):
     :return:
     """
     sc = coordinates.to_sky_coord()
-    rs = Simbad.query_region(sc, radius=2*u.arcsec)
-    if rs is None:
-        return rs
+    rs_tot = []
+
+    # download blocks of 2000 coordinates to avoid timeout errors because of the server limitation
+    steps = 2000
+    i = 0
+    while i*steps < len(sc):
+        rs = Simbad.query_region(sc[i*steps: (i+1)*steps], radius=2*u.arcsec)
+        rs['_q'] = i*steps+rs['_q']
+        rs_tot.append(rs)
+        i += 1
+    rs_tot = vstack(rs_tot)
+
+    if rs_tot is None:
+        return rs_tot
     coord = []
     ra_str = '{}h{}m{}s'
     dec_str = ' {}d{}m{}s'
-    for ra, dec in zip(rs['RA'], rs['DEC']):
+    for ra, dec in zip(rs_tot['RA'], rs_tot['DEC']):
         c = ra_str.format(*(ra.split(' ')))
         c += dec_str.format(*(dec.split(' ')))
         coord.append(c)
 
     s = SkyCoord(np.array(coord))
-    rs['ra'] = s.ra
-    rs['dec'] = s.dec
+    rs_tot['ra'] = s.ra
+    rs_tot['dec'] = s.dec
 
-    rs = coordinates.match(rs)
+    rs = coordinates.match(rs_tot)
 
     return rs

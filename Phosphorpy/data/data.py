@@ -362,7 +362,31 @@ class DataSet:
 
     def load_from_vizier(self, name):
         """
-        Load new photometric data from Vizier
+        Load new photometric data from Vizier.
+        At the moment the following surveys are available
+
+        * optical (also keyword for all optical surveys)
+            * SDSS
+            * Pan-STARRS
+            * KiDS
+            * GAIA
+            * APASS (not included in 'optical')
+        * NIR (also keyword for all NIR surveys)
+            * 2MASS
+            * VIKING
+            * UKIDSS
+        * UV (no keyword, use instead GALEX directly)
+            * GALEX
+        * IR (no keyword, use instead WISE directly)
+            * WISE
+
+        .. code:: python
+            # ds is a DataSet object with a set of coordinates
+            # download the available photometric data from the SDSS survey
+            ds.load_from_vizier('sdss')
+
+            # load also all NIR photometric data
+            ds.load_from_vizier('NIR')
 
         :param name:
             A single name or a list of names of surveys or one of the keywords 'optical' or 'nir' to
