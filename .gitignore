@@ -111,4 +111,4 @@ venv.bak/
 .idea/inspectionProfiles/
 .idea/vcs.xml
 .idea/*
-.idea
+example/

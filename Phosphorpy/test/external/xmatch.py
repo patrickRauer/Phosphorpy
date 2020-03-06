@@ -78,18 +78,20 @@ class TestXMatch(unittest.TestCase):
             'ra': np.array([114.084986, 247.083831, 044.9961159]),
             'dec': np.array([25.144718, 40.933285, 00.005620003])})
         check = {}
+
+        exclude = ['Bailer', 'SkyMappper', 'GPS1', 'LAMOST']
         for k in xmatch.SURVEY_DATA.keys():
             # exclude surveys/catalogs which are not available via XMatch
-            if 'Bailer' not in k and 'SkyMapper' not in k and 'GPS1' not in k:
-                print(k)
+            if k not in exclude:
                 try:
                     xmatch.xmatch(coords.copy(), 'ra', 'dec', k)
                     check[k] = True
                 except ValueError:
                     check[k] = False
-        print(check)
+                except KeyError:
+                    check[k] = False
+
         if not all(check.items()):
-            print(check)
             raise ValueError()
 
 
