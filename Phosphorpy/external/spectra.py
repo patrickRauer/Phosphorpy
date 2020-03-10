@@ -10,7 +10,9 @@ import numpy as np
 import urllib
 import os
 import warnings
+from glob import glob
 
+from Phosphorpy.config.survey_data import get_survey_data
 from Phosphorpy.data.sub.spectra import Spectra, SpectraList
 
 
@@ -18,6 +20,15 @@ SDSS = 'sdss'
 LAMOST = 'lamost'
 GAMA = 'gama'
 DFGRS = '2fDGR'
+
+
+def _remove_temp_files():
+    """
+    Removes all temporary spectra
+    :return:
+    """
+    for f in glob('temp_*_spec_*.fits'):
+        os.remove(f)
 
 
 def _check_coordinates(coord):
@@ -51,7 +62,7 @@ def _check_ids(ids, coord):
     :rtype: ndarray
     """
     if ids is None:
-        ids = np.arange(len(coord))
+        ids = np.arange(len(coord))+1
     else:
         if len(ids) != len(coord):
             raise ValueError('If ID\'s are given, they must have the same length as the given coordinates')
@@ -61,17 +72,28 @@ def _check_ids(ids, coord):
 
 
 def get_lamost_spectra(coord, ids=None):
+    """
+    Downloads spectra from the LAMOST DR5.
+    The cross-match radius is set to 1 arcsec.
+
+    :param coord: The coordinates of the targets
+    :type coord: SkyCoord
+    :param ids:
+        ID's corresponding to the coordinates. Default is None, which means that the positions in the coord
+        is used as ID.
+    :return: The downloaded spectra
+    :rtype: SpectraList
+    """
     coord = _check_coordinates(coord)
 
     ids = _check_ids(ids, coord)
 
     spec_list = SpectraList()
 
-    lamost_download_url = 'http://dr4.lamost.org/./spectrum/fits/{}?token='
-    lamost = Vizier(
-        columns=['_q', 'RAJ2000', 'DEJ2000', 'ObsID', 'snru', 'snrg', 'snrr', 'snri', 'snrz', 'z', 'SubClass'])
+    lamost_data = get_survey_data('LAMOST')
+    lamost = Vizier(columns=lamost_data['columns'])
     lamost.ROW_LIMIT = -1
-    rs = lamost.query_region(coord, 1 * u.arcsec, catalog='V/153/dr4')
+    rs = lamost.query_region(coord, 1 * u.arcsec, catalog=lamost_data['vizier'])
 
     if len(rs) == 0:
         return spec_list
@@ -87,7 +109,7 @@ def get_lamost_spectra(coord, ids=None):
     temp_path = f'temp_lamost_spec_{np.random.randint(0, 10000)}.fits'
 
     for obs_id, index in zip(rs['ObsID'], ids):
-        urllib.request.urlretrieve(lamost_download_url.format(obs_id), temp_path)
+        urllib.request.urlretrieve(lamost_data['url'].format(obs_id), temp_path)
         with fits.open(temp_path) as fi:
             d = fi[0].data
             wave = d[2]
@@ -112,7 +134,7 @@ def get_sdss_spectra(coord, ids=None):
     :param coord: The coordinates of the objects for which spectra are wanted
     :type coord: SkyCoord
     :param ids:
-        ID's of the spectra. If no ID's are given, the ID's are set to [0, len(coord)-1].
+        ID's of the spectra. If no ID's are given, the ID's are set to [1, len(coord)].
         Default is None.
     :type ids: Union
     :return: SpectraList with the found spectra or an empty SpectraList, if no spectra was found.
@@ -164,6 +186,18 @@ def get_sdss_spectra(coord, ids=None):
 
 
 def get_gama_spectra(coord, ids=None):
+    """
+    Downloads GAMA spectra for objects at the given coordinates, if spectra are available.
+
+    :param coord: The coordinates of the objects for which spectra are wanted
+    :type coord: SkyCoord
+    :param ids:
+        ID's of the spectra. If no ID's are given, the ID's are set to [0, len(coord)-1].
+        Default is None.
+    :type ids: Union
+    :return: SpectraList with the found spectra or an empty SpectraList, if no spectra was found.
+    :rtype: SpectraList
+    """
     spec_list_gama = SpectraList()
     spec_list_2dfgrs = SpectraList()
     coord = _check_coordinates(coord)
@@ -224,7 +258,7 @@ def get_spectra(coord, ids=None, source='SDSS'):
     :param coord: The coordinate(s) of the required sources
     :type coord: SkyCoord
     :param ids:
-        ID's of the spectra. If no ID's are given, the ID's are set to [0, len(coord)-1].
+        ID's of the spectra. If no ID's are given, the ID's are set to [1, len(coord)].
         Default is None.
     :type ids: Union
     :param source: The source of the spectra
@@ -247,6 +281,19 @@ def get_spectra(coord, ids=None, source='SDSS'):
 
 
 def get_all_spectra(coordinates, index=None):
+    """
+    Downloads all available spectra from SDSS, GAMA and LAMOST DR5
+
+    :param coordinates: The coordinates of the targets with potential spectra
+    :type coordinates: SkyCoord
+    :param index:
+        Optional, individual indices of the targets. If no indices are given, the return spectra will have indices
+        from 1 to len(coordinates) with the same order as the given coordinates.
+        Default is None.
+    :type index: Union
+    :return: The found spectra from the three surveys
+    :rtype: SpectraList
+    """
     specs = None
     try:
         specs = get_spectra(coordinates, index)
@@ -272,5 +319,7 @@ def get_all_spectra(coordinates, index=None):
             specs.merge(gama[1])
     except:
         pass
+
+    _remove_temp_files()
 
     return specs

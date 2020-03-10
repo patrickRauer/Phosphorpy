@@ -5,10 +5,14 @@ from astropy.coordinates import SkyCoord, Distance
 from astropy import units as u
 
 from Phosphorpy.data.sub.plots.astrometry import AstrometryPlot
-from Phosphorpy.external.vizier import Gaia, BailerJones
+from Phosphorpy.external.vizier import get_survey
 from .table import DataTable
 
 from Phosphorpy.data.sub.interactive_plotting.astrometry import AstrometryPlot as AstrometryPlotHV
+
+
+Gaia = get_survey('gaia')
+BailerJones = get_survey('bailer-jones')
 
 
 def _only_nearest(data):
@@ -32,7 +36,7 @@ def _download_gaia_data(coordinates):
     :return: The Gaia data
     :rtype:
     """
-    g = Gaia()
+    g = Gaia
 
     gaia = g.query(coordinates.to_astropy_table(), 'ra', 'dec', use_xmatch=True, blank=True)
 
@@ -62,7 +66,7 @@ def _download_bailer_jones_data(gaia_coords):
     :return:
     """
     # download Bailer-Jones distance estimations
-    bj = BailerJones()
+    bj = BailerJones
     if type(gaia_coords) == pd.DataFrame:
         gaia_coords = Table.from_pandas(gaia_coords)
     elif type(gaia_coords) != Table:

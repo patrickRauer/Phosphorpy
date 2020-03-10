@@ -60,7 +60,25 @@ def read_survey_data():
 
 
 def add_survey(name, vizier_path, release, reference, magnitudes, coordinates=None, xmatch=None):
+    """
+    Adds new survey data to the config file
 
+    :param name: The name of the survey
+    :type name: str
+    :param vizier_path: The Vizier code to the survey
+    :type vizier_path: str
+    :param release: The current release of the data
+    :type release: str
+    :param reference: The link the publication
+    :type reference: st
+    :param magnitudes: The names of the magnitudes
+    :type magnitudes: Union
+    :param coordinates: The names of the coordinates
+    :type coordinates: Union
+    :param xmatch: XMatch specific column name sections
+    :type xmatch: str
+    :return:
+    """
     resource_package = 'Phosphorpy'
     resource_path = '/'.join(('local', 'survey.conf'))
     shortcut_path = pkg_resources.resource_filename(resource_package, resource_path)
@@ -86,6 +104,22 @@ def add_survey(name, vizier_path, release, reference, magnitudes, coordinates=No
         conf.set(sid, 'xmatch', xmatch)
 
     # conf.write()
+
+
+def get_survey_data(survey_name):
+    """
+    Returns the survey data of the survey with the specific name (lower or upper letters do not matter)
+
+    :param survey_name: The name of the survey
+    :type survey_name: str
+    :return: The data of the survey, if one was found.
+    :rtype: dict
+    """
+    survey_name = survey_name.lower()
+    for k in SURVEY_DATA:
+        if k.lower() == survey_name:
+            return SURVEY_DATA[k]
+    raise ValueError('Survey not found!')
 
 
 SURVEY_DATA = read_survey_data()
