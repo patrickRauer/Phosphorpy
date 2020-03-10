@@ -5,10 +5,14 @@ from astropy.coordinates import SkyCoord, Distance
 from astropy import units as u
 
 from Phosphorpy.data.sub.plots.astrometry import AstrometryPlot
-from Phosphorpy.external.vizier import Gaia, BailerJones
+from Phosphorpy.external.vizier import get_survey
 from .table import DataTable
 
 from Phosphorpy.data.sub.interactive_plotting.astrometry import AstrometryPlot as AstrometryPlotHV
+
+
+Gaia = get_survey('gaia')
+BailerJones = get_survey('bailer-jones')
 
 
 def _only_nearest(data):
