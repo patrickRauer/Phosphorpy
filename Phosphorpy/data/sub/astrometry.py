@@ -36,7 +36,7 @@ def _download_gaia_data(coordinates):
     :return: The Gaia data
     :rtype:
     """
-    g = Gaia()
+    g = Gaia
 
     gaia = g.query(coordinates.to_astropy_table(), 'ra', 'dec', use_xmatch=True, blank=True)
 
@@ -66,7 +66,7 @@ def _download_bailer_jones_data(gaia_coords):
     :return:
     """
     # download Bailer-Jones distance estimations
-    bj = BailerJones()
+    bj = BailerJones
     if type(gaia_coords) == pd.DataFrame:
         gaia_coords = Table.from_pandas(gaia_coords)
     elif type(gaia_coords) != Table:
