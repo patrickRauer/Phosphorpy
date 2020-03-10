@@ -267,149 +267,6 @@ class Vizier:
         return rs[0]
 
 
-class Gaia(Vizier):
-    columns = ['RA_ICRS', 'DE_ICRS',
-               'Plx', 'e_Plx',
-               'pmRA', 'e_pmRA',
-               'pmDE', 'e_pmDE',
-               'Gmag', 'e_Gmag',
-               'BPmag', 'e_BPmag',
-               'RPmag', 'e_RPmag',
-               'epsi', 'sepsi']
-    name = names.GAIA
-    ra_name = 'GAIA_RA_ICRS'
-    dec_name = 'GAIA_DE_ICRS'
-
-    def __init__(self):
-        """
-        Child class to query GAIA DR2 data
-        """
-        Vizier.__init__(self)
-
-
-class TwoMass(Vizier):
-
-    name = names.TWO_MASS
-
-    def __init__(self):
-        """
-        Child class to query 2MASS data
-        """
-        Vizier.__init__(self)
-
-
-class SkyMapper(Vizier):
-
-    name = names.SkyMapper
-
-    def __init__(self):
-        """
-        Child class to query 2MASS data
-        """
-        Vizier.__init__(self,
-                        columns=[
-                            '_RAJ2000', '_DEJ2000',
-                            'uPetro', 'e_uPetro', 'vPetro', 'e_vPetro',
-                            'gPetro', 'e_gPetro', 'rPetro', 'e_rPetro',
-                            'iPetro', 'e_iPetro', 'zPetro', 'e_zPetro'
-                        ]
-                        )
-
-
-class Wise(Vizier):
-    name = names.WISE
-
-    def __init__(self):
-        """
-        Child class to query AllWise data
-        """
-        Vizier.__init__(self)
-
-
-class PanStarrs(Vizier):
-    name = names.PANSTARRS
-
-    def __init__(self):
-        """
-        Child class to query PanSTARRS DR1 data
-        """
-        Vizier.__init__(self)
-
-
-class SDSS(Vizier):
-    name = names.SDSS
-
-    def __init__(self):
-        """
-        Child class to query SDSS DR12 data
-        """
-        Vizier.__init__(self)
-
-
-class Apass(Vizier):
-    name = names.APASS
-
-    def __init__(self):
-        """
-        Child class to query APASS DR9 data
-        """
-        Vizier.__init__(self)
-
-
-class Galex(Vizier):
-    name = names.GALEX
-
-    def __init__(self):
-        """
-        Child class to query GALEX DR5 data
-        """
-        Vizier.__init__(self)
-
-
-class Kids(Vizier):
-
-    name = names.KIDS
-
-    def __init__(self):
-        """
-        Child class to query KiDS DR3 data
-        """
-        Vizier.__init__(self)
-
-
-class Viking(Vizier):
-
-    name = names.VIKING
-
-    def __init__(self):
-        """
-        Child class to query VIKING DR2 data
-        """
-        Vizier.__init__(self)
-
-
-class Ukidss(Vizier):
-
-    name = names.UKIDSS
-
-    def __init__(self):
-        """
-        Child class to query VIKING DR2 data
-        """
-        Vizier.__init__(self)
-
-
-class BailerJones(Vizier):
-
-    name = names.BAILER_JONES
-
-    def __init__(self):
-        """
-        Child class to query Bailer-Jones distance estimations from the GAIA DR2
-        """
-        Vizier.__init__(self)
-
-
 class MultiSurvey:
     surveys = []
 
@@ -437,25 +294,36 @@ class MultiSurvey:
         :type galex: bool
         """
         if sdss:
-            self.surveys.append(SDSS())
+            self.surveys.append(Vizier(name=names.SDSS))
 
         if panstarrs:
-            self.surveys.append(PanStarrs())
+            self.surveys.append(Vizier(name=names.PANSTARRS))
 
         if apass:
-            self.surveys.append(Apass())
+            self.surveys.append(Vizier(name=names.APASS))
 
         if two_mass:
-            self.surveys.append(TwoMass())
+            self.surveys.append(Vizier(name=names.TWO_MASS))
 
         if all_wise:
-            self.surveys.append(Wise())
+            self.surveys.append(Vizier(name=names.WISE))
 
         if gaia:
-            self.surveys.append(Gaia())
+            columns = ['RA_ICRS', 'DE_ICRS',
+                       'Plx', 'e_Plx',
+                       'pmRA', 'e_pmRA',
+                       'pmDE', 'e_pmDE',
+                       'Gmag', 'e_Gmag',
+                       'BPmag', 'e_BPmag',
+                       'RPmag', 'e_RPmag',
+                       'epsi', 'sepsi']
+            survey = Vizier(name=names.GAIA,
+                            columns=columns)
+            survey.ra_name = 'GAIA_RA_ICRS'
+            survey.dec_name = 'GAIA_DE_ICRS'
 
         if galex:
-            self.surveys.append(Galex())
+            self.surveys.append(Vizier(name=names.GALEX))
 
     def query(self, data, ra_name='ra', dec_name='dec'):
         """
@@ -502,29 +370,47 @@ def get_survey(name):
     """
     name = name.lower()
     if name == 'sdss':
-        survey = SDSS()
+        survey = Vizier(name=names.SDSS)
     elif name == 'panstarrs' or name == 'ps' or name == 'pan-starrs':
-        survey = PanStarrs()
+        survey = Vizier(name=names.PANSTARRS)
     elif name == '2mass':
-        survey = TwoMass()
+        survey = Vizier(name=names.TWO_MASS)
     elif name == 'gaia':
-        survey = Gaia()
+        columns = ['RA_ICRS', 'DE_ICRS',
+                   'Plx', 'e_Plx',
+                   'pmRA', 'e_pmRA',
+                   'pmDE', 'e_pmDE',
+                   'Gmag', 'e_Gmag',
+                   'BPmag', 'e_BPmag',
+                   'RPmag', 'e_RPmag',
+                   'epsi', 'sepsi']
+        survey = Vizier(name=names.GAIA,
+                        columns=columns)
+        survey.ra_name = 'GAIA_RA_ICRS'
+        survey.dec_name = 'GAIA_DE_ICRS'
     elif name == 'wise':
-        survey = Wise()
+        survey = Vizier(name=names.WISE)
     elif name == 'galex':
-        survey = Galex()
+        survey = Vizier(name=names.GALEX)
     elif name == 'apass':
-        survey = Apass()
+        survey = Vizier(name=names.APASS)
     elif name == 'ukidss':
-        survey = Ukidss()
+        survey = Vizier(name=names.UKIDSS)
     elif name == 'kids':
-        survey = Kids()
+        survey = Vizier(name=names.KIDS)
     elif name == 'viking':
-        survey = Viking()
+        survey = Vizier(name=names.VIKING)
     elif name == 'bailer-jones' or name == 'bj':
-        survey = BailerJones()
+        survey = Vizier(name=names.BAILER_JONES)
     elif name == 'skymapper':
-        survey = SkyMapper()
+        survey = Vizier(name=names.SkyMapper,
+                        columns=[
+                            '_RAJ2000', '_DEJ2000',
+                            'uPetro', 'e_uPetro', 'vPetro', 'e_vPetro',
+                            'gPetro', 'e_gPetro', 'rPetro', 'e_rPetro',
+                            'iPetro', 'e_iPetro', 'zPetro', 'e_zPetro'
+                        ]
+                        )
     else:
         raise AttributeError(f'No survey with name {name} known!')
     return survey
