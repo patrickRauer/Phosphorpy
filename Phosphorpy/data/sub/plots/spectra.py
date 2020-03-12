@@ -2,6 +2,8 @@ from collections.abc import Iterable
 import pylab as pl
 import numpy as np
 
+from Phosphorpy.core.functions import smooth
+
 
 class SpectraPlot:
     _spectra = None
@@ -15,7 +17,7 @@ class SpectraPlot:
         """
         self._spectra = spectra
 
-    def spectra(self, path='', min_wavelength=None, max_wavelength=None, normalize=False):
+    def spectra(self, path='', min_wavelength=None, max_wavelength=None, normalize=False, smooths=0):
         """
         Basic spectra plot
 
@@ -49,7 +51,7 @@ class SpectraPlot:
             flux = spec.flux
 
         m = np.abs(flux) < 1e8
-        sp.step(wave[m], flux[m], '-k')
+        sp.step(wave[m], smooth(flux[m], smooths), '-k')
 
         if len(self._spectra.fit) > 0:
             for fit in self._spectra.fit:
@@ -78,7 +80,7 @@ class SpectraListPlot:
         """
         self._spectra_list = spectra_list
 
-    def spectra(self, index, path='', min_wavelength=None, max_wavelength=None, normalize=False):
+    def spectra(self, index, path='', min_wavelength=None, max_wavelength=None, normalize=False, smooths=0):
         if type(index) == int:
             self._spectra_list.get_by_id(index)[0][0].plot.spectra(path, min_wavelength, max_wavelength)
         elif isinstance(index, Iterable):
@@ -104,7 +106,7 @@ class SpectraListPlot:
                     m = np.abs(flux) < 1e8
                     if normalize:
                         flux /= np.nanmedian(flux[m])
-                    sp.step(wave[m], flux[m], label=f'{i}')
+                    sp.step(wave[m], smooth(flux[m], smooths), label=f'{i}')
                     sp.set_xlim(wave[m].min(), wave[m].max())
 
             sp.set_xlabel('wavelength')

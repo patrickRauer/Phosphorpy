@@ -36,6 +36,32 @@ def gaus(x, a, b, c, d, e):
     return a * np.exp(-np.square(x-b)/(2*c**2))+e+d*x
 
 
+def smooth(x, c=5):
+    """
+    1D smoothing function
+
+    .. math::
+
+        y_i = \frac{2x_i + x_{i-1} + x_{i+1}}{4}
+
+
+    :param x: Input array with the to smooth values
+    :type x: ndarray
+    :param c: Number of smooths
+    :type c: int
+    :return: The smoothed array
+    :rtype: ndarray
+    """
+    if c == 0:
+        return x
+
+    y = x.copy()
+    y[0] = (x[0]+x[1])/2
+    y[1:-1] = (2*x[1:-1]+x[2:]+x[:-2])/4
+    y[-1] = (x[-1]+x[-2])/2
+    return smooth(y, c=c-1)
+
+
 def smooth2d(mat, c=5):
     """
     Smooths a 2d-array
