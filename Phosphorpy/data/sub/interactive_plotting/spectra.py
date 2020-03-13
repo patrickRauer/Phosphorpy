@@ -3,6 +3,7 @@ import numpy as np
 import warnings
 
 from Phosphorpy.data.sub.interactive_plotting.interactive_plotting import HVPlot
+from Phosphorpy.core.functions import smooth
 
 try:
     import holoviews as hv
@@ -27,7 +28,7 @@ class SpectraPlot(HVPlot):
             ylabel='flux'
         )
 
-    def spectra(self, path='', min_wavelength=None, max_wavelength=None, normalize=False,
+    def spectra(self, path='', min_wavelength=None, max_wavelength=None, normalize=False, smooths=0,
                 **hv_kwargs):
         """
         Basic spectra plot
@@ -73,7 +74,7 @@ class SpectraPlot(HVPlot):
         flux_c = flux[m].copy()
 
         graph = hv.Curve((
-            wave_c, flux_c
+            wave_c, smooth(flux_c, smooths)
         ))
 
         graph = self._hover(graph)
@@ -108,7 +109,7 @@ class SpectraListPlot(HVPlot):
             ylabel='flux'
         )
 
-    def spectra(self, index, path='', min_wavelength=None, max_wavelength=None, normalize=False,
+    def spectra(self, index, path='', min_wavelength=None, max_wavelength=None, normalize=False, smooths=0,
                 **hv_kwargs):
         if type(index) == int:
             self._spectra_list.get_by_id(index)[0][0].plot.spectra(path, min_wavelength, max_wavelength,
@@ -136,22 +137,18 @@ class SpectraListPlot(HVPlot):
                     if normalize:
                         flux /= np.nanmedian(flux[m])
 
+                    g = hv.Curve(
+                        (
+                            wave[m],
+                            smooth(flux[m], smooths)
+                        ),
+                        label=f'{i}')
+                    g = self._hover(g)
+
                     if graph is None:
-                        graph = hv.Curve(
-                            (
-                                wave[m],
-                                flux[m]
-                            ),
-                            label=f'{i}')
-                        graph = self._hover(graph)
+                        graph = g
                     else:
-                        g = hv.Curve(
-                            (
-                                wave[m],
-                                flux[m]
-                            ),
-                            label=f'{i}')
-                        graph *= self._hover(g)
+                        graph *= g
 
             graph = graph.opts(
                 **opts
