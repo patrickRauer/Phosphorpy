@@ -11,6 +11,7 @@ import urllib
 import os
 import warnings
 from glob import glob
+from socket import timeout
 
 from Phosphorpy.config.survey_data import get_survey_data
 from Phosphorpy.data.sub.spectra import Spectra, SpectraList
@@ -20,6 +21,17 @@ SDSS = 'sdss'
 LAMOST = 'lamost'
 GAMA = 'gama'
 DFGRS = '2fDGR'
+
+
+def progress_bar(iteration, total, prefix='',
+                 suffix='', length=100, fill='█', print_end="\r"):
+    percent = f'{100*iteration/total:04.1f}'
+    filled_length = int(length * iteration // total)
+    bar = fill * filled_length + '-' * (length - filled_length)
+    print('\r%s |%s| %s%% %s' % (prefix, bar, percent, suffix), end=print_end)
+    # Print New Line on Complete
+    if iteration == total:
+        print()
 
 
 def _remove_temp_files():
@@ -108,19 +120,35 @@ def get_lamost_spectra(coord, ids=None):
     # create a temporary path with a random number at the end to avoid potential overwriting
     temp_path = f'temp_lamost_spec_{np.random.randint(0, 10000)}.fits'
 
-    for obs_id, index in zip(rs['ObsID'], ids):
-        urllib.request.urlretrieve(lamost_data['url'].format(obs_id), temp_path)
-        with fits.open(temp_path) as fi:
-            d = fi[0].data
-            wave = d[2]
-            fl = d[0]
+    print('Download LAMOST DR5 spectra.')
 
-            spec = Spectra(wavelength=wave,
-                           flux=fl,
-                           wavelength_unit=u.angstrom,
-                           survey=LAMOST,
-                           meta=fi[0].header)
-            spec_list.append(spec, index)
+    counter = 0
+    for obs_id, index in zip(rs['ObsID'], ids):
+        progress_bar(counter, len(ids), 'Download', '')
+
+        try:
+            request = urllib.request.urlopen(lamost_data['url'].format(obs_id), timeout=30)
+            with open(temp_path, 'wb') as f:
+                try:
+                    f.write(request.read())
+                except:
+                    pass
+            # urllib.request.urlretrieve(lamost_data['url'].format(obs_id), temp_path)
+            with fits.open(temp_path) as fi:
+                d = fi[0].data
+                wave = d[2]
+                fl = d[0]
+
+                spec = Spectra(wavelength=wave,
+                               flux=fl,
+                               wavelength_unit=u.angstrom,
+                               survey=LAMOST,
+                               meta=fi[0].header)
+                spec_list.append(spec, index)
+        except timeout:
+            print(f'Timeout for LAMOST spectra with the ID {obs_id}')
+        counter += 1
+    progress_bar(counter, len(ids), 'Download', '')
 
     os.remove(temp_path)
 
