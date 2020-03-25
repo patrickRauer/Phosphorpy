@@ -98,6 +98,8 @@ def get_lamost_spectra(coord, ids=None):
     """
     coord = _check_coordinates(coord)
 
+    if len(coord) > 2000:
+        raise ValueError('To many targets. Keep in mind that other people want to download the spectra, too.')
     ids = _check_ids(ids, coord)
 
     spec_list = SpectraList()
