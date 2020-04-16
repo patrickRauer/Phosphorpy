@@ -471,13 +471,26 @@ def query_simbad(coordinates):
     i = 0
     while i*steps < len(sc):
         rs = Simbad.query_region(sc[i*steps: (i+1)*steps], radius=2*u.arcsec)
-        rs['_q'] = i*steps+rs['_q']
+        # print(rs)
+        # # try to adjust the _q (the index)
+        # try:
+        #     rs['_q'] = i*steps+rs['_q']
+        #     rs_tot.append(rs)
+        # except TypeError:
+        #     pass
         rs_tot.append(rs)
         i += 1
+
+    # if no simbad entries were found
+    if len(rs_tot) == 0:
+        return None
+
     rs_tot = vstack(rs_tot)
 
     if rs_tot is None:
         return rs_tot
+
+    # match Simbad results to the known coordinates
     coord = []
     ra_str = '{}h{}m{}s'
     dec_str = ' {}d{}m{}s'
