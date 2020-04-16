@@ -1,6 +1,7 @@
 from astropy.table import Table
 from astropy.modeling import models, fitting
 from astropy import units as u
+from collections.abc import Iterable
 import numpy as np
 import glob
 import os
@@ -72,9 +73,9 @@ class SpectraList:
         :return:
         :rtype: Spectra, int
         """
-        if isinstance(item, numbers.Integral):
+        if isinstance(item, int):
             return self._spectra[item], self._ids[item]
-        elif type(item) == list or type(item) == tuple or type(item) == np.ndarray:
+        elif isinstance(item, Iterable):
             spec_out = [
                 self._spectra[i] for i in item
             ]
@@ -367,6 +368,8 @@ class Spectra:
         tab['flux'].unit = self.flux_unit
         tab.meta['survey'] = self.survey
         tab.meta['index'] = self._index
+        for k in self._meta:
+            tab.meta[k] = self._meta[k]
 
         if data_format == 'fits':
             data_format = 'fits'
