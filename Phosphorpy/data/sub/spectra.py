@@ -719,3 +719,7 @@ class Spectra:
     @index.setter
     def index(self, value):
         self._index = value
+        
+    @property
+    def meta(self):
+        return self._meta
