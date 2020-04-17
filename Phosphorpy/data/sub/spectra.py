@@ -368,8 +368,9 @@ class Spectra:
         tab['flux'].unit = self.flux_unit
         tab.meta['survey'] = self.survey
         tab.meta['index'] = self._index
-        for k in self._meta:
-            tab.meta[k] = self._meta[k]
+        if k is not None:
+            for k in self._meta:
+                tab.meta[k] = self._meta[k]
 
         if data_format == 'fits':
             data_format = 'fits'
