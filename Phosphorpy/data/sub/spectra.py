@@ -156,7 +156,7 @@ class SpectraList:
             p = np.where(np.array(self._ids) == index)[0]
             spec_list = SpectraList()
             for i in p:
-                spec_list.append(*(self[i]))
+                spec_list.append(self[i])
             return spec_list
 
     def get_ids(self):
