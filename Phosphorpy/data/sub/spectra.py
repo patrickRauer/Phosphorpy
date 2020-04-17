@@ -368,7 +368,7 @@ class Spectra:
         tab['flux'].unit = self.flux_unit
         tab.meta['survey'] = self.survey
         tab.meta['index'] = self._index
-        if sel._meta is not None:
+        if self._meta is not None:
             for k in self._meta:
                 tab.meta[k] = self._meta[k]
 
