@@ -156,7 +156,7 @@ class SpectraList:
             p = np.where(np.array(self._ids) == index)[0]
             spec_list = SpectraList()
             for i in p:
-                spec_list.append(self[i])
+                spec_list.append(self[int(i)])
             return spec_list
 
     def get_ids(self):
@@ -368,7 +368,7 @@ class Spectra:
         tab['flux'].unit = self.flux_unit
         tab.meta['survey'] = self.survey
         tab.meta['index'] = self._index
-        if k is not None:
+        if sel._meta is not None:
             for k in self._meta:
                 tab.meta[k] = self._meta[k]
 
