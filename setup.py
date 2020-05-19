@@ -20,7 +20,7 @@ setup(
     #       'config': ['Phosphorpy/local/survey.conf']
     #   },
     install_requires=['hypothesis', 'seaborn', 'numpy', 'astropy', 'pandas', 'astroquery',
-                      'numba', 'scikit-learn', 'armapy', 'requests', 'scipy', 'pyarrow'],
+                      'numba', 'scikit-learn', 'armapy>=0.8.5', 'requests', 'scipy', 'pyarrow'],
     url='https://github.com/patrickRauer/Phosphorpy',
     license='GPL',
     author='Patrick Rauer',
