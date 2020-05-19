@@ -478,8 +478,11 @@ def query_simbad(coordinates):
         #     rs_tot.append(rs)
         # except TypeError:
         #     pass
-        rs_tot.append(rs)
+
         i += 1
+        if rs is None:
+            continue
+        rs_tot.append(rs)
 
     # if no simbad entries were found
     if len(rs_tot) == 0:
