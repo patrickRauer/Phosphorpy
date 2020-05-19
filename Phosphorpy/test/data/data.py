@@ -66,9 +66,9 @@ class TestData(unittest.TestCase):
     # def test_add_magnitudes(self):
     #     raise NotImplementedError()
 
-    # def test_get_simbad_data(self):
-    #     print('simbad')
-    #     print(self.ds.get_simbad_data())
+    def test_get_simbad_data(self):
+        print('simbad')
+        print(self.ds.get_simbad_data())
 
     # def test_images(self):
     #     self.ds.images('ps', 1, self.image_temp_path)
@@ -233,3 +233,21 @@ def test_color_2mass_plot():
     ds.load_from_vizier('ps')
     ds.load_from_vizier('2MASS')
     ds.colors.plot.color_color('2MASS')
+
+
+def test_get_simbad():
+    from astropy.coordinates import SkyCoord
+    from astropy import units as u
+    coords = np.array(
+        [[20.107556, 26.043742],
+         [42.243328, 33.655144],
+         [302.1305, -10.248511],
+         [129.1847, 48.394971],
+         [135.44044, 61.074915],
+         [256.55352, 29.505078],
+         [130.77497, 6.503425],
+         [344.92445, 7.225251]]
+    )
+    coords = SkyCoord(coords[:, 0] * u.deg, coords[:, 1] * u.deg)
+    ds = data.DataSet.from_coordinates(coords)
+    print(ds.get_simbad_data())
