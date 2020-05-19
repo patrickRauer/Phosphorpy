@@ -73,7 +73,7 @@ class LightCurvePlot(HVPlot):
         return graph
 
     def light_curve(self, light_curve_id, min_mjd=None, max_mjd=None, path=None, **hv_kwargs):
-        self.plot_light_curve(light_curve_id, min_mjd=min_mjd, max_mjd=max_mjd, path=path, **hv_kwargs)
+        return self.plot_light_curve(light_curve_id, min_mjd=min_mjd, max_mjd=max_mjd, path=path, **hv_kwargs)
 
     def _plot_light_curve(self, lc, label=None, color=None, hover=True):
         """
