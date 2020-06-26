@@ -149,11 +149,12 @@ def _xmatch(data, ra_name, dec_name, survey, max_distance):
     __write_temp_file__(data, ra_name, dec_name)
 
     # use XMatch to download the data
-    rs = XMatch.query(cat1=open('temp.csv'),
-                      cat2='vizier:{}'.format(SURVEY_DATA[survey]['vizier']),
-                      colRA1='{}_input'.format(ra_name),
-                      colDec1='{}_input'.format(dec_name),
-                      max_distance=max_distance)
+    with open('temp.csv') as f:
+        rs = XMatch.query(cat1=f,
+                          cat2='vizier:{}'.format(SURVEY_DATA[survey]['vizier']),
+                          colRA1='{}_input'.format(ra_name),
+                          colDec1='{}_input'.format(dec_name),
+                          max_distance=max_distance)
 
     # remove the temp file
     os.remove('temp.csv')
