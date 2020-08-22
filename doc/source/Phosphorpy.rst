@@ -11,7 +11,6 @@ Subpackages
    Phosphorpy.data
    Phosphorpy.external
    Phosphorpy.fitting
-   Phosphorpy.report
 
 Module contents
 ---------------
