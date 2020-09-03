@@ -6,14 +6,16 @@ This script provides an interface to the CSS-server to download light curves fro
 @author: Jean Patrick Rauer
 """
 from bs4 import BeautifulSoup
-
+from requests.exceptions import ConnectionError
 import requests
 import pylab as pl
-import urllib
 import pandas as pd
 import numpy as np
 import os
 import warnings
+
+
+LIGHT_CURVES_URL = 'http://nesssi.cacr.caltech.edu/cgi-bin/getmulticonedb_release2.cgi'
 
 
 def smooth(d, c=5):
@@ -98,6 +100,20 @@ def download_light_curve(ra, dec):
         raise ValueError('No light curve available.')
 
 
+def _download_light_curve_parts(temp_path='temp.txt'):
+    with open(temp_path) as f:
+        r = requests.post(LIGHT_CURVES_URL,
+                          data={'DB': 'photcat', 'OUT': 'csv',
+                                'SHORT': 'short'},
+                          files={'upload_file': f})
+        soup = BeautifulSoup(r.text)
+        download_url = soup.find('a', href=True)['href']
+
+        d = pd.read_csv(download_url)
+
+        return d
+
+
 def download_light_curves(ra, dec):
     """
     Downloads a set of CSS light curves from the CSS server
@@ -109,48 +125,28 @@ def download_light_curves(ra, dec):
     :return: The downloaded light curves
     :rtype: pandas.DataFrame
     """
-    url = 'http://nesssi.cacr.caltech.edu/cgi-bin/getmulticonedb_release2.cgi'
-    url2 = 'http://nesssi.cacr.caltech.edu/cgi-bin/getdatamulti.cgi?ID={}&txtInput=0000'
     results = []
     try:
         part_size = 80
-        parts = len(ra)//part_size+1
+        parts = len(ra) // part_size + 1
+        coords = pd.DataFrame({'ra': np.round(ra, 5), 'dec': np.round(dec, 5)})
         for i in range(parts):
-            d_ra = ra[i*part_size: (i+1)*part_size]
-            d_dec = dec[i*part_size: (i+1)*part_size]
-            with open('temp.txt', 'w') as f:
-                for j, (r, d) in enumerate(zip(d_ra, d_dec)):
-                    row_id = i*part_size+j
-                    f.write(f"{row_id+1}\t{round(r, 5)}\t{round(d, 5)}\n")
 
-            with open('temp.txt') as f:
-                r = requests.post(url,
-                                  data={'DB': 'photcat', 'OUT': 'csv', 
-                                        'SHORT': 'short'},
-                                  files={'upload_file': f})
+            coords[i * part_size: (i + 1) * part_size].to_csv('temp.txt', sep='\t', header=False)
 
-            r = r.text.split('location.href=\'')[-1]
-            r = r.split('\'')[0]
+            d = _download_light_curve_parts()
 
-            if 'Query service results' in r:
-                r = url2.format(
-                    r.split('name="ID" value="')[-1].split('"')[0]
-                )
-                r = requests.get(r).text
-
-                r = r.split('href=')[-1].split('>download')[0]
-
-            urllib.request.urlretrieve(r, "temp.csv")
-            d = pd.read_csv('temp.csv')
-            os.remove('temp.csv')
-            os.remove('temp.txt')
             results.append(d)
-    except:
+    except ConnectionError:
         warnings.warn('Connection problem')
 
-#    except ValueError:
-#        raise ValueError('No light curve available.')
-    return pd.concat(results)
+    finally:
+        os.remove('temp.txt')
+
+    try:
+        return pd.concat(results)
+    except ValueError:
+        return None
 
 
 def daily_average(d):
