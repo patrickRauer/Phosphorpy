@@ -5,11 +5,12 @@ This script provides an interface to the CSS-server to download light curves fro
 
 @author: Jean Patrick Rauer
 """
+from bs4 import BeautifulSoup
 
 import requests
 import pylab as pl
 import urllib
-import pandas
+import pandas as pd
 import numpy as np
 import os
 import warnings
@@ -86,13 +87,13 @@ def download_light_curve(ra, dec):
     try:
         r = requests.post('http://nunuku.caltech.edu/cgi-bin/getcssconedb_release_img.cgi',
                           data={'RA': ra, 'Dec': dec, 'DB': 'photcat', 'OUT': 'csv', 'SHORT': 'short'})
-        url = r.text.split('save as to')[-1]
-        url = url.split('href=')[-1]
-        url = url.split('>download')[0]
-        urllib.request.urlretrieve(url, "temp.csv")
-        pd = pandas.read_csv('temp.csv')
-        os.remove('temp.csv')
-        return pd
+
+        # because the CSS HTML code has 'html' and 'HTML' as tags, BeautifulSoup takes only
+        # the first (html) section, therefore we split the receiving HTML text into two parts.
+
+        soup = BeautifulSoup(r.text.split('</html>')[-1])
+        lc = pd.read_csv(soup.find_all('a', href=True)[0]['href'])
+        return lc
     except ValueError:
         raise ValueError('No light curve available.')
 
@@ -111,7 +112,6 @@ def download_light_curves(ra, dec):
     url = 'http://nesssi.cacr.caltech.edu/cgi-bin/getmulticonedb_release2.cgi'
     url2 = 'http://nesssi.cacr.caltech.edu/cgi-bin/getdatamulti.cgi?ID={}&txtInput=0000'
     results = []
-#    try:
     try:
         part_size = 80
         parts = len(ra)//part_size+1
@@ -141,16 +141,16 @@ def download_light_curves(ra, dec):
                 r = r.split('href=')[-1].split('>download')[0]
 
             urllib.request.urlretrieve(r, "temp.csv")
-            pd = pandas.read_csv('temp.csv')
+            d = pd.read_csv('temp.csv')
             os.remove('temp.csv')
             os.remove('temp.txt')
-            results.append(pd)
+            results.append(d)
     except:
         warnings.warn('Connection problem')
 
 #    except ValueError:
 #        raise ValueError('No light curve available.')
-    return pandas.concat(results)
+    return pd.concat(results)
 
 
 def daily_average(d):
